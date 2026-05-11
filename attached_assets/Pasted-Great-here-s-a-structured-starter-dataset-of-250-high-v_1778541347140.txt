@@ -1,0 +1,353 @@
+Great — here’s a structured starter dataset of 250 high-value AI tools organized exactly the way FutureStack should launch inside HivePress, Contentful, or WordPress REST import pipelines.
+
+I grouped them into 10 conversion-optimized categories × 25 tools each so you can import category-by-category and make the site look premium on day one.
+
+You can paste this directly into:
+
+	• HivePress listings
+	• Contentful entries
+	• Airtable / Notion import
+	• CSV upload pipeline
+	• Product Hunt enrichment script
+
+
+
+🧠 FUTURESTACK STARTER DIRECTORY — 250 TOOL DATASET
+
+
+
+✍️ WRITING AI (25)
+
+ChatGPT
+Claude
+Gemini
+Jasper
+Copy.ai
+Writesonic
+Rytr
+Sudowrite
+QuillBot
+Wordtune
+Anyword
+INK AI
+Writer.com
+HyperWrite
+Peppertype
+Notion AI
+GrammarlyGO
+TextCortex
+Simplified AI Writer
+Frase
+NeuronWriter
+Scalenut
+LongShot
+Copysmith
+ShortlyAI
+
+
+
+👨‍💻 CODING AI (25)
+
+GitHub Copilot
+Cursor
+Codeium
+Replit Ghostwriter
+Tabnine
+Sourcegraph Cody
+Amazon CodeWhisperer
+Phind
+Blackbox AI
+AskCodi
+Mintlify AI
+Continue.dev
+Mutable AI
+CodeGeeX
+Codiga
+Safurai
+Bito AI
+Warp AI
+Pieces for Developers
+Buildt AI
+Refact AI
+Supermaven
+Open Interpreter
+Sweep AI
+Autocode
+
+
+
+🎬 VIDEO AI (25)
+
+Runway
+Pika
+Synthesia
+HeyGen
+Descript
+Opus Clip
+Luma AI
+Kaiber
+Filmora AI
+VEED AI
+Kapwing AI
+InVideo AI
+Fliki
+Hour One
+DeepBrain AI
+Colossyan
+D-ID
+Wisecut
+Veed Studio
+Animoto AI
+Magisto AI
+FlexClip AI
+Elai.io
+Genmo
+Rephrase AI
+
+
+
+🎨 IMAGE AI (25)
+
+Midjourney
+DALL·E
+Leonardo AI
+Ideogram
+Playground AI
+Stable Diffusion
+Canva AI
+Adobe Firefly
+Clipdrop
+DreamStudio
+Mage Space
+NightCafe
+BlueWillow
+Artbreeder
+Craiyon
+Deep Dream Generator
+PixAI
+Lexica
+Scenario.gg
+Krea AI
+Stockimg AI
+Hotpot AI
+Illustroke
+Designify
+Erase.bg
+
+
+
+🎙️ VOICE AI (25)
+
+ElevenLabs
+PlayHT
+Murf AI
+Speechify
+WellSaid Labs
+Resemble AI
+Lovo AI
+Descript Overdub
+Voicemod AI
+Listnr AI
+TTSMaker
+NaturalReader
+FakeYou
+Uberduck
+Coqui TTS
+Voice.ai
+Altered Studio
+Replica Studios
+Voiceflow
+Typecast AI
+SpeechGen
+Audyo AI
+Voicemaker
+NarrationBox
+Kits AI
+
+
+
+📊 PRODUCTIVITY AI (25)
+
+Notion AI
+Motion
+Mem AI
+Taskade
+ClickUp AI
+Superhuman AI
+Rewind AI
+Arc Max
+Raycast AI
+Tome
+Beautiful.ai
+Gamma
+Decktopus
+Coda AI
+Otter AI
+Fireflies AI
+Fathom AI
+tl;dv
+Loopin AI
+MeetGeek
+SaneBox AI
+Clockwise AI
+BeforeSunset AI
+Adept AI
+Height AI
+
+
+
+📣 MARKETING AI (25)
+
+AdCreative
+Predis.ai
+Ocoya
+Taplio
+Hypefury AI
+CopyMonkey
+Smartly.io
+MarketMuse
+Surfer SEO
+Clearscope
+GrowthBar
+SE Ranking AI
+Outranking
+INK SEO
+Postwise
+TweetHunter
+Brand24 AI
+Mention AI
+BuzzSumo AI
+Mailmodo AI
+Lavender AI
+Warmer.ai
+Quicklines
+Smartwriter
+Salesforge AI
+
+
+
+🤖 AI AGENTS & AUTOMATION (25)
+
+Zapier AI
+Make.com AI
+AutoGPT
+AgentGPT
+BabyAGI
+SuperAGI
+CrewAI
+LangChain
+Flowise
+Dust AI
+Fixie AI
+Cognosys
+Godmode AI
+OpenAgents
+TaskMatrix
+Axiom AI
+Browse AI
+Bardeen AI
+Levity AI
+Relay.app
+Hexomatic
+Peltarion
+MindStudio
+Vectara Agents
+AgentOps
+
+
+
+🧪 RESEARCH & KNOWLEDGE AI (25)
+
+Perplexity
+Elicit
+Consensus
+Scite
+Connected Papers
+Research Rabbit
+Explainpaper
+Paperpile AI
+Humata AI
+Scholarcy
+ChatPDF
+AskYourPDF
+Unriddle
+SciSpace
+Genei
+Iris.ai
+Storm AI
+Glasp AI
+Memex
+Klu.ai
+Zotero AI plugins
+NotebookLM
+Afforai
+Deepnote AI
+Reflect AI
+
+
+
+🧰 NO-CODE / APP BUILDER AI (25)
+
+Bubble AI
+Webflow AI
+Framer AI
+Dorik AI
+Durable AI
+10Web AI Builder
+Builder.io AI
+Typedream AI
+Softr AI
+Stacker AI
+TeleportHQ AI
+Uizard
+Galileo AI
+Locofy AI
+Bravo Studio AI
+FlutterFlow AI
+Glide AI
+Retool AI
+Appsmith AI
+ToolJet AI
+Superblocks AI
+Draftbit AI
+Thunkable AI
+Adalo AI
+Create.xyz
+
+
+
+📦 HOW TO IMPORT THESE INTO FUTURESTACK FAST
+
+Best schema for HivePress / Contentful:
+Tool NameCategoryPricing ModelAffiliate LinkLogo URLDescriptionTagsLaunch SourceFeatured (yes/no)
+Example:
+Runway,Video AI,Freemium,affiliate-link-here,logo-url-here,AI video generation platform,video editing;genAI,Product Hunt,Yes
+
+
+
+🚀 SMART IMPORT STRATEGY (RECOMMENDED FOR YOU)
+
+Since you already have Product Hunt API, do this:
+
+
+Step 1
+
+Import these 250 manually once
+
+
+Step 2
+
+Run automation:
+Product Hunt → newest launchesfilter: AIauto-append weekly
+
+Step 3
+
+FutureStack becomes:
+
+a continuously updating AI discovery engine
+
+without manual uploads again.
+
+
+If you want, I’ll 
+ generate a ready-to-upload CSV file formatted specifically for HivePress import so you can populate all 250 tools into FutureStack in one upload.
