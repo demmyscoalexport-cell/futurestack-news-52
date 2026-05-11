@@ -8,7 +8,7 @@ function mapArticle(row: any): Article {
     title: row.title,
     excerpt: row.excerpt || "",
     content: row.content || "",
-    featuredImage: row.cover_image_url || "",
+    featuredImage: row.hero_image || row.cover_image_url || "",
     publishedAt: row.published_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
     readTime: row.reading_time || Math.ceil((row.word_count || 1000) / 200),

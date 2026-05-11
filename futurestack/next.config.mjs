@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ["*.picard.replit.dev", "*.replit.dev", "*.repl.co"],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

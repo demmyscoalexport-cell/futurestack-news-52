@@ -1,45 +1,75 @@
-# [Project name]
+# FutureStack News
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+AI-powered SaaS & AI tool discovery platform — find, compare, and build stacks of the best tools for your role.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `cd futurestack && npm run dev` — start the app (port 3000, with Inngest dev server)
+- `node scripts/seed-with-images.mjs --quick` — seed DB with logos (fast, no AI images)
+- `node scripts/seed-with-images.mjs` — full seed with WaveSpeed AI logos → Cloudinary
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Next.js 15 + React 19 + TypeScript
+- Supabase (PostgreSQL + Auth + RLS)
+- Inngest (background job orchestration — INNGEST_DEV=1 for local)
+- Tailwind CSS + Framer Motion
+- Cloudinary (image hosting)
+- WaveSpeed AI flux-schnell (AI logo generation)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `futurestack/` — main Next.js application
+- `futurestack/app/` — Next.js App Router pages and API routes
+- `futurestack/lib/` — shared libraries (Supabase clients, queries, types)
+- `futurestack/inngest/` — background job functions
+- `futurestack/scripts/seed-with-images.mjs` — full DB seeder (100+ tools, 8 articles, 8 stacks)
+- `futurestack/supabase/deploy_schema.sql` — DEFINITIVE schema (matches actual column names)
+- `futurestack/.env.local` — all credentials
+
+## Database Schema
+
+Source of truth: `futurestack/supabase/deploy_schema.sql`
+Apply by pasting into Supabase SQL Editor → Run.
+
+Key column names (DO NOT use the old schema files):
+- `tools`: `tagline`, `website_url`, `is_featured`, `status`, `pricing_model`, `logo`
+- `articles`: `hero_image`, `cover_image_url`, `category_id` (FK to `categories`), `reading_time`, `is_featured`
+- `categories` (article categories) — separate from `tool_categories`
+
+## Supabase Status
+
+**Project ref:** `mjqkptowvgzmrojlgcms`
+**URL:** `https://mjqkptowvgzmrojlgcms.supabase.co`
+**Status:** PAUSED (free tier — needs manual restore)
+
+To restore: https://supabase.com/dashboard → find project → click "Restore"
+After restore: paste `deploy_schema.sql` into SQL Editor → Run → then run seed script.
+
+## Credentials (stored as Replit env vars AND in .env.local)
+
+- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY`
+- `WAVESPEED_API_KEY` — for AI logo generation
+- `CLOUDINARY_CLOUD_NAME=dxizihlmo` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`
+- `INNGEST_DEV=1` — enables Inngest local dev mode
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Schema uses `categories` table for articles (not `tool_categories`)
+- Tools use text `category` column pointing to `tool_categories.id`
+- Articles use `hero_image` as canonical image field (also has `cover_image_url` alias)
+- Inngest runs locally alongside Next.js via `concurrently`
+- All Supabase queries return empty arrays on error (graceful degradation)
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Build for freelancers, agencies, and SaaS founders in Africa and globally
+- Africa-friendly tools prominently featured
+- Clean, dark-themed UI with Tailwind + Framer Motion animations
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Supabase free tier pauses after 1 week of inactivity — restore from dashboard
+- Run seed from `futurestack/` directory: `node scripts/seed-with-images.mjs --quick`
+- `next.config.js` must have `allowedDevOrigins` for Replit preview to work
+- Do NOT use old schema files (schema.sql, complete_schema.sql, migration_002) — use deploy_schema.sql
