@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { inngest } from "@/inngest/client";
+import { requireAdmin } from "@/lib/supabase/admin-guard";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   try {
     const body = await req.json().catch(() => ({}));
     const limitPerTopic = typeof body.limitPerTopic === "number" ? body.limitPerTopic : 10;
@@ -21,7 +27,10 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   return POST(
     new Request("http://localhost/api/sync-tools", {
       method: "POST",

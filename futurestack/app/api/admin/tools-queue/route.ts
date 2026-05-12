@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/supabase/admin-guard";
 
 export const runtime = "nodejs";
-
-async function requireAdmin(): Promise<{ error: NextResponse } | { ok: true }> {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const { data: profile } = await supabase
-    .from("profiles").select("role").eq("id", session.user.id).single();
-  if (profile?.role !== "admin") return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
-  return { ok: true };
-}
 
 /* ─── GET — list pending_review tools ─── */
 export async function GET(req: NextRequest) {
@@ -65,7 +55,6 @@ export async function POST(req: NextRequest) {
       [id],
     );
 
-    // Insert default scores if not present
     await db.query(
       `INSERT INTO tool_scores (tool_id, ease_of_use, value_for_money, feature_depth, support_quality, integration_richness, ai_capability)
        SELECT id, 7.0, 7.0, 7.0, 7.0, 7.0, 7.5 FROM tools WHERE id = $1
@@ -76,7 +65,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, action: "approved" });
   }
 
-  // reject — soft delete
   await db.query(
     `UPDATE tools SET status = 'rejected', last_updated = NOW()::date WHERE id = $1`,
     [id],
