@@ -1,6 +1,6 @@
 import { inngest } from "../client";
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
 
@@ -13,40 +13,46 @@ export const notifyOnPublish = inngest.createFunction(
   async ({ event, step }) => {
     const { article } = event.data;
 
-    // Only send email for featured/high-score articles to avoid spam
-    if (!article.featured && article.status !== "published")
+    if (!article.is_featured && article.status !== "published") {
       return { skipped: true };
+    }
 
-    // Get active newsletter subscribers
     const subscribers = await step.run("get-subscribers", async () => {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("newsletter_subscribers")
-        .select("email")
-        .eq("confirmed", true)
-        .eq("unsubscribed", false)
-        .limit(5000);
-
-      return data || [];
+      const { rows } = await db.query(
+        `SELECT email FROM newsletter_subscribers
+         WHERE status = 'active' AND (unsubscribed IS NULL OR unsubscribed = false)
+         LIMIT 5000`,
+      );
+      return rows as { email: string }[];
     });
 
     if (subscribers.length === 0) return { notified: 0 };
 
-    // Send via Resend (batch)
-    await step.run("send-email-batch", async () => {
-      // Batch in groups of 100
-      const batches = [];
-      for (let i = 0; i < subscribers.length; i += 100) {
-        batches.push(subscribers.slice(i, i + 100));
-      }
+    if (!process.env.RESEND_API_KEY) {
+      console.log(
+        `[notify-on-publish] RESEND_API_KEY not set — would notify ${subscribers.length} subscribers`,
+      );
+      return { notified: 0, skipped: "no_resend_key" };
+    }
 
-      for (const batch of batches) {
+    await step.run("send-email-batch", async () => {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://futurestack.live";
+      for (let i = 0; i < subscribers.length; i += 100) {
+        const batch = subscribers.slice(i, i + 100);
         await resend.batch.send(
-          batch.map((sub: any) => ({
-            from: "FutureStack News <digest@futurestack.news>",
+          batch.map((sub) => ({
+            from: process.env.RESEND_FROM_EMAIL || "FutureStack News <digest@futurestack.live>",
             to: sub.email,
-            subject: `New Article: ${article.title}`,
-            html: `<h1>${article.title}</h1><p>${article.excerpt}</p><br/><a href="https://futurestack.news/news/${article.slug}">Read Article</a>`,
+            subject: `New: ${article.title}`,
+            html: `
+              <div style="background:#0f172a;color:#f1f5f9;padding:40px;font-family:sans-serif;max-width:600px;margin:0 auto;border-radius:12px;">
+                <h2 style="color:#818cf8;">${article.title}</h2>
+                <p style="color:#94a3b8;">${article.excerpt || ""}</p>
+                <a href="${siteUrl}/news/${article.slug}"
+                   style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;">
+                  Read Article
+                </a>
+              </div>`,
           })),
         );
       }

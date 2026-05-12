@@ -1,9 +1,15 @@
 import { inngest } from "../client";
-import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
-import * as fal from "@fal-ai/serverless-client";
+import { db } from "@/lib/db";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+function makeClient() {
+  const baseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL;
+  const apiKey =
+    process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||
+    process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+  return new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) });
+}
 
 export const generateArticle = inngest.createFunction(
   {
@@ -13,45 +19,44 @@ export const generateArticle = inngest.createFunction(
     triggers: [{ event: "article/approved.for.generation" }],
   },
   async ({ event, step }) => {
+    const anthropic = makeClient();
+    if (!anthropic) throw new Error("AI service not configured");
+
     const { signal, relevanceScore } = event.data;
 
     // Step 1: Generate full article with Claude Sonnet
-    const articleContent = await step.run(
-      "generate-article-content",
-      async () => {
-        const systemPrompt = `You are a senior tech journalist specializing in AI tools.
+    const articleContent = await step.run("generate-article-content", async () => {
+      const systemPrompt = `You are a senior tech journalist specializing in AI tools.
 Your readers are: freelancers, SaaS founders, and agency owners who live inside AI tools every day.
 Writing style: Sharp, insightful, opinionated. No fluff. Every sentence earns its place.
 Format: Return JSON with exact keys: title, slug, excerpt (150 chars), body (full MDX, 800-1200 words), category, tags, key_takeaways (array)`;
 
-        const response = await anthropic.messages.create({
-          model: "claude-3-7-sonnet-20250219",
-          max_tokens: 3000,
-          system: systemPrompt,
-          messages: [
-            {
-              role: "user",
-              content: `Write an article about this news signal.
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 3000,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: `Write an article about this news signal.
 Signal title: ${signal.title}
 Signal summary: ${signal.summary}
 Recommended angle: ${relevanceScore.article_angle}
 Source URL: ${signal.link || "N/A"}
 Write the article now. Return ONLY valid JSON.`,
-            },
-          ],
-        });
+          },
+        ],
+      });
 
-        const text =
-          response.content[0].type === "text" ? response.content[0].text : "{}";
-        const clean = text.replace(/```json|```/g, "").trim();
-        return JSON.parse(clean);
-      },
-    );
+      const text = response.content[0].type === "text" ? response.content[0].text : "{}";
+      const clean = text.replace(/```json|```/g, "").trim();
+      return JSON.parse(clean);
+    });
 
     // Step 2: Generate SEO meta
     const seoMeta = await step.run("generate-seo-meta", async () => {
       const response = await anthropic.messages.create({
-        model: "claude-3-5-haiku-20241022",
+        model: "claude-haiku-4-5",
         max_tokens: 300,
         messages: [
           {
@@ -64,95 +69,100 @@ Return JSON: {"meta_title": "...", "meta_description": "...", "og_title": "...",
         ],
       });
 
-      const text =
-        response.content[0].type === "text" ? response.content[0].text : "{}";
+      const text = response.content[0].type === "text" ? response.content[0].text : "{}";
       return JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
     });
 
-    // Step 3: Generate hero image with FAL.ai
+    // Step 3: Generate hero image (via our own /api/generate-image endpoint)
     const heroImage = await step.run("generate-hero-image", async () => {
       try {
-        const result = (await fal.subscribe("fal-ai/flux/schnell", {
-          input: {
-            prompt: `Professional tech editorial illustration for article: "${articleContent.title}". Modern, clean, abstract representation of AI technology. Dark mode aesthetic, electric blue accents, geometric patterns. High quality, 16:9 ratio, magazine cover quality.`,
-            image_size: "landscape_16_9",
-            num_inference_steps: 4,
-          },
-        })) as any;
-        return result?.images?.[0]?.url || null;
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+        const res = await fetch(`${baseUrl}/api/generate-image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "article-hero",
+            name: articleContent.title,
+            prompt: articleContent.title,
+          }),
+        });
+        const data = await res.json();
+        return data?.url || null;
       } catch {
         return null;
       }
     });
 
-    // Step 4: Generate social copy variants
-    const socialCopy = await step.run("generate-social-copy", async () => {
-      const response = await anthropic.messages.create({
-        model: "claude-3-5-haiku-20241022",
-        max_tokens: 400,
-        messages: [
-          {
-            role: "user",
-            content: `Write 3 social media post variants for this article (Twitter/LinkedIn).
-Article: ${articleContent.title}
-Excerpt: ${articleContent.excerpt}
-Return JSON: {"twitter": "...", "linkedin": "...", "thread_hook": "..."}`,
-          },
-        ],
-      });
+    // Step 4: Resolve or create the AI author in pg
+    const authorId = await step.run("resolve-author", async () => {
+      const { rows } = await db.query(
+        `SELECT id FROM authors WHERE slug = 'futurestack-ai' LIMIT 1`,
+      );
+      if (rows[0]) return rows[0].id;
 
-      const text =
-        response.content[0].type === "text" ? response.content[0].text : "{}";
-      return JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
+      const { rows: inserted } = await db.query(
+        `INSERT INTO authors (name, slug, bio, avatar)
+         VALUES ('FutureStack AI', 'futurestack-ai',
+           'AI-powered editorial engine that monitors the AI tool ecosystem 24/7.',
+           '/avatars/ai-author.png')
+         ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
+         RETURNING id`,
+      );
+      return inserted[0]?.id || null;
     });
 
-    // Step 5: Save to Supabase (status: published or draft based on score)
+    // Step 5: Resolve category
+    const categoryId = await step.run("resolve-category", async () => {
+      const slug = articleContent.category || "ai-tools";
+      const { rows } = await db.query(
+        `SELECT id FROM categories WHERE slug = $1 LIMIT 1`,
+        [slug],
+      );
+      if (rows[0]) return rows[0].id;
+      // Fallback to first available category
+      const { rows: fallback } = await db.query(`SELECT id FROM categories LIMIT 1`);
+      return fallback[0]?.id || null;
+    });
+
+    // Step 6: Save article to pg
     const savedArticle = await step.run("save-article-to-db", async () => {
-      const supabase = await createClient();
+      const slug = seoMeta.canonical_slug || articleContent.slug;
+      const isPublished = (relevanceScore.score ?? 0) >= 9;
+      const content = articleContent.body || articleContent.content || "";
+      const wordCount = content.split(/\s+/).length;
 
-      let { data: author } = await supabase
-        .from("authors")
-        .select("id")
-        .eq("slug", "futurestack-ai")
-        .single();
-
-      if (!author) {
-        const { data: newAuthor } = await supabase
-          .from("authors")
-          .insert({
-            name: "FutureStack AI",
-            slug: "futurestack-ai",
-            bio: "AI-powered editorial engine that monitors the AI tool ecosystem 24/7.",
-            avatar: "/avatars/ai-author.png",
-          })
-          .select()
-          .single();
-        author = newAuthor;
-      }
-
-      const { data, error } = await supabase
-        .from("articles")
-        .insert({
-          title: articleContent.title,
-          slug: seoMeta.canonical_slug || articleContent.slug,
-          excerpt: articleContent.excerpt,
-          content: articleContent.body,
-          featured_image: heroImage,
-          author_id: author?.id,
-          category: articleContent.category || "ai-news",
-          tags: articleContent.tags || [],
-          status: relevanceScore.score >= 9 ? "published" : "draft",
-          published_at:
-            relevanceScore.score >= 9 ? new Date().toISOString() : null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const { rows } = await db.query(
+        `INSERT INTO articles (
+           title, slug, excerpt, content, hero_image, cover_image_url,
+           author_id, category_id, tags, status, is_featured, is_ai_generated,
+           reading_time, word_count, seo_title, seo_description,
+           published_at, created_at, updated_at
+         ) VALUES ($1,$2,$3,$4,$5,$5,$6,$7,$8,$9,false,true,$10,$11,$12,$13,$14,NOW(),NOW())
+         ON CONFLICT (slug) DO UPDATE SET
+           title = EXCLUDED.title, content = EXCLUDED.content, status = EXCLUDED.status,
+           hero_image = EXCLUDED.hero_image, updated_at = NOW()
+         RETURNING id, slug, status`,
+        [
+          articleContent.title,
+          slug,
+          articleContent.excerpt || "",
+          content,
+          heroImage,
+          authorId,
+          categoryId,
+          articleContent.tags || [],
+          isPublished ? "published" : "draft",
+          Math.max(1, Math.ceil(wordCount / 200)),
+          wordCount,
+          seoMeta.meta_title || articleContent.title,
+          seoMeta.meta_description || articleContent.excerpt,
+          isPublished ? new Date().toISOString() : null,
+        ],
+      );
+      return rows[0];
     });
 
-    // Step 6: If auto-published, trigger notifications
+    // Step 7: If auto-published, trigger notifications
     if (savedArticle?.status === "published") {
       await step.sendEvent("trigger-notifications", {
         name: "article/published",

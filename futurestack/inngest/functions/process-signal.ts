@@ -1,8 +1,15 @@
 import { inngest } from "../client";
-import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { db } from "@/lib/db";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+function makeClient() {
+  const baseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL;
+  const apiKey =
+    process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ||
+    process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+  return new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) });
+}
 
 export const processSignal = inngest.createFunction(
   {
@@ -14,25 +21,28 @@ export const processSignal = inngest.createFunction(
   async ({ event, step }) => {
     const signal = event.data;
 
-    // Step 1: Check for duplicates in DB
+    // Step 1: Duplicate check via pg ILIKE
     const isDuplicate = await step.run("check-duplicate", async () => {
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("articles")
-        .select("id")
-        .textSearch("title", signal.title.split(" ").slice(0, 5).join(" | "))
-        .limit(1);
-
-      return (data?.length ?? 0) > 0;
+      const words = signal.title.split(" ").slice(0, 5).join("%");
+      const { rows } = await db.query(
+        `SELECT id FROM articles WHERE title ILIKE $1 LIMIT 1`,
+        [`%${words}%`],
+      );
+      return rows.length > 0;
     });
 
     if (isDuplicate) return { skipped: true, reason: "duplicate" };
 
-    // Step 2: Score relevance with Claude Haiku (fast + cheap)
+    const anthropic = makeClient();
+    if (!anthropic) {
+      return { skipped: true, reason: "no_ai_key" };
+    }
+
+    // Step 2: Score relevance
     const relevanceScore = await step.run("score-relevance", async () => {
       const response = await anthropic.messages.create({
-        model: "claude-3-5-haiku-20241022",
-        max_tokens: 100,
+        model: "claude-haiku-4-5",
+        max_tokens: 200,
         messages: [
           {
             role: "user",
@@ -53,15 +63,10 @@ Return ONLY a JSON object: {"score": 8, "reason": "brief reason", "article_angle
       }
     });
 
-    if (relevanceScore.score < 7) {
-      return {
-        skipped: true,
-        reason: "low_relevance",
-        score: relevanceScore.score,
-      };
+    if ((relevanceScore.score ?? 0) < 7) {
+      return { skipped: true, reason: "low_relevance", score: relevanceScore.score };
     }
 
-    // Step 3: Approved — emit for article generation
     await step.sendEvent("emit-for-generation", {
       name: "article/approved.for.generation",
       data: { signal, relevanceScore },

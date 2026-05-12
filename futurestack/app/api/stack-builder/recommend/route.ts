@@ -1,24 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+function makeAnthropicClient() {
+  const baseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL;
+  const apiKey = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return null;
+  return new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) });
+}
 
 export async function POST(req: NextRequest) {
+  const anthropic = makeAnthropicClient();
+  if (!anthropic) {
+    return NextResponse.json({ error: "AI service not configured" }, { status: 503 });
+  }
+
   try {
     const { role, goals, budget, currentTools, teamSize } = await req.json();
-    const supabase = await createClient();
 
-    // Fetch all tools from DB to give Claude real data
-    const { data: allTools } = await supabase
-      .from("tools")
-      .select("name, slug, tagline, category, has_free, description")
-      .limit(200);
+    const { rows: allTools } = await db.query(
+      `SELECT name, slug, tagline, category, has_free, description
+       FROM tools WHERE status = 'active' ORDER BY review_count DESC LIMIT 200`,
+    );
 
     const toolsContext = JSON.stringify(allTools, null, 2);
 
     const stream = await anthropic.messages.stream({
-      model: "claude-3-5-sonnet-20241022", // substituting valid Claude 3.5 Sonnet
+      model: "claude-sonnet-4-6",
       max_tokens: 2000,
       system: `You are the FutureStack AI Stack Advisor. You recommend the optimal combination of AI tools.
 Available tools in the FutureStack database:
@@ -96,10 +104,7 @@ Team Size: ${teamSize}`,
       },
     });
   } catch (err) {
-    console.error("Recommend API error:", err);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    console.error("[stack-builder/recommend]", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
