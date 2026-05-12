@@ -14,6 +14,7 @@ const nextConfig = {
       { hostname: "lh3.googleusercontent.com" },
       { hostname: "**.amazonaws.com" },
       { hostname: "**.cloudinary.com" },
+      { hostname: "www.google.com" },
     ],
   },
 };

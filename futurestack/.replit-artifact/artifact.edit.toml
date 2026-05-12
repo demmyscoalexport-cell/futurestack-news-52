@@ -1,0 +1,15 @@
+kind = "web"
+previewPath = "/"
+title = "FutureStack News"
+version = "1.0.0"
+
+[[services]]
+localPort = 3000
+name = "FutureStack Dev"
+paths = ["/"]
+
+[services.env]
+PORT = "3000"
+
+[services.development]
+run = "cd /home/runner/workspace/futurestack && npm run dev"
