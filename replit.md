@@ -5,61 +5,70 @@ AI-powered SaaS & AI tool discovery platform — find, compare, and build stacks
 ## Run & Operate
 
 - `cd futurestack && npm run dev` — start the app (port 3000, with Inngest dev server)
-- `node scripts/seed-with-images.mjs --quick` — seed DB with logos (fast, no AI images)
-- `node scripts/seed-with-images.mjs` — full seed with WaveSpeed AI logos → Cloudinary
+- `cd futurestack && node scripts/seed-pg.mjs --quick` — seed Replit PostgreSQL (fast, clearbit logos)
+- `cd futurestack && node scripts/seed-pg.mjs` — full seed with WaveSpeed AI logos → Cloudinary
 
 ## Stack
 
 - Next.js 15 + React 19 + TypeScript
-- Supabase (PostgreSQL + Auth + RLS)
+- **Replit PostgreSQL** (heliumdb) — primary database via `pg` driver
 - Inngest (background job orchestration — INNGEST_DEV=1 for local)
 - Tailwind CSS + Framer Motion
 - Cloudinary (image hosting)
 - WaveSpeed AI flux-schnell (AI logo generation)
+- Supabase credentials kept (for auth pages, but core content runs on Replit PG)
 
 ## Where things live
 
 - `futurestack/` — main Next.js application
 - `futurestack/app/` — Next.js App Router pages and API routes
-- `futurestack/lib/` — shared libraries (Supabase clients, queries, types)
+- `futurestack/lib/db.ts` — PostgreSQL pool (connects to Replit heliumdb)
+- `futurestack/lib/queries/tools.ts` — pg-backed tool queries
+- `futurestack/lib/queries/articles.ts` — pg-backed article queries
+- `futurestack/lib/queries/stacks.ts` — pg-backed stack queries
+- `futurestack/lib/supabase/` — Supabase clients (still used for auth routes)
 - `futurestack/inngest/` — background job functions
-- `futurestack/scripts/seed-with-images.mjs` — full DB seeder (100+ tools, 8 articles, 8 stacks)
-- `futurestack/supabase/deploy_schema.sql` — DEFINITIVE schema (matches actual column names)
+- `futurestack/scripts/seed-pg.mjs` — PostgreSQL seed script (54 tools, 8 articles, 8 stacks)
+- `futurestack/supabase/deploy_schema.sql` — schema reference (applied to Replit PG already)
 - `futurestack/.env.local` — all credentials
 
-## Database Schema
+## Database Schema (Replit PostgreSQL)
 
-Source of truth: `futurestack/supabase/deploy_schema.sql`
-Apply by pasting into Supabase SQL Editor → Run.
+Schema applied to Replit PostgreSQL (`heliumdb`). Key tables:
+- `tools` — `tagline`, `website_url`, `is_featured`, `status`, `pricing_model`, `logo`
+- `articles` — `hero_image`, `cover_image_url`, `category_id` (FK to `categories`), `reading_time`, `is_featured`
+- `categories` — article categories (separate from `tool_categories`)
+- `tool_scores` — computed `futurestack_score` from 6 sub-scores
+- `tool_pricing` — pricing tiers per tool (104 tiers seeded)
+- `stacks` + `stack_tools` — curated tool stacks
+- `authors` — article authors
 
-Key column names (DO NOT use the old schema files):
-- `tools`: `tagline`, `website_url`, `is_featured`, `status`, `pricing_model`, `logo`
-- `articles`: `hero_image`, `cover_image_url`, `category_id` (FK to `categories`), `reading_time`, `is_featured`
-- `categories` (article categories) — separate from `tool_categories`
+## Database Status
 
-## Supabase Status
+**Replit PostgreSQL:** ACTIVE (helium:5432, heliumdb) — always-on, no pausing.
+**Data:** 54 tools, 104 pricing tiers, 8 articles, 8 stacks, 5 authors, 28 alternative pairs.
 
-**Project ref:** `mjqkptowvgzmrojlgcms`
-**URL:** `https://mjqkptowvgzmrojlgcms.supabase.co`
-**Status:** PAUSED (free tier — needs manual restore)
+To re-seed: `cd futurestack && node scripts/seed-pg.mjs --quick`
 
-To restore: https://supabase.com/dashboard → find project → click "Restore"
-After restore: paste `deploy_schema.sql` into SQL Editor → Run → then run seed script.
+## Credentials (stored as Replit secrets)
 
-## Credentials (stored as Replit env vars AND in .env.local)
-
-- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY`
+- `DATABASE_URL` + `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` — Replit PG
+- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` — kept for auth routes
 - `WAVESPEED_API_KEY` — for AI logo generation
 - `CLOUDINARY_CLOUD_NAME=dxizihlmo` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`
 - `INNGEST_DEV=1` — enables Inngest local dev mode
 
 ## Architecture decisions
 
+- **Data layer migrated from Supabase JS client to direct PostgreSQL** (`pg` pool)
+- `lib/db.ts` exports a singleton `Pool` connecting to Replit heliumdb
+- Core query files (`lib/queries/*.ts`) use SQL directly — same return shapes as before
+- Auth pages (`/login`, `/signup`, `/account`, `/dashboard`) still use Supabase client and may fail until Supabase project is restored
+- `ToolCard` component is a Client Component (has `onError` handler on img)
+- Search API (`/api/search`) now uses pg directly — no OpenAI embedding, keyword search only
 - Schema uses `categories` table for articles (not `tool_categories`)
-- Tools use text `category` column pointing to `tool_categories.id`
 - Articles use `hero_image` as canonical image field (also has `cover_image_url` alias)
 - Inngest runs locally alongside Next.js via `concurrently`
-- All Supabase queries return empty arrays on error (graceful degradation)
 
 ## User preferences
 
@@ -69,7 +78,8 @@ After restore: paste `deploy_schema.sql` into SQL Editor → Run → then run se
 
 ## Gotchas
 
-- Supabase free tier pauses after 1 week of inactivity — restore from dashboard
-- Run seed from `futurestack/` directory: `node scripts/seed-with-images.mjs --quick`
-- `next.config.js` must have `allowedDevOrigins` for Replit preview to work
-- Do NOT use old schema files (schema.sql, complete_schema.sql, migration_002) — use deploy_schema.sql
+- Replit PostgreSQL never pauses — always available in the workspace
+- Run seed from `futurestack/` directory: `node scripts/seed-pg.mjs --quick`
+- `next.config.mjs` must have `allowedDevOrigins` for Replit preview to work
+- Supabase credentials are kept in `.env.local` but Supabase project `mjqkptowvgzmrojlgcms` may be paused
+- Auth/admin features require a live Supabase project — restore from dashboard if needed

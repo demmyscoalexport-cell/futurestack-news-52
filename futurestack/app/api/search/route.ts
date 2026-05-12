@@ -1,75 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "mock_key_for_build",
-});
+import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
     const query = req.nextUrl.searchParams.get("q");
-    if (!query) return NextResponse.json({ results: [] });
+    if (!query?.trim()) return NextResponse.json({ tools: [], articles: [], query: "", total: 0 });
 
-    const supabase = await createClient();
+    const like = `%${query}%`;
 
-    // Generate embedding for the query
-    const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: query,
-    });
-
-    const queryEmbedding = embeddingResponse.data[0].embedding;
-
-    // Semantic search via Supabase pgvector
-    const { data: semanticResults } = await supabase.rpc(
-      "search_tools_semantic",
-      {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.7,
-        match_count: 10,
-      },
-    );
-
-    // Also run keyword search (ilike logic mapped directly)
-    const { data: keywordResults } = await supabase
-      .from("tools")
-      .select("*, tool_categories(name, slug), tool_scores(futurestack_score)")
-      .or(`name.ilike.%${query}%,tagline.ilike.%${query}%`)
-      .limit(10);
-
-    // Merge and deduplicate results (semantic results ranked higher)
-    const mergedMap = new Map();
-
-    if (semanticResults) {
-      semanticResults.forEach((item: any) => {
-        mergedMap.set(item.id, { ...item, source: "semantic" });
-      });
-    }
-
-    if (keywordResults) {
-      keywordResults.forEach((item: any) => {
-        if (!mergedMap.has(item.id)) {
-          mergedMap.set(item.id, { ...item, source: "keyword" });
-        }
-      });
-    }
-
-    const merged = Array.from(mergedMap.values());
-
-    // Also search articles
-    const { data: articleResults } = await supabase
-      .from("articles")
-      .select("id, title, slug, meta_description, hero_image, published_at")
-      .or(`title.ilike.%${query}%,meta_description.ilike.%${query}%`)
-      .eq("status", "PUBLISHED")
-      .limit(5);
+    const [{ rows: tools }, { rows: articles }] = await Promise.all([
+      db.query(
+        `SELECT t.id, t.name, t.slug, t.tagline, t.logo, t.category, t.rating,
+                t.has_free, t.africa_friendly, ts.futurestack_score, tc.name AS category_name
+         FROM tools t
+         LEFT JOIN tool_scores ts ON ts.tool_id = t.id
+         LEFT JOIN tool_categories tc ON tc.id = t.category
+         WHERE t.status = 'active'
+           AND (t.name ILIKE $1 OR t.tagline ILIKE $1 OR t.description ILIKE $1 OR $2 = ANY(t.tags))
+         ORDER BY t.review_count DESC LIMIT 10`,
+        [like, query.toLowerCase()],
+      ),
+      db.query(
+        `SELECT a.id, a.title, a.slug, a.excerpt AS meta_description, a.hero_image, a.published_at
+         FROM articles a
+         WHERE a.status = 'published'
+           AND (a.title ILIKE $1 OR a.excerpt ILIKE $1)
+         ORDER BY a.published_at DESC LIMIT 5`,
+        [like],
+      ),
+    ]);
 
     return NextResponse.json({
-      tools: merged,
-      articles: articleResults || [],
+      tools,
+      articles,
       query,
-      total: merged.length + (articleResults?.length ?? 0),
+      total: tools.length + articles.length,
     });
   } catch (err) {
     console.error("Search API error:", err);

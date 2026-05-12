@@ -1,7 +1,14 @@
-import { createClient } from "@/lib/supabase/server";
-import type { Article } from "@/lib/types";
+import { db } from "@/lib/db";
 
-function mapArticle(row: any): Article {
+function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  return fn().catch((e) => {
+    console.error("[articles]", e?.message ?? e);
+    return fallback;
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapArticle(row: any): any {
   return {
     id: row.id,
     slug: row.slug,
@@ -12,12 +19,12 @@ function mapArticle(row: any): Article {
     publishedAt: row.published_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
     readTime: row.reading_time || Math.ceil((row.word_count || 1000) / 200),
-    category: row.category?.slug || "ai-tools",
+    category: row.category_slug || "ai-tools",
     tags: row.tags || [],
     targetRoles: [],
     viewCount: row.view_count || 0,
     featured: row.is_featured || false,
-    author: row.author || null,
+    author: row.author_name ? { name: row.author_name, avatar: row.author_avatar } : null,
   } as Article;
 }
 
@@ -32,66 +39,68 @@ export async function getPublishedArticles({
   limit?: number;
   offset?: number;
 } = {}) {
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("articles")
-    .select("*, category:categories(id,name,slug)")
-    .eq("status", "published")
-    .order("published_at", { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  if (category) query = query.eq("category_id", category);
-  if (search)
-    query = query.or(`title.ilike.%${search}%,excerpt.ilike.%${search}%`);
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("[getPublishedArticles]", error.message);
-    return [];
-  }
-  return (data || []).map(mapArticle);
+  return safe(async () => {
+    const where = [`a.status = 'published'`];
+    const params: unknown[] = [];
+    let i = 1;
+    if (category) { where.push(`c.slug = $${i++}`); params.push(category); }
+    if (search) {
+      where.push(`(a.title ILIKE $${i} OR a.excerpt ILIKE $${i})`);
+      params.push(`%${search}%`); i++;
+    }
+    params.push(limit, offset);
+    const { rows } = await db.query(
+      `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
+       LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE ${where.join(" AND ")}
+       ORDER BY a.published_at DESC
+       LIMIT $${i++} OFFSET $${i++}`,
+      params,
+    );
+    return rows.map(mapArticle);
+  }, []);
 }
 
 export async function getFeaturedArticles(limit = 4) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("articles")
-    .select("*, category:categories(id,name,slug)")
-    .eq("status", "published")
-    .eq("is_featured", true)
-    .order("published_at", { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error("[getFeaturedArticles]", error.message);
-    return [];
-  }
-  return (data || []).map(mapArticle);
+  return safe(async () => {
+    const { rows } = await db.query(
+      `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
+       LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE a.status = 'published' AND a.is_featured = true
+       ORDER BY a.published_at DESC LIMIT $1`,
+      [limit],
+    );
+    return rows.map(mapArticle);
+  }, []);
 }
 
 export async function getArticleBySlug(slug: string) {
-  const supabase = await createClient();
+  return safe(async () => {
+    const { rows } = await db.query(
+      `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
+       LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE a.slug = $1 AND a.status = 'published'`,
+      [slug],
+    );
+    if (!rows[0]) return null;
+    // fire-and-forget view count
+    db.query(`UPDATE articles SET view_count = view_count + 1 WHERE slug = $1`, [slug]).catch(() => {});
+    return mapArticle(rows[0]);
+  }, null);
+}
 
-  const { data, error } = await supabase
-    .from("articles")
-    .select("*, category:categories(id,name,slug)")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .single();
-
-  if (error) {
-    console.error("[getArticleBySlug]", error.message);
-    return null;
-  }
-
-  // Fire-and-forget view count bump
-  supabase
-    .from("articles")
-    .update({ view_count: (data.view_count ?? 0) + 1 })
-    .eq("slug", slug)
-    .then(() => {});
-
-  return mapArticle(data);
+export async function getArticleCategories() {
+  return safe(async () => {
+    const { rows } = await db.query(`SELECT id, name, slug FROM categories ORDER BY name`);
+    return rows;
+  }, []);
 }

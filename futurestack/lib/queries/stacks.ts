@@ -1,5 +1,33 @@
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
 import type { Stack } from "@/lib/types";
+
+function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  return fn().catch((e) => {
+    console.error("[stacks]", e?.message ?? e);
+    return fallback;
+  });
+}
+
+async function attachTools(stackRows: any[]): Promise<any[]> {
+  if (!stackRows.length) return stackRows;
+  const ids = stackRows.map((s) => s.id);
+  const { rows: links } = await db.query(
+    `SELECT st.stack_id, st.position, t.*
+     FROM stack_tools st JOIN tools t ON t.id = st.tool_id
+     WHERE st.stack_id = ANY($1) ORDER BY st.position ASC`,
+    [ids],
+  );
+  const byStack: Record<string, any[]> = {};
+  for (const r of links) {
+    (byStack[r.stack_id] ??= []).push({
+      ...r,
+      shortDescription: r.tagline || "",
+      badges: r.tags || [],
+      pricing: { hasFree: r.pricing_model === "freemium", plans: [] },
+    });
+  }
+  return stackRows.map((s) => ({ ...s, tools: byStack[s.id] ?? [] }));
+}
 
 function mapStack(row: any): Stack {
   return {
@@ -14,18 +42,15 @@ function mapStack(row: any): Stack {
     createdAt: row.created_at || new Date().toISOString(),
     updatedAt: row.updated_at || new Date().toISOString(),
     featured: row.featured || false,
-    creator: row.creator || null,
-    tools: (row.stack_tools || []).map((st: any) => {
-      const toolRow = st.tools || {};
-      return {
-        ...toolRow,
-        shortDescription: toolRow.tagline || "",
-        logo: toolRow.logo_url || "",
-        reviewCount: toolRow.review_count || 0,
-        badges: toolRow.tags || [],
-        pricing: { hasFree: toolRow.pricing_model === "freemium", plans: [] },
-      };
-    }),
+    creator: null,
+    tools: (row.tools || []).map((t: any) => ({
+      ...t,
+      shortDescription: t.tagline || "",
+      logo: t.logo || "",
+      reviewCount: t.review_count || 0,
+      badges: t.tags || [],
+      pricing: { hasFree: t.pricing_model === "freemium", plans: [] },
+    })),
   } as unknown as Stack;
 }
 
@@ -40,57 +65,42 @@ export async function getPublicStacks({
   limit?: number;
   offset?: number;
 } = {}) {
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("stacks")
-    .select("*, stack_tools(tools(*))")
-    .order("clone_count", { ascending: false })
-    .range(offset, offset + limit - 1);
-
-  if (targetRole) query = query.eq("target_role", targetRole);
-  if (featured) query = query.eq("featured", true);
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("[getPublicStacks]", error.message);
-    return [];
-  }
-  return (data || []).map(mapStack);
+  return safe(async () => {
+    const where: string[] = [];
+    const params: unknown[] = [];
+    let i = 1;
+    if (targetRole) { where.push(`s.target_role = $${i++}`); params.push(targetRole); }
+    if (featured) where.push(`s.featured = true`);
+    params.push(limit, offset);
+    const { rows } = await db.query(
+      `SELECT s.* FROM stacks s
+       ${where.length ? "WHERE " + where.join(" AND ") : ""}
+       ORDER BY s.clone_count DESC LIMIT $${i++} OFFSET $${i++}`,
+      params,
+    );
+    const withTools = await attachTools(rows);
+    return withTools.map(mapStack);
+  }, []);
 }
 
 export async function getFeaturedStacks(limit = 3) {
   return getPublicStacks({ featured: true, limit });
 }
 
-export async function getStackById(id: string) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("stacks")
-    .select("*, stack_tools(tools(*))")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) {
-    console.error("[getStackById]", error?.message);
-    return null;
-  }
-  return mapStack(data);
+export async function getStackBySlug(slug: string) {
+  return safe(async () => {
+    const { rows } = await db.query(`SELECT * FROM stacks WHERE slug = $1`, [slug]);
+    if (!rows[0]) return null;
+    const [withTools] = await attachTools(rows);
+    return mapStack(withTools);
+  }, null);
 }
 
-export async function getStackBySlug(slug: string) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("stacks")
-    .select("*, stack_tools(tools(*))")
-    .eq("slug", slug)
-    .single();
-
-  if (error || !data) {
-    console.error("[getStackBySlug]", error?.message);
-    return null;
-  }
-  return mapStack(data);
+export async function getStackById(id: string) {
+  return safe(async () => {
+    const { rows } = await db.query(`SELECT * FROM stacks WHERE id = $1`, [id]);
+    if (!rows[0]) return null;
+    const [withTools] = await attachTools(rows);
+    return mapStack(withTools);
+  }, null);
 }

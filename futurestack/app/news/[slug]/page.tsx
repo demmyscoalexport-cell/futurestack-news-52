@@ -10,7 +10,8 @@ import { ArticleCard } from "@/components/cards/article-card";
 import { ToolCard } from "@/components/cards/tool-card";
 import { RoleSelector } from "@/components/ui/role-selector";
 import { NewsletterForm } from "@/components/ui/newsletter-form";
-import { articles, tools, reviews } from "@/lib/data";
+import { articles as fallbackArticles, tools, reviews } from "@/lib/data";
+import { getArticleBySlug, getPublishedArticles } from "@/lib/queries/articles";
 import {
   ArrowLeft,
   Clock,
@@ -52,17 +53,34 @@ const categoryLabels: Record<string, string> = {
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = articles.find((a) => a.slug === slug);
 
+  // Try DB first, fall back to static data
+  let article: any = await getArticleBySlug(slug);
   if (!article) {
-    notFound();
+    const staticArticle = fallbackArticles.find((a) => a.slug === slug);
+    if (!staticArticle) notFound();
+    article = staticArticle;
   }
 
-  const relatedArticles = articles
-    .filter((a) => a.id !== article.id && a.category === article.category)
+  // Normalize shape from DB vs static data
+  if (!article.author) article.author = { name: "FutureStack", role: "Editor", avatar: "" };
+  if (!article.author.role) article.author.role = "Editor";
+  if (article.readTime == null) article.readTime = article.reading_time || 5;
+  if (!article.featuredImage) article.featuredImage = article.hero_image || article.cover_image_url || "";
+  if (article.viewCount == null) article.viewCount = article.view_count || 0;
+  if (article.featured == null) article.featured = article.is_featured || false;
+  if (!article.publishedAt) article.publishedAt = article.published_at || new Date().toISOString();
+  if (!article.updatedAt) article.updatedAt = article.updated_at || article.publishedAt;
+
+  const [relatedArticles] = await Promise.all([
+    getPublishedArticles({ limit: 3 }),
+  ]);
+
+  const filteredRelated = (relatedArticles as any[])
+    .filter((a: any) => a.slug !== article.slug)
     .slice(0, 3);
 
-  const comparedTools = article.toolsCompared || tools.slice(0, 3);
+  const comparedTools = tools.slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -468,7 +486,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {relatedArticles.map((related) => (
+              {filteredRelated.map((related: any) => (
                 <ArticleCard key={related.id} article={related} />
               ))}
             </div>
