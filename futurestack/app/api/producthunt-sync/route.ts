@@ -9,7 +9,7 @@
  *   Returns sync status and the current tool count.
  */
 import { NextRequest, NextResponse } from "next/server";
-import pool from "@/lib/db";
+import { db as pool } from "@/lib/db";
 import {
   fetchAllPHPosts,
   mapPHTopicsToCategory,

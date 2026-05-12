@@ -78,6 +78,19 @@ const CATEGORY_ICONS: Record<string, string> = {
   analytics: "📈",
 };
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  writing:      "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549339/futurestack/categories/writing.jpg",
+  code:         "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549337/futurestack/categories/code.jpg",
+  design:       "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549337/futurestack/categories/design.jpg",
+  video:        "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549347/futurestack/categories/video.jpg",
+  audio:        "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549347/futurestack/categories/audio.jpg",
+  automation:   "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549347/futurestack/categories/automation.jpg",
+  productivity: "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549353/futurestack/categories/productivity.jpg",
+  data:         "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549353/futurestack/categories/data.jpg",
+  marketing:    "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549353/futurestack/categories/marketing.jpg",
+  analytics:    "https://res.cloudinary.com/dxizihlmo/image/upload/v1778549362/futurestack/categories/analytics.jpg",
+};
+
 
 export function ToolsContent({ initialTools, initialCategories }: ToolsContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,7 +180,8 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
         const isActive = activeCategory === cat.id;
         const isExpanded = expandedCategories.has(cat.id);
         const subs = cat.subcategories ?? [];
-        const icon = cat.icon || CATEGORY_ICONS[cat.id] || "🔧";
+        const catImg = CATEGORY_IMAGES[cat.id];
+        const fallbackIcon = cat.icon || CATEGORY_ICONS[cat.id] || "🔧";
         return (
           <div key={cat.id}>
             <button
@@ -178,7 +192,18 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
               )}
             >
               <span className="flex items-center gap-2">
-                <span className="text-base">{icon}</span>
+                {catImg ? (
+                  <img
+                    src={catImg}
+                    alt={cat.name}
+                    width={22}
+                    height={22}
+                    className="rounded-md object-cover flex-shrink-0"
+                    style={{ width: 22, height: 22 }}
+                  />
+                ) : (
+                  <span className="text-base">{fallbackIcon}</span>
+                )}
                 <span className="capitalize">{cat.name}</span>
               </span>
               <div className="flex items-center gap-1">

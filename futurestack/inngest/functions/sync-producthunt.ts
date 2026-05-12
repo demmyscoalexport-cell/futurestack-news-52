@@ -5,7 +5,7 @@
  * and upsert them into the tools table.
  */
 import { inngest } from "../client";
-import pool from "@/lib/db";
+import { db as pool } from "@/lib/db";
 import {
   fetchAllPHPosts,
   mapPHTopicsToCategory,
