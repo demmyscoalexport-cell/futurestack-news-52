@@ -6,22 +6,17 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ToolLogo } from "@/components/cards/tool-card";
+import { ToolProfileCard } from "@/components/cards/tool-profile-card";
 import {
   Search,
-  ExternalLink,
   ChevronDown,
   ChevronRight,
-  Star,
-  Sparkles,
   Flame,
-  BadgeCheck,
   Globe2,
   SlidersHorizontal,
   X,
   LayoutGrid,
   List,
-  ArrowUpRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,126 +78,6 @@ const CATEGORY_ICONS: Record<string, string> = {
   analytics: "📈",
 };
 
-const PRICING_LABELS: Record<string, { label: string; color: string }> = {
-  free: { label: "Free", color: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" },
-  freemium: { label: "Freemium", color: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
-  paid: { label: "Paid", color: "bg-amber-500/15 text-amber-400 border-amber-500/20" },
-  enterprise: { label: "Enterprise", color: "bg-purple-500/15 text-purple-400 border-purple-500/20" },
-};
-
-function getPricingBadge(tool: RawTool) {
-  if (tool.has_free && tool.pricing_model === "freemium") return PRICING_LABELS.freemium;
-  if (tool.has_free || tool.pricing_model === "free") return PRICING_LABELS.free;
-  if (tool.pricing_model === "enterprise") return PRICING_LABELS.enterprise;
-  return PRICING_LABELS.paid;
-}
-
-function FuturepediaToolCard({ tool, view }: { tool: RawTool; view: "grid" | "list" }) {
-  const pricing = getPricingBadge(tool);
-  const displayTags = (tool.tags ?? []).slice(0, 3);
-  const websiteUrl = tool.website || tool.website_url || "";
-
-  if (view === "list") {
-    return (
-      <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all group">
-        <ToolLogo tool={{ name: tool.name, logo: tool.logo }} size={10} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link href={`/tools/${tool.slug}`} className="font-semibold text-foreground hover:text-primary transition-colors">
-              {tool.name}
-            </Link>
-            {tool.is_verified && <BadgeCheck className="h-4 w-4 text-blue-400 shrink-0" />}
-            {tool.is_new && <span className="text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">New</span>}
-            {tool.is_featured && <Sparkles className="h-3.5 w-3.5 text-amber-400" />}
-          </div>
-          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{tool.tagline || tool.description}</p>
-        </div>
-        <div className="hidden md:flex items-center gap-2 flex-wrap justify-end">
-          {displayTags.map((tag) => (
-            <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">{tag}</span>
-          ))}
-        </div>
-        <span className={cn("text-xs font-medium px-2 py-1 rounded-full border shrink-0 hidden sm:inline-flex", pricing.color)}>{pricing.label}</span>
-        {websiteUrl && (
-          <a href={websiteUrl} target="_blank" rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0">
-            Visit <ArrowUpRight className="h-3 w-3" />
-          </a>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="group flex flex-col rounded-xl border border-border bg-card hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden">
-      <div className="p-5 flex-1">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <ToolLogo tool={{ name: tool.name, logo: tool.logo }} size={12} />
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
-            {tool.is_featured && (
-              <span className="flex items-center gap-1 text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full">
-                <Sparkles className="h-2.5 w-2.5" /> Featured
-              </span>
-            )}
-            {tool.is_new && (
-              <span className="text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">New</span>
-            )}
-            {tool.africa_friendly && (
-              <span title="Africa-Friendly" className="text-xs bg-green-500/15 text-green-400 border border-green-500/20 px-1.5 py-0.5 rounded-full">🌍</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5 mb-1">
-          <Link href={`/tools/${tool.slug}`} className="font-semibold text-foreground hover:text-primary transition-colors text-sm leading-tight">
-            {tool.name}
-          </Link>
-          {tool.is_verified && <BadgeCheck className="h-3.5 w-3.5 text-blue-400 shrink-0" />}
-        </div>
-
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
-          {tool.tagline || tool.description || "AI-powered tool"}
-        </p>
-
-        {displayTags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {displayTags.map((tag) => (
-              <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="px-5 pb-4 flex items-center justify-between gap-2 border-t border-border/50 pt-3">
-        <div className="flex items-center gap-2">
-          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full border", pricing.color)}>
-            {pricing.label}
-          </span>
-          {tool.rating && Number(tool.rating) > 0 ? (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-              <span>{Number(tool.rating).toFixed(1)}</span>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" asChild>
-            <Link href={`/tools/${tool.slug}`} title="View details"><ExternalLink className="h-3.5 w-3.5" /></Link>
-          </Button>
-          {websiteUrl && (
-            <a href={websiteUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-              Visit <ArrowUpRight className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function ToolsContent({ initialTools, initialCategories }: ToolsContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -493,7 +368,7 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
                     <span className="text-xs text-muted-foreground">({featured.length})</span>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {featured.map((tool) => <FuturepediaToolCard key={tool.id} tool={tool} view="grid" />)}
+                    {featured.map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                   </div>
                   {rest.length > 0 && (
                     <div className="flex items-center gap-3 my-6">
@@ -516,11 +391,11 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
                 </div>
               ) : viewMode === "list" ? (
                 <div className="space-y-3">
-                  {(searchQuery ? filtered : rest).map((tool) => <FuturepediaToolCard key={tool.id} tool={tool} view="list" />)}
+                  {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {(searchQuery ? filtered : rest).map((tool) => <FuturepediaToolCard key={tool.id} tool={tool} view="grid" />)}
+                  {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               )}
             </div>
