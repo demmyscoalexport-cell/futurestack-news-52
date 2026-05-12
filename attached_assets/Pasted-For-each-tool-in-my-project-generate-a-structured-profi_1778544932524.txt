@@ -1,0 +1,40 @@
+For each tool in my project, generate a structured profile card with the following fields:
+
+1. App Logo – a small square image or icon representing the tool.
+2. App Name – the official name of the tool.
+3. Short Description – 1–2 sentences summarizing what the tool does.
+4. Tags – 3–6 keyword tags that describe the tool’s functions (e.g., Writing, Productivity, Image Generation).
+5. Category – the broader group the tool belongs to (e.g., Video Editing, Chatbot, Coding).
+6. Pricing – label as Free, Freemium, or Paid.
+7. Website Link – direct URL to the tool’s homepage.
+8. Date Added – when the tool was listed or created.
+9. Popularity Indicator – mark as Trending, New, or leave blank if not applicable.
+
+Format the output as a clean card layout, starting with the logo, followed by name, description, tags, and other details in order.
+For each tool in my project, generate a structured profile card with the following fields:
+
+1. App Logo – a small square image or icon representing the tool.
+2. App Name – the official name of the tool.
+3. Short Description – 1–2 sentences summarizing what the tool does.
+4. Tags – 3–6 keyword tags that describe the tool’s functions (e.g., Writing, Productivity, Image Generation).
+5. Category – the broader group the tool belongs to (e.g., Video Editing, Chatbot, Coding).
+6. Pricing – label as Free, Freemium, or Paid.
+7. Website Link – direct URL to the tool’s homepage.
+8. Date Added – when the tool was listed or created.
+9. Popularity Indicator – mark as Trending, New, or leave blank if not applicable.
+
+Format the output as a clean card layout, starting with the logo, followed by name, description, tags, and other details in order.
+For each tool in my project, generate a structured profile card with the following fields:
+
+1. App Logo – a small square image or icon representing the tool.
+2. App Name – the official name of the tool.
+3. Short Description – 1–2 sentences summarizing what the tool does.
+4. Tags – 3–6 keyword tags that describe the tool’s functions (e.g., Writing, Productivity, Image Generation).
+5. Category – the broader group the tool belongs to (e.g., Video Editing, Chatbot, Coding).
+6. Pricing – label as Free, Freemium, or Paid.
+7. Website Link – direct URL to the tool’s homepage.
+8. Date Added – when the tool was listed or created.
+9. Popularity Indicator – mark as Trending, New, or leave blank if not applicable.
+
+Format the output as a clean card layout, starting with the logo, followed by name, description, tags, and other details in order.
+then the founder,saas and freelancer page you come across should have pictures or things that represent what they are called to make my site look better 

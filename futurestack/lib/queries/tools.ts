@@ -38,16 +38,22 @@ export async function getTrendingTools(limit = 10) {
 
 export async function getTools({
   category,
+  subcategory,
   search,
   africaFriendly,
   hasFree,
-  limit = 24,
+  isNew,
+  isFeatured,
+  limit = 60,
   offset = 0,
 }: {
   category?: string;
+  subcategory?: string;
   search?: string;
   africaFriendly?: boolean;
   hasFree?: boolean;
+  isNew?: boolean;
+  isFeatured?: boolean;
   limit?: number;
   offset?: number;
 } = {}) {
@@ -57,8 +63,11 @@ export async function getTools({
     let i = 1;
 
     if (category) { where.push(`t.category = $${i++}`); params.push(category); }
+    if (subcategory) { where.push(`t.subcategory = $${i++}`); params.push(subcategory); }
     if (africaFriendly) where.push(`t.africa_friendly = true`);
     if (hasFree) where.push(`t.has_free = true`);
+    if (isNew) where.push(`t.is_new = true`);
+    if (isFeatured) where.push(`t.is_featured = true`);
     if (search) {
       where.push(`(t.name ILIKE $${i} OR t.tagline ILIKE $${i} OR t.description ILIKE $${i})`);
       params.push(`%${search}%`); i++;
@@ -69,11 +78,42 @@ export async function getTools({
       `SELECT t.*, ts.futurestack_score
        FROM tools t LEFT JOIN tool_scores ts ON ts.tool_id = t.id
        WHERE ${where.join(" AND ")}
-       ORDER BY t.review_count DESC, t.rating DESC
+       ORDER BY t.is_featured DESC, t.review_count DESC, t.rating DESC
        LIMIT $${i++} OFFSET $${i++}`,
       params,
     );
     return rows;
+  }, []);
+}
+
+export async function getToolSubcategories(categoryId?: string) {
+  return safe(async () => {
+    const where = categoryId ? `WHERE ts.category_id = $1` : "";
+    const params = categoryId ? [categoryId] : [];
+    const { rows } = await db.query(
+      `SELECT ts.id, ts.category_id, ts.name, ts.slug, ts.icon,
+              COUNT(t.id)::int AS count
+       FROM tool_subcategories ts
+       LEFT JOIN tools t ON t.subcategory = ts.slug AND t.status = 'active'
+       ${where}
+       GROUP BY ts.id, ts.category_id, ts.name, ts.slug, ts.icon, ts.sort_order
+       ORDER BY ts.sort_order, ts.name`,
+      params,
+    );
+    return rows;
+  }, []);
+}
+
+export async function getCategoriesWithSubcategories() {
+  return safe(async () => {
+    const [categories, subcategories] = await Promise.all([
+      getToolCategories(),
+      getToolSubcategories(),
+    ]);
+    return categories.map((cat: { id: string; name: string; icon?: string; count?: number }) => ({
+      ...cat,
+      subcategories: subcategories.filter((s: { category_id: string }) => s.category_id === cat.id),
+    }));
   }, []);
 }
 

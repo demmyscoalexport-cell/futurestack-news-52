@@ -18,10 +18,10 @@ function required(key: string): string {
 const optional = (key: string, fallback = "") => process.env[key] ?? fallback;
 
 export const config = {
-  /** Supabase — required at runtime */
+  /** Supabase — optional; auth routes degrade gracefully without it */
   supabase: {
-    url: required("NEXT_PUBLIC_SUPABASE_URL"),
-    anonKey: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    url: optional("NEXT_PUBLIC_SUPABASE_URL"),
+    anonKey: optional("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     serviceRoleKey: optional("SUPABASE_SERVICE_ROLE_KEY"),
   },
 

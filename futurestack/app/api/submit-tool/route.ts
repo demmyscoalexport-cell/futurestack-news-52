@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
@@ -27,45 +27,43 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = await createClient();
-
-    // Generate slug from name
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    const { error } = await supabase.from("tools").insert({
-      name,
-      slug,
-      website_url: url,
-      tagline,
-      description,
-      logo_url: logo || null,
-      status: "pending",
-      pricing_type: pricingTiers?.[0]?.price === "$0" ? "free" : "freemium",
-      metadata: {
-        best_for,
-        integrations: integrations
-          ?.split(",")
-          .map((s: string) => s.trim())
-          .filter(Boolean),
-        pricing_tiers: pricingTiers,
-        tags: tags
-          ?.split(",")
-          .map((s: string) => s.trim())
-          .filter(Boolean),
-        submitted_by: { name: contactName, email: contactEmail },
-        apply_for_featured: applyForFeatured,
-      },
-    });
+    const hasFree = pricingTiers?.some(
+      (t: { price?: string }) => t.price === "$0" || t.price === "Free",
+    ) ?? false;
 
-    if (error) {
-      console.error("Tool submission DB error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const tagsArray = tags
+      ? tags.split(",").map((s: string) => s.trim()).filter(Boolean)
+      : [];
 
-    return NextResponse.json({ success: true, slug });
+    await db.query(
+      `INSERT INTO tools (
+        name, slug, tagline, description, logo, website, website_url,
+        category, tags, has_free, status, is_featured, pricing_model, pricing_details
+      ) VALUES ($1,$2,$3,$4,$5,$6,$6,$7,$8,$9,'pending',false,$10,$11)
+      ON CONFLICT (slug) DO UPDATE SET
+        tagline = EXCLUDED.tagline,
+        description = EXCLUDED.description,
+        status = 'pending'`,
+      [
+        name, slug, tagline, description || tagline, logo || null, url,
+        category || "productivity", tagsArray, hasFree,
+        hasFree ? "freemium" : "paid",
+        JSON.stringify({
+          tiers: pricingTiers || [],
+          best_for: best_for || [],
+          integrations: integrations?.split(",").map((s: string) => s.trim()).filter(Boolean) || [],
+          submitted_by: { name: contactName, email: contactEmail },
+          apply_for_featured: applyForFeatured || false,
+        }),
+      ],
+    );
+
+    return NextResponse.json({ success: true, slug, message: "Tool submitted for review!" });
   } catch (err: any) {
     console.error("Submit tool error:", err);
     return NextResponse.json({ error: "Submission failed" }, { status: 500 });

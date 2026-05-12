@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { db } from "@/lib/db";
 import { fetchContentfulEntryById } from "@/lib/contentful/client";
 
 function isAuthorized(req: Request) {
@@ -60,14 +60,11 @@ function inferAction(topic: string) {
 }
 
 async function resolveCategoryId(categorySlug: string) {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("slug", categorySlug)
-    .limit(1)
-    .maybeSingle();
-  return data?.id ?? null;
+  const { rows } = await db.query(
+    `SELECT id FROM categories WHERE slug = $1 LIMIT 1`,
+    [categorySlug],
+  );
+  return rows[0]?.id ?? null;
 }
 
 async function upsertWithFallback(
@@ -75,17 +72,25 @@ async function upsertWithFallback(
   payloads: Array<Record<string, unknown>>,
   onConflict: string,
 ) {
-  const supabase = createAdminClient();
   let lastError: string | null = null;
-
   for (const payload of payloads) {
-    const { error } = await supabase
-      .from(table)
-      .upsert(payload, { onConflict });
-    if (!error) return;
-    lastError = error.message;
+    try {
+      const cols = Object.keys(payload);
+      const vals = cols.map((_, i) => `$${i + 1}`);
+      const updates = cols
+        .filter((c) => c !== onConflict)
+        .map((c) => `${c} = EXCLUDED.${c}`)
+        .join(", ");
+      await db.query(
+        `INSERT INTO ${table} (${cols.join(",")}) VALUES (${vals.join(",")})
+         ON CONFLICT (${onConflict}) DO UPDATE SET ${updates}`,
+        cols.map((c) => payload[c]),
+      );
+      return;
+    } catch (e: unknown) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
   }
-
   throw new Error(lastError ?? `Upsert failed for ${table}`);
 }
 
@@ -250,7 +255,6 @@ async function archiveOrDeleteBySlug(
   slug: string,
   isDelete: boolean,
 ) {
-  const supabase = createAdminClient();
   if (!slug) {
     throw new Error(
       "Missing slug in webhook payload for unpublish/delete operation",
@@ -259,32 +263,19 @@ async function archiveOrDeleteBySlug(
 
   if (contentType === "tool") {
     if (isDelete) {
-      const { error } = await supabase.from("tools").delete().eq("slug", slug);
-      if (error) throw new Error(`Tool delete failed: ${error.message}`);
+      await db.query(`DELETE FROM tools WHERE slug = $1`, [slug]);
       return { table: "tools", slug, action: "deleted" };
     }
-    const { error } = await supabase
-      .from("tools")
-      .update({ status: "inactive" })
-      .eq("slug", slug);
-    if (error) throw new Error(`Tool archive failed: ${error.message}`);
+    await db.query(`UPDATE tools SET status = 'inactive' WHERE slug = $1`, [slug]);
     return { table: "tools", slug, action: "archived" };
   }
 
   if (contentType === "newsArticle") {
     if (isDelete) {
-      const { error } = await supabase
-        .from("articles")
-        .delete()
-        .eq("slug", slug);
-      if (error) throw new Error(`Article delete failed: ${error.message}`);
+      await db.query(`DELETE FROM articles WHERE slug = $1`, [slug]);
       return { table: "articles", slug, action: "deleted" };
     }
-    const { error } = await supabase
-      .from("articles")
-      .update({ status: "draft" })
-      .eq("slug", slug);
-    if (error) throw new Error(`Article unpublish failed: ${error.message}`);
+    await db.query(`UPDATE articles SET status = 'draft' WHERE slug = $1`, [slug]);
     return { table: "articles", slug, action: "drafted" };
   }
 
