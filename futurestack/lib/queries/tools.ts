@@ -75,7 +75,9 @@ export async function getTools({
     params.push(limit, offset);
 
     const { rows } = await db.query(
-      `SELECT t.*, ts.futurestack_score
+      `SELECT t.*,
+              ts.futurestack_score,
+              (t.new_until IS NOT NULL AND t.new_until > NOW()) AS is_new
        FROM tools t LEFT JOIN tool_scores ts ON ts.tool_id = t.id
        WHERE ${where.join(" AND ")}
        ORDER BY t.is_featured DESC, t.review_count DESC, t.rating DESC

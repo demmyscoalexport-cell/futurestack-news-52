@@ -60,12 +60,16 @@ CREATE TABLE IF NOT EXISTS tools (
   is_verified   boolean DEFAULT false,
   is_new        boolean DEFAULT false,
   has_api       boolean DEFAULT false,
-  status        text    DEFAULT 'active' CHECK (status IN ('active','inactive','pending')),
+  status        text    DEFAULT 'active' CHECK (status IN ('active','inactive','pending','pending_review','rejected')),
   upvote_count  int     DEFAULT 0,
   save_count    int     DEFAULT 0,
   view_count    int     DEFAULT 0,
   last_updated  date    DEFAULT CURRENT_DATE,
-  created_at    timestamptz DEFAULT now()
+  created_at    timestamptz DEFAULT now(),
+  -- Auto-discovery fields
+  new_until     timestamptz,
+  source        text    DEFAULT 'manual',
+  producthunt_url text
 );
 
 CREATE INDEX IF NOT EXISTS tools_category_idx  ON tools(category);

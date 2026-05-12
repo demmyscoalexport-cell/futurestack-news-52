@@ -38,6 +38,7 @@ async function getAdminData() {
     { count: publishedArticles },
     { data: recentTools },
     affiliateStats,
+    pendingPHResult,
   ] = await Promise.all([
     supabase
       .from("tools")
@@ -65,6 +66,9 @@ async function getAdminData() {
         COUNT(*) FILTER (WHERE clicked_at >= NOW() - INTERVAL '30 days') AS month
       FROM affiliate_clicks
     `).then(r => r.rows[0]).catch(() => ({ today: 0, week: 0, month: 0 })),
+    // Pending PH tools from Replit PG
+    db.query(`SELECT COUNT(*)::int AS n FROM tools WHERE status = 'pending_review'`)
+      .then(r => r.rows[0].n as number).catch(() => 0),
   ]);
 
   // Top 5 tools by clicks (30d) + daily trend
@@ -99,6 +103,7 @@ async function getAdminData() {
     affiliateStats,
     topAffiliateTools,
     dailyTrend,
+    pendingPH: pendingPHResult as number,
   };
 }
 
@@ -135,6 +140,7 @@ const stats = [
 
 const navSections = [
   { href: "/admin/content", icon: FileText, label: "Content Queue" },
+  { href: "/admin/tools-queue", icon: CheckCircle, label: "Tools Queue (PH)" },
   { href: "/admin/tools", icon: CheckCircle, label: "Tool Submissions" },
   { href: "/admin/reviews", icon: Star, label: "Review Moderation" },
   { href: "/admin/newsletter", icon: Mail, label: "Newsletter" },
@@ -305,6 +311,32 @@ export default async function AdminPage() {
                 No clicks recorded yet — links are live and tracking will start when users visit tools.
               </p>
             )}
+          </div>
+
+          {/* Product Hunt Queue Widget */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-orange-400" />
+                <h3 className="font-bold text-lg">Product Hunt Queue</h3>
+              </div>
+              <Link
+                href="/admin/tools-queue"
+                className="text-sm text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1"
+              >
+                Review Queue →
+              </Link>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="bg-slate-800/50 rounded-xl p-4 text-center flex-1">
+                <div className="text-4xl font-black text-white">{data.pendingPH}</div>
+                <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">Awaiting Review</div>
+              </div>
+              <div className="flex-1 text-sm text-slate-400 leading-relaxed">
+                <p>New tools synced daily at <span className="text-white font-semibold">08:00 UTC</span> from Product Hunt.</p>
+                <p className="mt-1">Approved tools get a <span className="text-emerald-400 font-semibold">"New" badge</span> for 7 days.</p>
+              </div>
+            </div>
           </div>
 
           {/* Recent Tool Submissions */}

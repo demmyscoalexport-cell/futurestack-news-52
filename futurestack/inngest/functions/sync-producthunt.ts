@@ -34,7 +34,8 @@ export const syncProductHuntTools = inngest.createFunction(
     name: "Sync Product Hunt Tools",
     concurrency: { limit: 1 },
     triggers: [
-      { cron: "0 6 * * *" }, // Every day at 6am UTC
+      { cron: "0 8 * * *" }, // Every day at 8am UTC
+      { event: "producthunt/sync.requested" },
     ],
   },
   async ({ step, logger, event }) => {
@@ -125,6 +126,8 @@ export const syncProductHuntTools = inngest.createFunction(
 
           const africa_friendly = has_free;
 
+          const phUrl = `https://www.producthunt.com/posts/${post.slug}`;
+
           await pool.query(
             `INSERT INTO tools (
                name, slug, tagline, description, logo,
@@ -132,19 +135,22 @@ export const syncProductHuntTools = inngest.createFunction(
                pricing_model, pricing_details, has_free,
                africa_friendly, rating, review_count,
                tags, is_featured, is_verified, is_new,
-               status, upvote_count, save_count, view_count
+               status, upvote_count, save_count, view_count,
+               source, producthunt_url
              ) VALUES (
                $1,$2,$3,$4,$5,$6,$6,$7,
                $8,$9,$10,$11,$12,$13,
-               $14,false,false,true,
-               'active',$15,$16,$17
+               $14,false,false,false,
+               'pending_review',$15,$16,$17,
+               'producthunt',$18
              )
              ON CONFLICT (slug) DO UPDATE SET
-               tagline      = EXCLUDED.tagline,
-               description  = EXCLUDED.description,
-               logo         = EXCLUDED.logo,
-               upvote_count = EXCLUDED.upvote_count,
-               rating       = EXCLUDED.rating`,
+               tagline         = EXCLUDED.tagline,
+               description     = EXCLUDED.description,
+               logo            = EXCLUDED.logo,
+               upvote_count    = EXCLUDED.upvote_count,
+               rating          = EXCLUDED.rating,
+               producthunt_url = EXCLUDED.producthunt_url`,
             [
               post.name,
               slug,
@@ -158,11 +164,12 @@ export const syncProductHuntTools = inngest.createFunction(
               has_free,
               africa_friendly,
               parseFloat(rating.toFixed(1)),
-              Math.floor(post.votesCount / 10), // rough review count
+              Math.floor(post.votesCount / 10),
               tags,
               post.votesCount,
               Math.floor(post.votesCount * 0.1),
               Math.floor(post.votesCount * 0.5),
+              phUrl,
             ],
           );
 
