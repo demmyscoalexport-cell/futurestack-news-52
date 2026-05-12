@@ -17,6 +17,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+interface SparkPoint { day: string; clicks: number; }
+
 interface AffiliateTool {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ interface AffiliateTool {
   clicks_30d: number;
   clicks_7d: number;
   clicks_today: number;
+  sparkline: SparkPoint[];
 }
 
 interface EditState {
@@ -341,8 +344,10 @@ export default function AffiliatesClient() {
               <tr className="border-b border-slate-800 text-xs text-slate-500 font-bold uppercase tracking-wider">
                 <th className="px-4 py-3 text-left cursor-pointer hover:text-white" onClick={() => handleSort("name")}>Tool <SortIcon k="name" /></th>
                 <th className="px-4 py-3 text-left cursor-pointer hover:text-white" onClick={() => handleSort("partner_name")}>Partner <SortIcon k="partner_name" /></th>
-                <th className="px-4 py-3 text-left cursor-pointer hover:text-white" onClick={() => handleSort("commission_rate")}>Commission <SortIcon k="commission_rate" /></th>
-                <th className="px-4 py-3 text-right cursor-pointer hover:text-white" onClick={() => handleSort("clicks_30d")}>30d Clicks <SortIcon k="clicks_30d" /></th>
+                <th className="px-4 py-3 text-left">Affiliate URL</th>
+                <th className="px-4 py-3 text-left cursor-pointer hover:text-white" onClick={() => handleSort("commission_rate")}>Comm. <SortIcon k="commission_rate" /></th>
+                <th className="px-4 py-3 text-center">30d Trend</th>
+                <th className="px-4 py-3 text-right cursor-pointer hover:text-white" onClick={() => handleSort("clicks_30d")}>30d <SortIcon k="clicks_30d" /></th>
                 <th className="px-4 py-3 text-right">7d</th>
                 <th className="px-4 py-3 text-right">Today</th>
                 <th className="px-4 py-3 text-center">Status</th>
@@ -351,11 +356,14 @@ export default function AffiliatesClient() {
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-12 text-slate-600">Loading…</td></tr>
+                <tr><td colSpan={10} className="text-center py-12 text-slate-600">Loading…</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-slate-600">No results</td></tr>
+                <tr><td colSpan={10} className="text-center py-12 text-slate-600">No results</td></tr>
               ) : (
-                filtered.map(t => (
+                filtered.map(t => {
+                  const spark = t.sparkline || [];
+                  const sparkMax = Math.max(...spark.map(s => s.clicks), 1);
+                  return (
                   <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
@@ -374,10 +382,40 @@ export default function AffiliatesClient() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-300">{t.partner_name || <span className="text-slate-600 italic">—</span>}</td>
+                    {/* Affiliate URL column */}
+                    <td className="px-4 py-3 max-w-[160px]">
+                      {t.affiliate_url ? (
+                        <a href={t.affiliate_url} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 truncate group"
+                          title={t.affiliate_url}>
+                          <span className="truncate">{t.affiliate_url.replace(/^https?:\/\//, "").split("?")[0]}</span>
+                          <ExternalLink className="h-2.5 w-2.5 shrink-0 opacity-50 group-hover:opacity-100" />
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-600 italic">No link</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {t.commission_rate && t.commission_rate > 0
                         ? <span className="text-emerald-400 font-bold">{t.commission_rate}%</span>
                         : <span className="text-slate-600">—</span>}
+                    </td>
+                    {/* Per-tool 30d sparkline */}
+                    <td className="px-4 py-3">
+                      {spark.length > 0 ? (
+                        <div className="flex items-end gap-px h-8 w-20 mx-auto" title={`${t.clicks_30d} clicks in 30 days`}>
+                          {spark.map((s) => (
+                            <div
+                              key={s.day}
+                              className="flex-1 rounded-t-sm bg-violet-500/70 hover:bg-violet-400 transition-colors"
+                              style={{ height: `${Math.max((s.clicks / sparkMax) * 100, 8)}%` }}
+                              title={`${new Date(s.day).toLocaleDateString("en-US", { month: "short", day: "numeric" })}: ${s.clicks}`}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-700 block text-center">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-white">{t.clicks_30d.toLocaleString()}</td>
                     <td className="px-4 py-3 text-right text-slate-400">{t.clicks_7d.toLocaleString()}</td>
@@ -418,7 +456,8 @@ export default function AffiliatesClient() {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>

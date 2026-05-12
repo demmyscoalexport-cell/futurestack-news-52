@@ -37,7 +37,8 @@ export async function GET() {
       al.is_active,
       COALESCE(c30.cnt, 0)::int AS clicks_30d,
       COALESCE(c7.cnt,  0)::int AS clicks_7d,
-      COALESCE(c1.cnt,  0)::int AS clicks_today
+      COALESCE(c1.cnt,  0)::int AS clicks_today,
+      COALESCE(spark.data, '[]'::json) AS sparkline
     FROM tools t
     LEFT JOIN affiliate_links al ON al.tool_id = t.id
     LEFT JOIN LATERAL (
@@ -52,6 +53,15 @@ export async function GET() {
       SELECT COUNT(*) AS cnt FROM affiliate_clicks
       WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '1 day'
     ) c1 ON true
+    LEFT JOIN LATERAL (
+      SELECT json_agg(json_build_object('day', day::text, 'clicks', cnt) ORDER BY day) AS data
+      FROM (
+        SELECT date_trunc('day', clicked_at)::date AS day, COUNT(*)::int AS cnt
+        FROM affiliate_clicks
+        WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '30 days'
+        GROUP BY 1
+      ) sub
+    ) spark ON true
     WHERE t.status = 'active'
     ORDER BY COALESCE(c30.cnt, 0) DESC, t.name ASC
   `);
