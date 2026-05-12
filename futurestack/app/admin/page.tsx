@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db";
 import Link from "next/link";
 import {
   Users,
@@ -7,12 +8,12 @@ import {
   Star,
   Mail,
   Activity,
-  Settings,
   BarChart3,
   Shield,
   CheckCircle,
   Clock,
-  XCircle,
+  TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 
 async function getAdminData() {
@@ -36,7 +37,7 @@ async function getAdminData() {
     { count: totalUsers },
     { count: publishedArticles },
     { data: recentTools },
-    { data: recentActivity },
+    affiliateStats,
   ] = await Promise.all([
     supabase
       .from("tools")
@@ -56,12 +57,27 @@ async function getAdminData() {
       .select("id, name, slug, status, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
-    supabase
-      .from("tools")
-      .select("id, name, status, created_at")
-      .order("created_at", { ascending: false })
-      .limit(10),
+    // Affiliate stats from Replit PG
+    db.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE clicked_at >= NOW() - INTERVAL '1 day')   AS today,
+        COUNT(*) FILTER (WHERE clicked_at >= NOW() - INTERVAL '7 days')  AS week,
+        COUNT(*) FILTER (WHERE clicked_at >= NOW() - INTERVAL '30 days') AS month
+      FROM affiliate_clicks
+    `).then(r => r.rows[0]).catch(() => ({ today: 0, week: 0, month: 0 })),
   ]);
+
+  // Top 5 tools by clicks (30d)
+  const topAffiliateTools = await db.query(`
+    SELECT t.name, t.slug, t.logo,
+           COUNT(ac.id)::int AS clicks_30d
+    FROM affiliate_clicks ac
+    JOIN tools t ON t.id = ac.tool_id
+    WHERE ac.clicked_at >= NOW() - INTERVAL '30 days'
+    GROUP BY t.id, t.name, t.slug, t.logo
+    ORDER BY clicks_30d DESC
+    LIMIT 5
+  `).then(r => r.rows).catch(() => []);
 
   return {
     profile,
@@ -70,7 +86,8 @@ async function getAdminData() {
     totalUsers,
     publishedArticles,
     recentTools,
-    recentActivity,
+    affiliateStats,
+    topAffiliateTools,
   };
 }
 
@@ -111,12 +128,14 @@ const navSections = [
   { href: "/admin/reviews", icon: Star, label: "Review Moderation" },
   { href: "/admin/newsletter", icon: Mail, label: "Newsletter" },
   { href: "/admin/users", icon: Users, label: "User Management" },
+  { href: "/admin/affiliates", icon: TrendingUp, label: "Affiliate Links" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/system", icon: Activity, label: "System Health" },
 ];
 
 export default async function AdminPage() {
   const data = await getAdminData();
+  const aff = data.affiliateStats as { today: number; week: number; month: number };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -183,6 +202,72 @@ export default async function AdminPage() {
             ))}
           </div>
 
+          {/* Affiliate Click Analytics Widget */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-violet-400" />
+                <h3 className="font-bold text-lg">Affiliate Clicks</h3>
+              </div>
+              <Link
+                href="/admin/affiliates"
+                className="text-sm text-violet-400 hover:text-violet-300 font-semibold flex items-center gap-1"
+              >
+                Manage Links →
+              </Link>
+            </div>
+
+            {/* Click stats */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {[
+                { label: "Today", value: Number(aff.today) },
+                { label: "Last 7 Days", value: Number(aff.week) },
+                { label: "Last 30 Days", value: Number(aff.month) },
+              ].map((s) => (
+                <div key={s.label} className="bg-slate-800/50 rounded-xl p-4 text-center">
+                  <div className="text-3xl font-black text-white">{s.value.toLocaleString()}</div>
+                  <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-1">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Top tools by clicks */}
+            {data.topAffiliateTools.length > 0 ? (
+              <div>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Top Tools (30 days)</h4>
+                <div className="space-y-2">
+                  {(data.topAffiliateTools as { name: string; slug: string; logo: string | null; clicks_30d: number }[]).map((t, i) => (
+                    <div key={t.slug} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800/40">
+                      <span className="text-xs font-bold text-slate-600 w-4">{i + 1}</span>
+                      {t.logo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={t.logo} alt="" className="w-6 h-6 rounded-md object-contain bg-white p-0.5 shrink-0" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-md bg-violet-900 flex items-center justify-center text-xs font-bold text-violet-300 shrink-0">
+                          {t.name[0]}
+                        </div>
+                      )}
+                      <span className="flex-1 text-sm font-medium text-slate-200">{t.name}</span>
+                      <span className="text-sm font-bold text-violet-400">{t.clicks_30d.toLocaleString()}</span>
+                      <a
+                        href={`/api/affiliate/${t.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-600 hover:text-slate-400"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-slate-600 text-sm text-center py-4">
+                No clicks recorded yet — links are live and tracking will start when users visit tools.
+              </p>
+            )}
+          </div>
+
           {/* Recent Tool Submissions */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
@@ -241,9 +326,9 @@ export default async function AdminPage() {
                 color: "bg-blue-600 hover:bg-blue-500",
               },
               {
-                label: "Send Newsletter",
-                href: "/admin/newsletter/compose",
-                color: "bg-indigo-600 hover:bg-indigo-500",
+                label: "Manage Affiliates",
+                href: "/admin/affiliates",
+                color: "bg-violet-600 hover:bg-violet-500",
               },
             ].map((action) => (
               <Link

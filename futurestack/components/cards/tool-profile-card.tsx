@@ -192,7 +192,7 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
         )}
       </div>
 
-      {/* Footer — Website + View Details */}
+      {/* Footer — View Details + Tracked Visit */}
       <div className="px-5 pb-5 flex items-center gap-2 border-t border-border/50 pt-4">
         <Link
           href={`/tools/${tool.slug}`}
@@ -203,7 +203,7 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
         </Link>
         {websiteUrl && (
           <a
-            href={websiteUrl}
+            href={`/api/affiliate/${tool.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"

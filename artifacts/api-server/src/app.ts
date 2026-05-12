@@ -33,6 +33,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 const NEXTJS_PORT = process.env["NEXTJS_PORT"] ?? "3000";
+
+// Fallback: forward any unhandled /api/* requests to the Next.js app (keep full path)
+app.use(
+  createProxyMiddleware({
+    target: `http://localhost:${NEXTJS_PORT}`,
+    changeOrigin: true,
+    pathFilter: "/api",
+  }),
+);
+
+// Forward all non-/api requests (pages, _next, etc.) to Next.js
 app.use(
   createProxyMiddleware({
     target: `http://localhost:${NEXTJS_PORT}`,

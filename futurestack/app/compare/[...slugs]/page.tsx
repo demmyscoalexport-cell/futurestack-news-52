@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Check, X, Info } from "lucide-react";
+import { Check, X, ExternalLink } from "lucide-react";
 
 // Layout simplified to standard Next.js 15 App router syntax per user requirements
 export default async function ComparisonPage({
@@ -214,6 +214,28 @@ export default async function ComparisonPage({
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Visit CTAs */}
+        <section className="mt-8 grid grid-cols-2 gap-6">
+          <a
+            href={`/api/affiliate/${tool1.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Try {tool1.name}
+          </a>
+          <a
+            href={`/api/affiliate/${tool2.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition-colors"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Try {tool2.name}
+          </a>
         </section>
       </div>
     </div>

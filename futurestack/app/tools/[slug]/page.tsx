@@ -228,7 +228,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                 </div>
                 <div className="flex flex-row md:flex-col w-full md:w-auto gap-3 shrink-0">
                   <a
-                    href={tool.website}
+                    href={`/api/affiliate/${tool.slug}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
