@@ -73,21 +73,16 @@ Return JSON: {"meta_title": "...", "meta_description": "...", "og_title": "...",
       return JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || "{}");
     });
 
-    // Step 3: Generate hero image (via our own /api/generate-image endpoint)
+    // Step 3: Generate hero image via shared pipeline (no HTTP self-call)
     const heroImage = await step.run("generate-hero-image", async () => {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-        const res = await fetch(`${baseUrl}/api/generate-image`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "article-hero",
-            name: articleContent.title,
-            prompt: articleContent.title,
-          }),
+        const { generateAndUpload } = await import("@/lib/image-gen");
+        const result = await generateAndUpload({
+          type: "article-hero",
+          name: articleContent.title,
+          customPrompt: articleContent.title,
         });
-        const data = await res.json();
-        return data?.url || null;
+        return result.finalUrl;
       } catch {
         return null;
       }
