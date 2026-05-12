@@ -100,7 +100,7 @@ const POSTS_QUERY = `
       edges {
         node {
           id name slug tagline description url website
-          votesCount pricingType createdAt
+          votesCount createdAt
           thumbnail { url }
           topics { edges { node { name slug } } }
         }
@@ -171,10 +171,17 @@ function getCategory(topics) {
   return "productivity";
 }
 
-function getPricing(pricingType) {
-  if (pricingType === "FREE") return { model: "free", hasFree: true };
-  if (pricingType === "FREE_PLAN_AVAILABLE") return { model: "freemium", hasFree: true };
-  if (pricingType === "PAID") return { model: "paid", hasFree: false };
+function getPricing(tagline, description) {
+  const text = `${tagline ?? ""} ${description ?? ""}`.toLowerCase();
+  if (text.includes("free forever") || text.includes("always free") || text.includes("open source") || text.includes("open-source")) {
+    return { model: "free", hasFree: true };
+  }
+  if (text.includes("free plan") || text.includes("free tier") || text.includes("free trial") || text.includes("freemium") || text.includes("get started free") || text.includes("try for free")) {
+    return { model: "freemium", hasFree: true };
+  }
+  if (text.includes("per month") || text.includes("per year") || text.includes("pricing starts") || text.includes("subscription")) {
+    return { model: "paid", hasFree: false };
+  }
   return { model: "freemium", hasFree: true };
 }
 
@@ -261,7 +268,7 @@ async function main() {
     const slug = toSlug(post.name);
     const topicNodes = post.topics.edges.map((e) => e.node);
     const category = getCategory(topicNodes);
-    const { model: pricing_model, hasFree: has_free } = getPricing(post.pricingType);
+    const { model: pricing_model, hasFree: has_free } = getPricing(post.tagline, post.description);
     const rating = toRating(post.votesCount);
     const logo = getLogo(post);
     const website = post.website || post.url;

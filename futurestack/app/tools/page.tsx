@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function ToolsPage() {
   const [rawTools, categories] = await Promise.all([
-    getTools({ limit: 200 }),
+    getTools({ limit: 500 }),
     getCategoriesWithSubcategories(),
   ]);
 

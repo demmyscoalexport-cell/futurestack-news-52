@@ -150,7 +150,12 @@ export const getToolBySlugCached = unstable_cache(
 export async function getToolCategories() {
   return safe(async () => {
     const { rows } = await db.query(
-      `SELECT id, name, icon, count FROM tool_categories ORDER BY name`,
+      `SELECT tc.id, tc.name, tc.icon,
+              COUNT(t.id)::int AS count
+       FROM tool_categories tc
+       LEFT JOIN tools t ON t.category = tc.id AND t.status = 'active'
+       GROUP BY tc.id, tc.name, tc.icon
+       ORDER BY tc.name`,
     );
     return rows;
   }, []);

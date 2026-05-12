@@ -109,7 +109,7 @@ export const syncProductHuntTools = inngest.createFunction(
           const slug = phNameToSlug(post.name);
           const topicNodes = post.topics.edges.map((e) => e.node);
           const category = mapPHTopicsToCategory(topicNodes);
-          const { pricing_model, has_free } = mapPHPricingModel(post.pricingType);
+          const { pricing_model, has_free } = mapPHPricingModel(post.tagline, post.description);
           const rating = votesToRating(post.votesCount);
           const logo = resolvePHLogo(post);
           const website = post.website || post.url;
@@ -118,15 +118,12 @@ export const syncProductHuntTools = inngest.createFunction(
             post.tagline ||
             `${post.name} — discovered on Product Hunt`;
 
-          // Tags: always include "new", add "free" if free, "trending" if high votes
           const tags: string[] = ["new", "product-hunt"];
           if (has_free) tags.push("free");
           if (post.votesCount >= 500) tags.push("trending");
-          if (post.pricingType === "FREE") tags.push("africa-friendly");
+          if (has_free) tags.push("africa-friendly");
 
-          const africa_friendly =
-            post.pricingType === "FREE" ||
-            post.pricingType === "FREE_PLAN_AVAILABLE";
+          const africa_friendly = has_free;
 
           await pool.query(
             `INSERT INTO tools (

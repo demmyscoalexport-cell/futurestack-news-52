@@ -15,7 +15,6 @@ export interface PHPost {
   url: string;
   website: string | null;
   votesCount: number;
-  pricingType: "FREE" | "PAID" | "FREE_PLAN_AVAILABLE" | null;
   createdAt: string;
   thumbnail: { url: string } | null;
   topics: { edges: { node: { name: string; slug: string } }[] };
@@ -39,7 +38,6 @@ const POSTS_QUERY = `
           url
           website
           votesCount
-          pricingType
           createdAt
           thumbnail { url }
           topics { edges { node { name slug } } }
@@ -190,18 +188,20 @@ export function mapPHTopicsToCategory(
 }
 
 export function mapPHPricingModel(
-  pricingType: PHPost["pricingType"],
+  tagline: string,
+  description: string | null,
 ): { pricing_model: string; has_free: boolean } {
-  switch (pricingType) {
-    case "FREE":
-      return { pricing_model: "free", has_free: true };
-    case "FREE_PLAN_AVAILABLE":
-      return { pricing_model: "freemium", has_free: true };
-    case "PAID":
-      return { pricing_model: "paid", has_free: false };
-    default:
-      return { pricing_model: "freemium", has_free: true };
+  const text = `${tagline} ${description ?? ""}`.toLowerCase();
+  if (text.includes("free forever") || text.includes("always free") || text.includes("open source") || text.includes("open-source")) {
+    return { pricing_model: "free", has_free: true };
   }
+  if (text.includes("free plan") || text.includes("free tier") || text.includes("free trial") || text.includes("freemium") || text.includes("get started free") || text.includes("try for free")) {
+    return { pricing_model: "freemium", has_free: true };
+  }
+  if (text.includes("per month") || text.includes("per year") || text.includes("pricing starts") || text.includes("subscription")) {
+    return { pricing_model: "paid", has_free: false };
+  }
+  return { pricing_model: "freemium", has_free: true };
 }
 
 /** Convert PH upvote count to a rough FutureStack rating (6.0–9.5) */
