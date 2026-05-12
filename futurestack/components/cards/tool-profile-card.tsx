@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink, Star, Calendar, ArrowUpRight, BadgeCheck, Flame, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,9 +68,11 @@ function formatDate(iso?: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-/** Square logo with letter fallback */
+/** Square logo with letter fallback on error */
 function ProfileLogo({ tool }: { tool: ToolProfileCardProps["tool"] }) {
-  if (tool.logo) {
+  const [errored, setErrored] = useState(false);
+
+  if (tool.logo && !errored) {
     return (
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-border bg-card flex items-center justify-center p-1.5 shadow-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -80,7 +83,7 @@ function ProfileLogo({ tool }: { tool: ToolProfileCardProps["tool"] }) {
           height={64}
           className="h-full w-full object-contain"
           loading="lazy"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          onError={() => setErrored(true)}
         />
       </div>
     );

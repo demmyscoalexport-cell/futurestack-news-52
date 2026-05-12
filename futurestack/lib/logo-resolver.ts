@@ -78,28 +78,22 @@ export function resolveToolLogo(
     if (key.includes(mapKey) || mapKey.includes(key)) return mapValue;
   }
 
-  // 3. If there's already a valid logo URL (non-Clearbit since those may fail), use it
-  if (
-    existingLogo &&
-    existingLogo.trim() !== "" &&
-    !existingLogo.includes("clearbit.com")
-  ) {
+  // 3. Use any stored logo URL as-is (Clearbit, Cloudinary, etc.)
+  if (existingLogo && existingLogo.trim() !== "") {
     return existingLogo;
   }
 
-  // 4. Fallback to Clearbit if we have a website
+  // 4. Build Google favicon URL from website domain as final fallback
+  // Google's S2 favicon service works for every domain including unusual TLDs
   if (website) {
     try {
-      const domain = new URL(website).hostname;
-      return `https://logo.clearbit.com/${domain}`;
+      const hostname = new URL(website).hostname;
+      const parts = hostname.split(".");
+      const rootDomain = parts.length > 2 ? parts.slice(-2).join(".") : hostname;
+      return `https://www.google.com/s2/favicons?domain=${rootDomain}&sz=128`;
     } catch {
       // Invalid URL
     }
-  }
-
-  // 5. Use Clearbit if it was set as existing logo (last resort)
-  if (existingLogo && existingLogo.trim() !== "") {
-    return existingLogo;
   }
 
   return "";
