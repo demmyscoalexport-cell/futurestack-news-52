@@ -1,5 +1,5 @@
 import { getFeaturedArticles } from "@/lib/queries/articles";
-import { getTrendingTools, getToolCategories } from "@/lib/queries/tools";
+import { getTrendingTools, getToolCategories, getRecentTools } from "@/lib/queries/tools";
 import { getFeaturedStacks } from "@/lib/queries/stacks";
 import {
   articles as fallbackArticles,
@@ -10,15 +10,15 @@ import {
 import { HomeClient } from "./home-client";
 
 export default async function HomePage() {
-  const [featuredArticles, topTools, featuredStacks, toolCategories] =
+  const [featuredArticles, topTools, featuredStacks, toolCategories, recentTools] =
     await Promise.all([
       getFeaturedArticles(4),
-      getTrendingTools(5),
-      getFeaturedStacks(3),
+      getTrendingTools(12),
+      getFeaturedStacks(4),
       getToolCategories(),
+      getRecentTools(6),
     ]);
 
-  // Fall back to static mock data until Supabase tables are populated
   return (
     <HomeClient
       featuredArticles={
@@ -26,15 +26,16 @@ export default async function HomePage() {
           ? featuredArticles
           : fallbackArticles.filter((a) => a.featured).slice(0, 4)
       }
-      topTools={topTools?.length ? topTools : fallbackTools.slice(0, 5)}
+      topTools={topTools?.length ? topTools : fallbackTools.slice(0, 12)}
       featuredStacks={
         featuredStacks?.length
           ? featuredStacks
-          : fallbackStacks.filter((s) => s.featured).slice(0, 3)
+          : fallbackStacks.filter((s) => s.featured).slice(0, 4)
       }
       toolCategories={
         toolCategories?.length ? toolCategories : fallbackCategories
       }
+      recentTools={recentTools?.length ? recentTools : fallbackTools.slice(0, 6)}
     />
   );
 }

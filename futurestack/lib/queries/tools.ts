@@ -147,6 +147,20 @@ export const getToolBySlugCached = unstable_cache(
   { revalidate: 3600, tags: ["tools"] },
 );
 
+export async function getRecentTools(limit = 6) {
+  return safe(async () => {
+    const { rows } = await db.query(
+      `SELECT t.*, ts.futurestack_score
+       FROM tools t
+       LEFT JOIN tool_scores ts ON ts.tool_id = t.id
+       WHERE t.status = 'active'
+       ORDER BY t.created_at DESC LIMIT $1`,
+      [limit],
+    );
+    return rows;
+  }, []);
+}
+
 export async function getToolCategories() {
   return safe(async () => {
     const { rows } = await db.query(

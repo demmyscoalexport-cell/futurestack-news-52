@@ -21,12 +21,6 @@ import {
   Menu,
   X,
   Layers,
-  Newspaper,
-  Wrench,
-  LayoutGrid,
-  Hammer,
-  Radio,
-  User,
   Moon,
   Sun,
   LogOut,
@@ -37,12 +31,12 @@ import { useTheme } from "next-themes";
 import { useAuth } from "@/components/providers/auth-provider";
 
 const navigation = [
-  { name: "Home", href: "/", icon: Layers },
-  { name: "News", href: "/news", icon: Newspaper },
-  { name: "Tools", href: "/tools", icon: Wrench },
-  { name: "Stacks", href: "/stacks", icon: LayoutGrid },
-  { name: "Builder", href: "/stack-builder", icon: Hammer },
-  { name: "Radar", href: "/radar", icon: Radio },
+  { name: "Tools", href: "/tools" },
+  { name: "Stacks", href: "/stacks" },
+  { name: "Categories", href: "/tools" },
+  { name: "Comparisons", href: "/tools" },
+  { name: "News", href: "/news" },
+  { name: "Deals", href: "/tools" },
 ];
 
 export function Header() {
@@ -62,209 +56,142 @@ export function Header() {
     : (user?.email?.slice(0, 2).toUpperCase() ?? "?");
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-xl">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+            <Layers className="h-4 w-4 text-white" />
           </div>
-          <span className="hidden font-semibold text-foreground sm:inline-block">
-            FutureStack<span className="text-primary">News</span>
-          </span>
+          <span className="font-bold text-foreground text-sm">FutureStack</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-0.5 lg:flex">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:text-foreground",
+                "px-3 py-2 text-sm font-medium transition-colors rounded-md hover:text-foreground",
                 pathname === item.href
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground",
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:bg-white/5",
               )}
             >
-              <item.icon className="h-4 w-4" />
               {item.name}
             </Link>
           ))}
         </nav>
 
-        {/* Right Side Actions */}
+        {/* Right Side */}
         <div className="flex items-center gap-2">
-          {/* Search Toggle */}
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 hidden sm:flex text-muted-foreground hover:text-foreground"
             onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="hidden sm:flex"
           >
             <Search className="h-4 w-4" />
-            <span className="sr-only">Search</span>
           </Button>
 
-          {/* Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {/* Auth area */}
-          {!isLoading &&
-            (user ? (
+          {!isLoading && (
+            user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden sm:flex rounded-full"
-                  >
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:flex rounded-full">
+                    <Avatar className="h-7 w-7">
                       <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                        {userInitials}
-                      </AvatarFallback>
+                      <AvatarFallback className="text-xs bg-primary text-white">{userInitials}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuLabel className="font-normal">
-                    <p className="font-medium text-sm truncate">
-                      {user.user_metadata?.full_name || "My Account"}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {user.email}
-                    </p>
+                    <p className="font-medium text-sm truncate">{user.user_metadata?.full_name || "My Account"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/account">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Account
-                    </Link>
+                    <Link href="/account"><Settings className="mr-2 h-4 w-4" />Account</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/saved">
-                      <BookmarkCheck className="mr-2 h-4 w-4" />
-                      Saved Tools
-                    </Link>
+                    <Link href="/account/saved"><BookmarkCheck className="mr-2 h-4 w-4" />Saved Tools</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={signOut}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                  <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden sm:flex"
-                  asChild
-                >
-                  <Link href="/login">
-                    <User className="mr-2 h-4 w-4" />
-                    Login
-                  </Link>
+              <div className="hidden sm:flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-8 text-xs border-border/60" asChild>
+                  <Link href="/submit-tool">Submit Tool</Link>
                 </Button>
-                <Button size="sm" className="hidden sm:flex" asChild>
-                  <Link href="/signup">Get Started</Link>
+                <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" asChild>
+                  <Link href="/login">Sign In</Link>
                 </Button>
-              </>
-            ))}
+              </div>
+            )
+          )}
 
-          {/* Mobile Menu */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open menu</span>
+              <Button variant="ghost" size="icon" className="h-8 w-8 lg:hidden">
+                <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 p-0">
+            <SheetContent side="right" className="w-72 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between border-b border-border p-4">
-                  <Link
-                    href="/"
-                    className="flex items-center gap-2"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                      <Layers className="h-4 w-4 text-primary-foreground" />
+                <div className="flex items-center justify-between border-b border-border/40 p-4">
+                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+                      <Layers className="h-4 w-4 text-white" />
                     </div>
-                    <span className="font-semibold">FutureStack</span>
+                    <span className="font-bold text-sm">FutureStack</span>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-
-                {/* Mobile Search */}
-                <div className="border-b border-border p-4">
+                <div className="border-b border-border/40 p-4">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search tools, articles..."
-                      className="pl-9"
-                    />
+                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input placeholder="Search tools, articles..." className="pl-9 h-9 text-sm" />
                   </div>
                 </div>
-
-                {/* Mobile Nav */}
-                <nav className="flex-1 space-y-1 p-4">
+                <nav className="flex-1 space-y-0.5 p-3">
                   {navigation.map((item) => (
                     <Link
                       key={item.name}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors hover:bg-secondary",
-                        pathname === item.href
-                          ? "bg-secondary text-foreground"
-                          : "text-muted-foreground",
+                        "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        pathname === item.href ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
                       )}
                     >
-                      <item.icon className="h-5 w-5" />
                       {item.name}
                     </Link>
                   ))}
                 </nav>
-
-                {/* Mobile CTA */}
-                <div className="border-t border-border p-4 space-y-2">
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Login
-                    </Link>
+                <div className="border-t border-border/40 p-4 space-y-2">
+                  <Button variant="outline" className="w-full h-9 text-sm" asChild>
+                    <Link href="/submit-tool" onClick={() => setIsMobileMenuOpen(false)}>Submit Tool</Link>
                   </Button>
-                  <Button className="w-full" asChild>
-                    <Link
-                      href="/stack-builder"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Build Your Stack
-                    </Link>
+                  <Button className="w-full h-9 text-sm bg-primary" asChild>
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
                   </Button>
                 </div>
               </div>
@@ -273,17 +200,12 @@ export function Header() {
         </div>
       </div>
 
-      {/* Desktop Search Overlay */}
       {isSearchOpen && (
-        <div className="absolute left-0 right-0 top-full border-b border-border bg-background p-4 shadow-lg">
+        <div className="absolute left-0 right-0 top-full border-b border-border/40 bg-background p-3 shadow-lg">
           <div className="container mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search tools, articles, stacks..."
-                className="pl-9"
-                autoFocus
-              />
+              <Input placeholder="Search AI tools, stacks, articles..." className="pl-9" autoFocus />
             </div>
           </div>
         </div>

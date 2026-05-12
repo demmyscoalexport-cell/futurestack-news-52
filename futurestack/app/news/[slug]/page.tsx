@@ -1,16 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
 import { ArticleCard } from "@/components/cards/article-card";
-import { ToolCard } from "@/components/cards/tool-card";
-import { RoleSelector } from "@/components/ui/role-selector";
 import { NewsletterForm } from "@/components/ui/newsletter-form";
-import { articles as fallbackArticles, tools, reviews } from "@/lib/data";
+import { articles as fallbackArticles } from "@/lib/data";
 import { getArticleBySlug, getPublishedArticles } from "@/lib/queries/articles";
 import {
   ArrowLeft,
@@ -21,10 +19,6 @@ import {
   Twitter,
   Linkedin,
   Link as LinkIcon,
-  ThumbsUp,
-  ThumbsDown,
-  MessageSquare,
-  CheckCircle,
   ArrowRight,
 } from "lucide-react";
 
@@ -38,8 +32,7 @@ const categoryColors: Record<string, string> = {
   tutorials: "bg-success/10 text-success border-success/20",
   "case-studies": "bg-chart-4/10 text-chart-4 border-chart-4/20",
   comparisons: "bg-chart-5/10 text-chart-5 border-chart-5/20",
-  "industry-trends":
-    "bg-muted-foreground/10 text-muted-foreground border-muted-foreground/20",
+  "industry-trends": "bg-muted-foreground/10 text-muted-foreground border-muted-foreground/20",
 };
 
 const categoryLabels: Record<string, string> = {
@@ -51,10 +44,112 @@ const categoryLabels: Record<string, string> = {
   "industry-trends": "Industry Trends",
 };
 
+/** Simple markdown → HTML converter for article bodies */
+function markdownToHtml(md: string): string {
+  if (!md) return "";
+
+  const lines = md.split("\n");
+  const html: string[] = [];
+  let inUl = false;
+  let inOl = false;
+  let inBlockquote = false;
+
+  const closeList = () => {
+    if (inUl) { html.push("</ul>"); inUl = false; }
+    if (inOl) { html.push("</ol>"); inOl = false; }
+  };
+
+  const closeBlockquote = () => {
+    if (inBlockquote) { html.push("</blockquote>"); inBlockquote = false; }
+  };
+
+  const inlineFormat = (text: string) =>
+    text
+      .replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>")
+      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-primary underline" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Headings
+    if (/^#{1,6}\s/.test(trimmed)) {
+      closeList(); closeBlockquote();
+      const level = (trimmed.match(/^(#+)/) || ["", ""])[1].length;
+      const text = trimmed.replace(/^#+\s+/, "");
+      const tag = level <= 2 ? "h2" : level === 3 ? "h3" : "h4";
+      const cls = level <= 2
+        ? "text-2xl font-bold text-foreground mt-10 mb-4"
+        : level === 3
+        ? "text-xl font-semibold text-foreground mt-8 mb-3"
+        : "text-lg font-semibold text-foreground mt-6 mb-2";
+      html.push(`<${tag} class="${cls}">${inlineFormat(text)}</${tag}>`);
+      i++; continue;
+    }
+
+    // Blockquote
+    if (trimmed.startsWith("> ")) {
+      closeList();
+      if (!inBlockquote) {
+        html.push('<blockquote class="border-l-4 border-primary/40 pl-4 my-4 italic text-muted-foreground">');
+        inBlockquote = true;
+      }
+      html.push(`<p>${inlineFormat(trimmed.slice(2))}</p>`);
+      i++; continue;
+    } else {
+      closeBlockquote();
+    }
+
+    // Unordered list
+    if (/^[-*+]\s/.test(trimmed)) {
+      closeBlockquote();
+      if (inOl) { html.push("</ol>"); inOl = false; }
+      if (!inUl) { html.push('<ul class="list-disc pl-6 my-4 space-y-2 text-foreground/90">'); inUl = true; }
+      html.push(`<li class="leading-relaxed">${inlineFormat(trimmed.replace(/^[-*+]\s/, ""))}</li>`);
+      i++; continue;
+    }
+
+    // Ordered list
+    if (/^\d+\.\s/.test(trimmed)) {
+      closeBlockquote();
+      if (inUl) { html.push("</ul>"); inUl = false; }
+      if (!inOl) { html.push('<ol class="list-decimal pl-6 my-4 space-y-2 text-foreground/90">'); inOl = true; }
+      html.push(`<li class="leading-relaxed">${inlineFormat(trimmed.replace(/^\d+\.\s/, ""))}</li>`);
+      i++; continue;
+    }
+
+    // Horizontal rule
+    if (/^---+$/.test(trimmed)) {
+      closeList(); closeBlockquote();
+      html.push('<hr class="border-border/40 my-8" />');
+      i++; continue;
+    }
+
+    // Empty line
+    if (trimmed === "") {
+      closeList(); closeBlockquote();
+      i++; continue;
+    }
+
+    // Paragraph
+    closeList(); closeBlockquote();
+    html.push(`<p class="text-foreground/85 leading-relaxed mb-4">${inlineFormat(trimmed)}</p>`);
+    i++;
+  }
+
+  closeList(); closeBlockquote();
+  return html.join("\n");
+}
+
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
 
   // Try DB first, fall back to static data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let article: any = await getArticleBySlug(slug);
   if (!article) {
     const staticArticle = fallbackArticles.find((a) => a.slug === slug);
@@ -63,8 +158,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   // Normalize shape from DB vs static data
-  if (!article.author) article.author = { name: "FutureStack", role: "Editor", avatar: "" };
-  if (!article.author.role) article.author.role = "Editor";
+  if (!article.author) article.author = { name: "FutureStack AI", role: "Staff Writer", avatar: "" };
+  if (!article.author.role) article.author.role = "Staff Writer";
   if (article.readTime == null) article.readTime = article.reading_time || 5;
   if (!article.featuredImage) article.featuredImage = article.hero_image || article.cover_image_url || "";
   if (article.viewCount == null) article.viewCount = article.view_count || 0;
@@ -72,15 +167,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   if (!article.publishedAt) article.publishedAt = article.published_at || new Date().toISOString();
   if (!article.updatedAt) article.updatedAt = article.updated_at || article.publishedAt;
 
-  const [relatedArticles] = await Promise.all([
-    getPublishedArticles({ limit: 3 }),
-  ]);
+  // Use DB content field (markdown), fallback to excerpt
+  const bodyMarkdown: string = article.content || article.excerpt || "";
+  const bodyHtml = markdownToHtml(bodyMarkdown);
 
-  const filteredRelated = (relatedArticles as any[])
-    .filter((a: any) => a.slug !== article.slug)
+  const relatedArticles = await getPublishedArticles({ limit: 4 });
+  const filteredRelated = (relatedArticles as unknown as { slug: string; id: string }[])
+    .filter((a) => a.slug !== article.slug)
     .slice(0, 3);
-
-  const comparedTools = tools.slice(0, 3);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -88,9 +182,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
       <main className="flex-1">
         {/* Article Header */}
-        <section className="border-b border-border bg-gradient-to-b from-background to-secondary/20 py-12 lg:py-16">
-          <div className="container mx-auto px-4 lg:px-8">
-            {/* Back link */}
+        <section className="border-b border-border/30 bg-gradient-to-b from-background to-secondary/10 py-10 lg:py-14">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
             <Link
               href="/news"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -99,371 +192,143 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               Back to News
             </Link>
 
-            {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-4">
-              <Badge
-                variant="outline"
-                className={categoryColors[article.category]}
-              >
-                {categoryLabels[article.category]}
+              <Badge variant="outline" className={categoryColors[article.category] || "bg-secondary text-foreground"}>
+                {categoryLabels[article.category] || article.category || "Article"}
               </Badge>
               {article.featured && (
-                <Badge
-                  variant="outline"
-                  className="bg-accent/10 text-accent border-accent/20"
-                >
-                  Featured
-                </Badge>
+                <Badge variant="outline" className="bg-accent/10 text-accent border-accent/20">Featured</Badge>
               )}
             </div>
 
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-foreground lg:text-4xl xl:text-5xl text-balance max-w-4xl">
+            <h1 className="text-3xl font-bold text-foreground lg:text-4xl xl:text-5xl leading-tight max-w-4xl">
               {article.title}
             </h1>
 
-            {/* Excerpt */}
-            <p className="mt-4 text-lg text-muted-foreground max-w-3xl">
+            <p className="mt-4 text-lg text-muted-foreground max-w-3xl leading-relaxed">
               {article.excerpt}
             </p>
 
-            {/* Author & Meta */}
-            <div className="mt-8 flex flex-wrap items-center gap-6">
+            <div className="mt-7 flex flex-wrap items-center gap-5">
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {article.author.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                <Avatar className="h-9 w-9">
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {article.author.name.split(" ").map((n: string) => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-foreground">
-                    {article.author.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {article.author.role}
-                  </p>
+                  <p className="font-medium text-foreground text-sm">{article.author.name}</p>
+                  <p className="text-xs text-muted-foreground">{article.author.role}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span>
-                  Published{" "}
                   {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
+                    month: "long", day: "numeric", year: "numeric",
                   })}
                 </span>
-                {article.updatedAt !== article.publishedAt && (
-                  <span>
-                    Updated{" "}
-                    {new Date(article.updatedAt).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  {article.readTime} min read
+                </span>
+                {article.viewCount > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <Eye className="h-3.5 w-3.5" />
+                    {article.viewCount.toLocaleString()} views
                   </span>
                 )}
               </div>
-
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
-                  {article.readTime} min read
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Eye className="h-4 w-4" />
-                  {article.viewCount.toLocaleString()} views
-                </span>
-              </div>
             </div>
 
-            {/* Share buttons */}
-            <div className="mt-6 flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Twitter className="mr-2 h-4 w-4" />
-                Share
+            <div className="mt-5 flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Twitter className="mr-1.5 h-3.5 w-3.5" />Share
               </Button>
-              <Button variant="outline" size="sm">
-                <Linkedin className="mr-2 h-4 w-4" />
-                Share
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Linkedin className="mr-1.5 h-3.5 w-3.5" />Share
               </Button>
-              <Button variant="outline" size="sm">
-                <LinkIcon className="mr-2 h-4 w-4" />
-                Copy Link
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <LinkIcon className="mr-1.5 h-3.5 w-3.5" />Copy Link
               </Button>
-              <Button variant="outline" size="sm">
-                <Bookmark className="mr-2 h-4 w-4" />
-                Save
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Bookmark className="mr-1.5 h-3.5 w-3.5" />Save
               </Button>
             </div>
           </div>
         </section>
 
         {/* Article Content */}
-        <section className="py-12 lg:py-16">
+        <section className="py-10 lg:py-14">
           <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex gap-12">
+            <div className="flex gap-12 max-w-5xl mx-auto">
               {/* Main Content */}
-              <article className="flex-1 max-w-3xl">
-                {/* Featured Image Placeholder */}
-                <div className="aspect-[21/9] rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 mb-10" />
-
-                {/* Article Body */}
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <h2>Introduction</h2>
-                  <p>
-                    The landscape of AI tools is evolving rapidly, and staying
-                    ahead means knowing which tools actually deliver on their
-                    promises. In this comprehensive guide, we&apos;ll explore
-                    the tools that are making a real difference for content
-                    teams, freelancers, and marketers.
-                  </p>
-
-                  {/* Role Selector CTA */}
-                  <Card className="my-8 p-6 bg-primary/5 border-primary/20">
-                    <h3 className="text-lg font-semibold text-foreground mt-0 mb-4">
-                      Get personalized tool recommendations
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      Select your role to see which tools are best suited for
-                      your workflow:
-                    </p>
-                    <RoleSelector variant="compact" />
-                  </Card>
-
-                  <h2>The Tools Compared</h2>
-                  <p>
-                    We&apos;ve tested each of these tools extensively over the
-                    past month. Here&apos;s what we found when comparing them
-                    head-to-head across key metrics like ease of use, output
-                    quality, and value for money.
-                  </p>
-                </div>
-
-                {/* Tool Comparison */}
-                <div className="my-10">
-                  <h3 className="text-xl font-semibold text-foreground mb-6">
-                    Featured Tools in This Article
-                  </h3>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {comparedTools.map((tool) => (
-                      <ToolCard key={tool.id} tool={tool} variant="compact" />
-                    ))}
+              <article className="flex-1 min-w-0">
+                {/* Featured Image */}
+                {article.featuredImage && (
+                  <div className="relative aspect-[21/9] rounded-xl overflow-hidden mb-10 bg-secondary/30">
+                    <Image
+                      src={article.featuredImage}
+                      alt={article.title}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 800px"
+                    />
                   </div>
-                </div>
+                )}
+                {!article.featuredImage && (
+                  <div className="aspect-[21/9] rounded-xl bg-gradient-to-br from-primary/15 to-violet-900/20 mb-10" />
+                )}
 
-                {/* Continue article */}
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                  <h2>Key Takeaways</h2>
-                  <p>
-                    After extensive testing, here are the main insights we
-                    gathered:
-                  </p>
-                  <ul>
-                    <li>
-                      The best tool depends heavily on your specific workflow
-                      and budget
-                    </li>
-                    <li>
-                      Free tiers can be surprisingly capable for individual use
-                    </li>
-                    <li>
-                      Integration capabilities matter more than raw features
-                    </li>
-                    <li>
-                      Consider the learning curve when calculating total cost of
-                      ownership
-                    </li>
-                  </ul>
+                {/* Article Body — rendered from DB markdown */}
+                {bodyHtml ? (
+                  <div
+                    className="text-base [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mt-10 [&_h2]:mb-4 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mt-8 [&_h3]:mb-3 [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:text-foreground [&_h4]:mt-6 [&_h4]:mb-2 [&_p]:text-foreground/85 [&_p]:leading-relaxed [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-4 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-4 [&_ol]:space-y-2 [&_li]:leading-relaxed [&_li]:text-foreground/85 [&_strong]:text-foreground [&_strong]:font-semibold [&_em]:italic [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono [&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_hr]:border-border/40 [&_hr]:my-8 [&_a]:text-primary [&_a]:underline"
+                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                  />
+                ) : (
+                  <p className="text-muted-foreground italic">Content coming soon...</p>
+                )}
 
-                  <h2>Conclusion</h2>
-                  <p>
-                    There&apos;s no one-size-fits-all answer when it comes to AI
-                    tools. The best approach is to identify your specific needs,
-                    try the free tiers where available, and scale up based on
-                    actual results rather than promised features.
-                  </p>
-                </div>
-
-                {/* Build Stack CTA */}
-                <Card className="my-10 p-6 bg-gradient-to-br from-primary/10 to-accent/5 border-primary/20">
+                {/* CTA */}
+                <div className="mt-10 rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-900/20 via-purple-900/10 to-violet-900/20 p-6">
                   <h3 className="text-lg font-semibold text-foreground">
-                    Ready to build your stack?
+                    Find the right tools for your stack
                   </h3>
-                  <p className="mt-2 text-muted-foreground">
-                    Combine these tools into a custom workflow that fits your
-                    needs.
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Discover, compare, and combine the best AI tools for your workflow.
                   </p>
-                  <Button className="mt-4" asChild>
-                    <Link href="/stack-builder">
-                      Start Stack Builder
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </Card>
-
-                {/* Comments Section */}
-                <div className="mt-12 pt-12 border-t border-border">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Comments ({reviews.length})
-                    </h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        Top
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        New
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Comments list */}
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <Card key={review.id} className="p-4">
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                              {review.userName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-foreground">
-                                {review.userName}
-                              </span>
-                              {review.verified && (
-                                <span className="flex items-center gap-1 text-xs text-success">
-                                  <CheckCircle className="h-3 w-3" />
-                                  Verified
-                                </span>
-                              )}
-                              {review.location && (
-                                <span className="text-xs text-muted-foreground">
-                                  {review.location}
-                                </span>
-                              )}
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(
-                                  review.createdAt,
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="mt-2 text-foreground">
-                              {review.content}
-                            </p>
-                            <div className="mt-3 flex items-center gap-4">
-                              <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                <ThumbsUp className="h-4 w-4" />
-                                {review.upvotes}
-                              </button>
-                              <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                <ThumbsDown className="h-4 w-4" />
-                              </button>
-                              <button className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                Reply
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-
-                  <Button variant="outline" className="mt-6 w-full">
-                    Load more comments
-                  </Button>
+                  <Link
+                    href="/tools"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                  >
+                    Explore Tools <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
               </article>
 
               {/* Sidebar */}
-              <aside className="hidden xl:block w-80 shrink-0">
-                <div className="sticky top-24 space-y-8">
-                  {/* Table of Contents */}
-                  <Card className="p-5">
-                    <h4 className="font-semibold text-foreground mb-4">
-                      Table of Contents
-                    </h4>
-                    <nav className="space-y-2">
-                      <a
-                        href="#"
-                        className="block text-sm text-primary hover:underline"
-                      >
-                        Introduction
-                      </a>
-                      <a
-                        href="#"
-                        className="block text-sm text-muted-foreground hover:text-foreground"
-                      >
-                        The Tools Compared
-                      </a>
-                      <a
-                        href="#"
-                        className="block text-sm text-muted-foreground hover:text-foreground"
-                      >
-                        Key Takeaways
-                      </a>
-                      <a
-                        href="#"
-                        className="block text-sm text-muted-foreground hover:text-foreground"
-                      >
-                        Conclusion
-                      </a>
-                    </nav>
-                  </Card>
-
-                  {/* Quick Actions */}
-                  <Card className="p-5">
-                    <h4 className="font-semibold text-foreground mb-4">
-                      Quick Actions
-                    </h4>
+              <aside className="hidden xl:block w-72 shrink-0">
+                <div className="sticky top-24 space-y-6">
+                  <div className="rounded-xl border border-border/40 bg-card p-5">
+                    <h4 className="font-semibold text-foreground mb-4 text-sm">Quick Actions</h4>
                     <div className="space-y-2">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        size="sm"
-                      >
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share Article
+                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
+                        <Share2 className="mr-2 h-3.5 w-3.5" />Share Article
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        size="sm"
-                      >
-                        <Bookmark className="mr-2 h-4 w-4" />
-                        Save for Later
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        size="sm"
-                      >
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        Jump to Comments
+                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
+                        <Bookmark className="mr-2 h-3.5 w-3.5" />Save for Later
                       </Button>
                     </div>
-                  </Card>
+                  </div>
 
-                  {/* Newsletter */}
-                  <Card className="p-5 bg-primary/5 border-primary/20">
-                    <h4 className="font-semibold text-foreground mb-2">
-                      Get more insights
-                    </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Join 12,000+ readers getting weekly AI tool
-                      recommendations.
+                  <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-5">
+                    <h4 className="font-semibold text-foreground mb-2 text-sm">Get more insights</h4>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Join 12,000+ readers getting weekly AI tool recommendations.
                     </p>
                     <NewsletterForm variant="inline" />
-                  </Card>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -471,27 +336,26 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </section>
 
         {/* Related Articles */}
-        <section className="border-t border-border bg-card py-12 lg:py-16">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-foreground">
-                Related Articles
-              </h2>
-              <Button variant="ghost" asChild>
-                <Link href={`/news?category=${article.category}`}>
-                  View all in {categoryLabels[article.category]}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+        {filteredRelated.length > 0 && (
+          <section className="border-t border-border/30 bg-secondary/10 py-10 lg:py-14">
+            <div className="container mx-auto px-4 lg:px-8">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl font-bold text-foreground">Related Articles</h2>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/news">
+                    View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {filteredRelated.map((related: any) => (
+                  <ArticleCard key={related.id} article={related} />
+                ))}
+              </div>
             </div>
-
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredRelated.map((related: any) => (
-                <ArticleCard key={related.id} article={related} />
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <Footer />
