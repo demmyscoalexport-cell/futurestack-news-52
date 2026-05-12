@@ -487,3 +487,43 @@ DROP TRIGGER IF EXISTS stacks_updated_at ON stacks;
 CREATE TRIGGER stacks_updated_at
   BEFORE UPDATE ON stacks
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ──────────────────────────────────────────────────────────
+-- AFFILIATE LINKS
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS affiliate_links (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tool_id         uuid NOT NULL REFERENCES tools(id) ON DELETE CASCADE,
+  affiliate_url   text NOT NULL,
+  partner_name    text NOT NULL,
+  commission_rate numeric(5,2) DEFAULT 0,
+  notes           text,
+  is_active       boolean DEFAULT true,
+  created_at      timestamptz DEFAULT now(),
+  updated_at      timestamptz DEFAULT now(),
+  UNIQUE(tool_id)
+);
+
+CREATE INDEX IF NOT EXISTS affiliate_links_tool_idx ON affiliate_links(tool_id);
+CREATE INDEX IF NOT EXISTS affiliate_links_active_idx ON affiliate_links(is_active);
+
+DROP TRIGGER IF EXISTS affiliate_links_updated_at ON affiliate_links;
+CREATE TRIGGER affiliate_links_updated_at
+  BEFORE UPDATE ON affiliate_links
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ──────────────────────────────────────────────────────────
+-- AFFILIATE CLICKS  (immutable event log — no updates)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS affiliate_clicks (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tool_id     uuid NOT NULL REFERENCES tools(id) ON DELETE CASCADE,
+  clicked_at  timestamptz DEFAULT now(),
+  referrer    text,
+  country     text,
+  user_agent  text,
+  ip_hash     text
+);
+
+CREATE INDEX IF NOT EXISTS affiliate_clicks_tool_idx ON affiliate_clicks(tool_id);
+CREATE INDEX IF NOT EXISTS affiliate_clicks_time_idx ON affiliate_clicks(clicked_at DESC);

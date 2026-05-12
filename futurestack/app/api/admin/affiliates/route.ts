@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
+async function requireAdmin(): Promise<{ error: NextResponse } | { ok: true }> {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
+  if (profile?.role !== "admin") {
+    return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+  }
+  return { ok: true };
+}
+
 /* ─── GET — list all tools with affiliate data + click counts ─── */
 export async function GET() {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   const { rows } = await db.query(`
     SELECT
       t.id, t.name, t.slug, t.logo,
@@ -40,6 +61,9 @@ export async function GET() {
 
 /* ─── POST — create new affiliate link ─── */
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   const body = await req.json();
   const { tool_id, affiliate_url, partner_name, commission_rate, notes } = body;
 
@@ -65,6 +89,9 @@ export async function POST(req: NextRequest) {
 
 /* ─── PUT — update existing affiliate link (by id in body) ─── */
 export async function PUT(req: NextRequest) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   const body = await req.json();
   const { id, affiliate_url, partner_name, commission_rate, notes } = body;
 
@@ -88,6 +115,9 @@ export async function PUT(req: NextRequest) {
 
 /* ─── PATCH — toggle is_active ─── */
 export async function PATCH(req: NextRequest) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   const { id, is_active } = await req.json();
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
@@ -100,6 +130,9 @@ export async function PATCH(req: NextRequest) {
 
 /* ─── DELETE — remove affiliate link ─── */
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });

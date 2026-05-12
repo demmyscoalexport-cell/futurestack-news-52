@@ -67,17 +67,27 @@ async function getAdminData() {
     `).then(r => r.rows[0]).catch(() => ({ today: 0, week: 0, month: 0 })),
   ]);
 
-  // Top 5 tools by clicks (30d)
-  const topAffiliateTools = await db.query(`
-    SELECT t.name, t.slug, t.logo,
-           COUNT(ac.id)::int AS clicks_30d
-    FROM affiliate_clicks ac
-    JOIN tools t ON t.id = ac.tool_id
-    WHERE ac.clicked_at >= NOW() - INTERVAL '30 days'
-    GROUP BY t.id, t.name, t.slug, t.logo
-    ORDER BY clicks_30d DESC
-    LIMIT 5
-  `).then(r => r.rows).catch(() => []);
+  // Top 5 tools by clicks (30d) + daily trend
+  const [topAffiliateTools, dailyTrend] = await Promise.all([
+    db.query(`
+      SELECT t.name, t.slug, t.logo,
+             COUNT(ac.id)::int AS clicks_30d
+      FROM affiliate_clicks ac
+      JOIN tools t ON t.id = ac.tool_id
+      WHERE ac.clicked_at >= NOW() - INTERVAL '30 days'
+      GROUP BY t.id, t.name, t.slug, t.logo
+      ORDER BY clicks_30d DESC
+      LIMIT 5
+    `).then(r => r.rows).catch(() => []),
+    db.query(`
+      SELECT date_trunc('day', clicked_at)::date AS day,
+             COUNT(*)::int AS clicks
+      FROM affiliate_clicks
+      WHERE clicked_at >= NOW() - INTERVAL '30 days'
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `).then(r => r.rows).catch(() => []),
+  ]);
 
   return {
     profile,
@@ -88,6 +98,7 @@ async function getAdminData() {
     recentTools,
     affiliateStats,
     topAffiliateTools,
+    dailyTrend,
   };
 }
 
@@ -136,6 +147,8 @@ const navSections = [
 export default async function AdminPage() {
   const data = await getAdminData();
   const aff = data.affiliateStats as { today: number; week: number; month: number };
+  const trend = data.dailyTrend as { day: string; clicks: number }[];
+  const maxClicks = Math.max(...trend.map((d) => d.clicks), 1);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -230,6 +243,32 @@ export default async function AdminPage() {
                 </div>
               ))}
             </div>
+
+            {/* 30-day daily clicks bar chart */}
+            {trend.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daily Clicks — Last 30 Days</h4>
+                <div className="flex items-end gap-0.5 h-16 w-full">
+                  {trend.map((d) => {
+                    const pct = Math.max((d.clicks / maxClicks) * 100, 4);
+                    const label = new Date(d.day).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                    return (
+                      <div key={d.day} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                        <div
+                          title={`${label}: ${d.clicks} clicks`}
+                          className="w-full rounded-t-sm bg-violet-600 group-hover:bg-violet-400 transition-colors cursor-default"
+                          style={{ height: `${pct}%` }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between text-xs text-slate-600 mt-1">
+                  <span>{new Date(trend[0].day).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  <span>{new Date(trend[trend.length - 1].day).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                </div>
+              </div>
+            )}
 
             {/* Top tools by clicks */}
             {data.topAffiliateTools.length > 0 ? (
