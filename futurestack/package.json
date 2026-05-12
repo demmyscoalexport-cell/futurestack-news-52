@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "health": "tsc --noEmit && eslint . && echo '✅ FutureStack is healthy'",
+    "health": "node scripts/healthcheck.mjs",
+    "restore": "node scripts/restore.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",
     "prepare": "husky"
