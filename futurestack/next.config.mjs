@@ -15,6 +15,8 @@ const nextConfig = {
       { hostname: "**.amazonaws.com" },
       { hostname: "**.cloudinary.com" },
       { hostname: "www.google.com" },
+      // GNews article images — allow all external hostnames
+      { hostname: "**" },
     ],
   },
 };

@@ -24,7 +24,10 @@ function mapArticle(row: any): any {
     targetRoles: [],
     viewCount: row.view_count || 0,
     featured: row.is_featured || false,
-    author: row.author_name ? { name: row.author_name, avatar: row.author_avatar } : null,
+    author: row.author_name ? { name: row.author_name, role: "Staff Writer", avatar: row.author_avatar } : null,
+    // GNews source attribution fields
+    source_name: row.source_name || null,
+    source_url: row.source_url || null,
   } as Article;
 }
 

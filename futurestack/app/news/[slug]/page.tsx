@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Clock,
   Eye,
+  ExternalLink,
   Share2,
   Bookmark,
   Twitter,
@@ -240,6 +241,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 )}
               </div>
             </div>
+
+            {/* Source attribution for GNews articles */}
+            {article.source_name && article.source_url && (
+              <div className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border/40 bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground">
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span>Originally reported by</span>
+                <a
+                  href={article.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  {article.source_name}
+                </a>
+                <span>· Expanded for FutureStack readers by AI</span>
+              </div>
+            )}
 
             <div className="mt-5 flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-8 text-xs">

@@ -9,6 +9,7 @@ import { generateWeeklyRadar } from "@/inngest/functions/generate-weekly-radar";
 import { calculateFutureStackScores } from "@/inngest/functions/calculate-scores";
 import { generateEmbeddings } from "@/inngest/functions/generate-embeddings";
 import { syncProductHuntTools } from "@/inngest/functions/sync-producthunt";
+import { syncGNewsArticles } from "@/inngest/functions/sync-gnews";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -22,5 +23,6 @@ export const { GET, POST, PUT } = serve({
     calculateFutureStackScores,
     generateEmbeddings,
     syncProductHuntTools,
+    syncGNewsArticles,
   ],
 });
