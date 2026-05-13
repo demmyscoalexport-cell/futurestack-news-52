@@ -13,6 +13,8 @@ import { syncGNewsArticles } from "@/inngest/functions/sync-gnews";
 import { syncAfricaNews } from "@/inngest/functions/sync-africa-news";
 import { syncAfricaTools } from "@/inngest/functions/sync-africa-tools";
 import { discoverWatchdog } from "@/inngest/functions/watchdog";
+import { autoAffiliate } from "@/inngest/functions/auto-affiliate";
+import { generateToolSpotlight } from "@/inngest/functions/generate-tool-spotlight";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -34,5 +36,8 @@ export const { GET, POST, PUT } = serve({
     syncAfricaTools,
     // Platform watchdog
     discoverWatchdog,
+    // Downstream tool pipeline (triggered by discova/tool.added)
+    autoAffiliate,
+    generateToolSpotlight,
   ],
 });

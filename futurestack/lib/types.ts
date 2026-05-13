@@ -22,6 +22,27 @@ export interface Tool {
   cons: string[];
   lastUpdated: string;
   screenshots?: string[];
+  // DB snake_case fields returned from SQL queries
+  tagline?: string;
+  category_name?: string;
+  category_icon?: string;
+  created_at?: string;
+  updated_at?: string;
+  website_url?: string;
+  has_free?: boolean;
+  pricing_model?: string;
+  is_featured?: boolean;
+  is_new?: boolean;
+  africa_friendly?: boolean;
+  upvote_count?: number;
+  review_count?: number;
+  view_count?: number;
+  save_count?: number;
+  source?: string;
+  producthunt_url?: string;
+  futurestack_score?: number;
+  tags?: string[];
+  status?: string;
 }
 
 export type ToolCategory =
