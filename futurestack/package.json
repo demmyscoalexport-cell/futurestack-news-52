@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "health": "node scripts/healthcheck.mjs",
     "restore": "node scripts/restore.mjs",
+    "migrate:supabase": "node scripts/migrate-to-supabase.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",
     "prepare": "husky"
