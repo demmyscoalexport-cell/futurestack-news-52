@@ -15,6 +15,7 @@ import { syncAfricaTools } from "@/inngest/functions/sync-africa-tools";
 import { discoverWatchdog } from "@/inngest/functions/watchdog";
 import { autoAffiliate } from "@/inngest/functions/auto-affiliate";
 import { generateToolSpotlight } from "@/inngest/functions/generate-tool-spotlight";
+import { syncScrapingBeeNews } from "@/inngest/functions/sync-scrapingbee-news";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -31,6 +32,7 @@ export const { GET, POST, PUT } = serve({
     // Content sync
     syncProductHuntTools,
     syncGNewsArticles,
+    syncScrapingBeeNews,
     // Africa-specific sync
     syncAfricaNews,
     syncAfricaTools,
