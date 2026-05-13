@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rkTy89OTF_hSen6vmg4PN"
+uri = "file://futurestack/supabase/complete_setup.tar.gz"
+type = "unspecified"
+title = "DISCOVA — Complete Supabase Setup (Schema + Data)"
