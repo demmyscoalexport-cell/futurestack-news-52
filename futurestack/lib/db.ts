@@ -4,14 +4,30 @@ const globalForPg = globalThis as unknown as { _pgPool: Pool };
 
 /**
  * Connection priority:
- *   1. SUPABASE_DB_URL  — Supabase direct / pooler connection (set this to migrate)
- *   2. DATABASE_URL     — Replit PostgreSQL (current default)
- *
- * To switch to Supabase: add SUPABASE_DB_URL to your secrets.
- * Get it from: Supabase Dashboard → Settings → Database → Connection string (URI).
- * Use the "Transaction" pooler URL (port 6543) for serverless / edge environments.
+ *   1. SUPABASE_DB_URL  — full postgres URI (e.g. postgresql://postgres:pass@host:5432/postgres)
+ *   2. SUPABASE_DB_PASSWORD + NEXT_PUBLIC_SUPABASE_URL — auto-constructs the Supabase URI
+ *   3. DATABASE_URL     — Replit PostgreSQL (default fallback)
  */
-const connectionString = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
+function resolveConnectionString(): string | undefined {
+  const dbUrl = process.env.SUPABASE_DB_URL;
+
+  if (dbUrl && dbUrl.startsWith("postgresql://")) {
+    return dbUrl;
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const dbPassword = process.env.SUPABASE_DB_PASSWORD;
+
+  if (supabaseUrl && dbPassword) {
+    const projectRef = supabaseUrl.replace("https://", "").replace(".supabase.co", "").split(".")[0];
+    const encodedPassword = encodeURIComponent(dbPassword);
+    return `postgresql://postgres:${encodedPassword}@db.${projectRef}.supabase.co:5432/postgres`;
+  }
+
+  return process.env.DATABASE_URL;
+}
+
+const connectionString = resolveConnectionString();
 
 function buildSsl(url: string | undefined): false | { rejectUnauthorized: boolean } {
   if (!url) return false;
@@ -35,4 +51,4 @@ export const db =
 if (process.env.NODE_ENV !== "production") globalForPg._pgPool = db;
 
 /** Current DB source — useful for health checks and admin display */
-export const DB_SOURCE = process.env.SUPABASE_DB_URL ? "supabase" : "replit-pg";
+export const DB_SOURCE = connectionString?.includes("supabase") ? "supabase" : "replit-pg";
