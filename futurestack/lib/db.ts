@@ -4,30 +4,16 @@ const globalForPg = globalThis as unknown as { _pgPool: Pool };
 
 /**
  * Connection priority:
- *   1. SUPABASE_DB_URL  — full postgres URI (e.g. postgresql://postgres:pass@host:5432/postgres)
- *   2. SUPABASE_DB_PASSWORD + NEXT_PUBLIC_SUPABASE_URL — auto-constructs the Supabase URI
- *   3. DATABASE_URL     — Replit PostgreSQL (default fallback)
+ *   1. SUPABASE_DB_URL  — full postgres URI (must be IPv4-reachable)
+ *   2. DATABASE_URL     — Replit PostgreSQL (default)
+ *
+ * Note: Supabase direct connections from Replit require IPv4 (use the
+ * Transaction pooler URL on port 6543, not the direct connection).
+ * Projects in af-south-1 currently have no pooler, so Replit PG is used.
  */
-function resolveConnectionString(): string | undefined {
-  const dbUrl = process.env.SUPABASE_DB_URL;
-
-  if (dbUrl && dbUrl.startsWith("postgresql://")) {
-    return dbUrl;
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const dbPassword = process.env.SUPABASE_DB_PASSWORD;
-
-  if (supabaseUrl && dbPassword) {
-    const projectRef = supabaseUrl.replace("https://", "").replace(".supabase.co", "").split(".")[0];
-    const encodedPassword = encodeURIComponent(dbPassword);
-    return `postgresql://postgres:${encodedPassword}@db.${projectRef}.supabase.co:5432/postgres`;
-  }
-
-  return process.env.DATABASE_URL;
-}
-
-const connectionString = resolveConnectionString();
+const connectionString =
+  (process.env.SUPABASE_DB_URL?.startsWith("postgresql://") ? process.env.SUPABASE_DB_URL : undefined) ||
+  process.env.DATABASE_URL;
 
 function buildSsl(url: string | undefined): false | { rejectUnauthorized: boolean } {
   if (!url) return false;
