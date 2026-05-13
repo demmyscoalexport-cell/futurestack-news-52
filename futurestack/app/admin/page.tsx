@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { checkAdminOrRedirect } from "@/lib/supabase/admin-guard";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -17,10 +18,10 @@ import {
 } from "lucide-react";
 
 async function getAdminData() {
+  await checkAdminOrRedirect();
+
   const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session) redirect("/login");
 
   const { data: profile } = await supabase
@@ -28,8 +29,6 @@ async function getAdminData() {
     .select("role, full_name")
     .eq("id", session.user.id)
     .single();
-
-  if (profile?.role !== "admin") redirect("/");
 
   const [
     { count: pendingTools },
