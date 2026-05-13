@@ -10,10 +10,14 @@ import { calculateFutureStackScores } from "@/inngest/functions/calculate-scores
 import { generateEmbeddings } from "@/inngest/functions/generate-embeddings";
 import { syncProductHuntTools } from "@/inngest/functions/sync-producthunt";
 import { syncGNewsArticles } from "@/inngest/functions/sync-gnews";
+import { syncAfricaNews } from "@/inngest/functions/sync-africa-news";
+import { syncAfricaTools } from "@/inngest/functions/sync-africa-tools";
+import { discoverWatchdog } from "@/inngest/functions/watchdog";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
+    // Core pipeline
     fetchAISignals,
     processSignal,
     generateArticle,
@@ -22,7 +26,13 @@ export const { GET, POST, PUT } = serve({
     generateWeeklyRadar,
     calculateFutureStackScores,
     generateEmbeddings,
+    // Content sync
     syncProductHuntTools,
     syncGNewsArticles,
+    // Africa-specific sync
+    syncAfricaNews,
+    syncAfricaTools,
+    // Platform watchdog
+    discoverWatchdog,
   ],
 });
