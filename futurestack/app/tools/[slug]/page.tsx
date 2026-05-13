@@ -46,7 +46,7 @@ export async function generateMetadata(
   if (!resolved) return { title: "Tool Not Found" };
 
   return {
-    title: `${resolved.name} Reviews, Pricing & Info | FutureStack News`,
+    title: `${resolved.name} Reviews, Pricing & Info | DISCOVA`,
     description:
       (resolved as { short_description?: string }).short_description ||
       (resolved as { shortDescription?: string }).shortDescription ||
@@ -263,10 +263,10 @@ export default async function ToolDetailPage({ params }: PageProps) {
               <p>{tool.description}</p>
             </section>
 
-            {/* FutureStack Scorecard */}
+            {/* DISCOVA Scorecard */}
             <section>
               <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">
-                FutureStack Scorecard
+                DISCOVA Scorecard
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {tool.tool_scores &&
@@ -463,7 +463,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                     The Ultimate Founder Stack
                   </p>
                   <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    by FutureStack <ChevronRight className="w-3 h-3" />
+                    by DISCOVA <ChevronRight className="w-3 h-3" />
                   </p>
                 </div>
                 <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 hover:border-indigo-200 transition-colors cursor-pointer group">

@@ -159,7 +159,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   // Normalize shape from DB vs static data
-  if (!article.author) article.author = { name: "FutureStack AI", role: "Staff Writer", avatar: "" };
+  if (!article.author) article.author = { name: "DISCOVA AI", role: "Staff Writer", avatar: "" };
   if (!article.author.role) article.author.role = "Staff Writer";
   if (article.readTime == null) article.readTime = article.reading_time || 5;
   if (!article.featuredImage) article.featuredImage = article.hero_image || article.cover_image_url || "";
@@ -255,7 +255,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 >
                   {article.source_name}
                 </a>
-                <span>· Expanded for FutureStack readers by AI</span>
+                <span>· Expanded for DISCOVA readers by AI</span>
               </div>
             )}
 

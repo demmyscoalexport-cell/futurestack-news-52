@@ -164,7 +164,7 @@ export default async function AdminPage() {
             <Shield className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-white">FutureStack Admin</h1>
+            <h1 className="text-lg font-black text-white">DISCOVA Admin</h1>
             <p className="text-xs text-slate-500">
               Signed in as {data.profile?.full_name}
             </p>

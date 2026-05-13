@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Layers, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Compass, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,10 +35,10 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="mb-8 flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+            <Compass className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-foreground">
-            FutureStack<span className="text-primary">News</span>
+          <span className="font-black tracking-tight text-foreground">
+            DIS<span className="text-primary">COVA</span>
           </span>
         </div>
 

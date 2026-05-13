@@ -17,26 +17,37 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import {
-  Search,
-  Menu,
-  X,
-  Layers,
-  Moon,
-  Sun,
-  LogOut,
-  Settings,
-  BookmarkCheck,
+  Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
+  BookmarkCheck, ChevronDown, Zap, Globe, Layers,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/providers/auth-provider";
 
 const navigation = [
-  { name: "Tools", href: "/tools" },
-  { name: "Stacks", href: "/stacks" },
+  { name: "Discover", href: "/discover" },
   { name: "Categories", href: "/tools" },
-  { name: "Comparisons", href: "/tools" },
-  { name: "News", href: "/news" },
-  { name: "Deals", href: "/tools" },
+  { name: "Stacks", href: "/stacks" },
+  { name: "Workflows", href: "/workflows" },
+  { name: "Compare", href: "/tools" },
+  { name: "Deals", href: "/deals" },
+  { name: "Learn", href: "/learn" },
+  { name: "Community", href: "/community" },
+  { name: "Opportunities", href: "/opportunities" },
+  { name: "Insights", href: "/news" },
+  { name: "Africa", href: "/africa" },
+  { name: "Enterprise", href: "/enterprise" },
+];
+
+const mobileNav = [
+  { name: "Discover", href: "/discover", icon: Compass, desc: "AI-powered discovery" },
+  { name: "Tools & Apps", href: "/tools", icon: Zap, desc: "Browse 400+ tools" },
+  { name: "Stacks", href: "/stacks", icon: Layers, desc: "Curated tool bundles" },
+  { name: "Workflows", href: "/workflows", icon: Layers, desc: "How tools work together" },
+  { name: "Community", href: "/community", icon: Globe, desc: "Reviews & discussions" },
+  { name: "Opportunities", href: "/opportunities", icon: Globe, desc: "Jobs, grants & gigs" },
+  { name: "Insights", href: "/news", icon: Globe, desc: "News & analysis" },
+  { name: "Africa Hub", href: "/africa", icon: Globe, desc: "Made for Africa" },
+  { name: "Enterprise", href: "/enterprise", icon: Globe, desc: "For teams & orgs" },
 ];
 
 export function Header() {
@@ -47,45 +58,60 @@ export function Header() {
   const { user, isLoading, signOut } = useAuth();
 
   const userInitials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+    ? user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : (user?.email?.slice(0, 2).toUpperCase() ?? "?");
+
+  const primaryNav = navigation.slice(0, 7);
+  const moreNav = navigation.slice(7);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-xl">
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
+
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-            <Layers className="h-4 w-4 text-white" />
+            <Compass className="h-4 w-4 text-white" />
           </div>
-          <span className="font-bold text-foreground text-sm">FutureStack</span>
+          <span className="font-black text-foreground text-sm tracking-tight">
+            DIS<span className="text-primary">COVA</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-0.5 lg:flex">
-          {navigation.map((item) => (
+        <nav className="hidden items-center gap-0.5 xl:flex">
+          {primaryNav.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "px-3 py-2 text-sm font-medium transition-colors rounded-md hover:text-foreground",
-                pathname === item.href
-                  ? "text-foreground"
+                "px-2.5 py-2 text-xs font-medium transition-colors rounded-md hover:text-foreground whitespace-nowrap",
+                pathname === item.href || pathname.startsWith(item.href + "/")
+                  ? "text-foreground bg-white/5"
                   : "text-muted-foreground hover:bg-white/5",
               )}
             >
               {item.name}
             </Link>
           ))}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-0.5 px-2.5 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-md transition-colors">
+                More <ChevronDown className="h-3 w-3 ml-0.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {moreNav.map((item) => (
+                <DropdownMenuItem key={item.name} asChild>
+                  <Link href={item.href}>{item.name}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* Right Side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
             size="icon"
@@ -135,12 +161,12 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-1.5">
                 <Button variant="outline" size="sm" className="h-8 text-xs border-border/60" asChild>
-                  <Link href="/submit-tool">Submit Tool</Link>
+                  <Link href="/login">Sign In</Link>
                 </Button>
                 <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" asChild>
-                  <Link href="/login">Sign In</Link>
+                  <Link href="/signup">Join Free</Link>
                 </Button>
               </div>
             )
@@ -148,50 +174,59 @@ export function Header() {
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 lg:hidden">
+              <Button variant="ghost" size="icon" className="h-8 w-8 xl:hidden">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72 p-0 bg-background border-border/40">
+            <SheetContent side="right" className="w-80 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-border/40 p-4">
                   <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
                     <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                      <Layers className="h-4 w-4 text-white" />
+                      <Compass className="h-4 w-4 text-white" />
                     </div>
-                    <span className="font-bold text-sm">FutureStack</span>
+                    <span className="font-black text-sm tracking-tight">DIS<span className="text-primary">COVA</span></span>
                   </Link>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+
                 <div className="border-b border-border/40 p-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search tools, articles..." className="pl-9 h-9 text-sm" />
+                    <Input placeholder="Search tools, stacks, workflows..." className="pl-9 h-9 text-sm" />
                   </div>
                 </div>
-                <nav className="flex-1 space-y-0.5 p-3">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                        pathname === item.href ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
-                      )}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                </nav>
+
+                <div className="p-3 flex-1 overflow-y-auto">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">Navigate</p>
+                  <nav className="space-y-0.5">
+                    {mobileNav.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-start rounded-lg px-3 py-2.5 transition-colors",
+                          pathname === item.href ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+                        )}
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.desc}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+
                 <div className="border-t border-border/40 p-4 space-y-2">
                   <Button variant="outline" className="w-full h-9 text-sm" asChild>
-                    <Link href="/submit-tool" onClick={() => setIsMobileMenuOpen(false)}>Submit Tool</Link>
+                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
                   </Button>
                   <Button className="w-full h-9 text-sm bg-primary" asChild>
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                    <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Join Free</Link>
                   </Button>
                 </div>
               </div>
@@ -205,7 +240,7 @@ export function Header() {
           <div className="container mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search AI tools, stacks, articles..." className="pl-9" autoFocus />
+              <Input placeholder="Search tools, workflows, stacks, opportunities..." className="pl-9" autoFocus />
             </div>
           </div>
         </div>

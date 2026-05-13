@@ -37,8 +37,8 @@ export const config = {
   /** Email via Resend */
   email: {
     resendKey: optional("RESEND_API_KEY"),
-    from: optional("RESEND_FROM_EMAIL", "noreply@futurestack.live"),
-    fromName: optional("RESEND_FROM_NAME", "FutureStack News"),
+    from: optional("RESEND_FROM_EMAIL", "noreply@discova.africa"),
+    fromName: optional("RESEND_FROM_NAME", "DISCOVA"),
   },
 
   /** Stripe payments */
@@ -78,7 +78,7 @@ export const config = {
 
   /** Application */
   app: {
-    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://futurestack.live"),
+    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://discova.africa"),
     env: (process.env.NODE_ENV ?? "development") as
       | "development"
       | "production"

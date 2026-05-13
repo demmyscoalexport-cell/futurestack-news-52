@@ -2,7 +2,7 @@
  * Inngest function: sync-gnews
  *
  * Runs every 6 hours. Fetches real AI/tech news from GNews API,
- * then uses Claude to expand each article into a full FutureStack-style
+ * then uses Claude to expand each article into a full DISCOVA-style
  * piece before saving to the DB. Articles from external sources are
  * stored with source attribution.
  */
@@ -40,12 +40,12 @@ interface ExpandedArticle {
   tags: string[];
 }
 
-const EXPAND_SYSTEM = `You are a senior tech editor at FutureStack News — a platform for freelancers, agency owners, and SaaS founders globally (especially Africa).
+const EXPAND_SYSTEM = `You are a senior tech editor at DISCOVA — Africa's digital discovery operating system for creators, founders, freelancers, and businesses across Africa and emerging markets.
 
-Given a news story, write an expanded FutureStack-style article that adds:
-- Practical context for our audience (how does this affect their work?)
-- Tool recommendations where relevant
-- Africa/global affordability angle if applicable
+Given a news story, write an expanded DISCOVA-style article that adds:
+- Practical context for our African and global audience (how does this affect their work?)
+- Tool recommendations relevant to African realities (affordability, mobile, bandwidth)
+- Africa/emerging market angle where applicable — Naira pricing, MTN data, Android-first
 - Clear, opinionated take — no fluff
 
 Return ONLY valid JSON with keys:
@@ -147,8 +147,8 @@ export const syncGNewsArticles = inngest.createFunction(
       if (rows[0]) return rows[0].id as string;
       const { rows: ins } = await db.query(
         `INSERT INTO authors (name, slug, bio, avatar)
-         VALUES ('FutureStack AI', 'futurestack-ai',
-           'AI-powered editorial intelligence monitoring the AI ecosystem 24/7.',
+         VALUES ('DISCOVA AI', 'discova-ai',
+           'AI-powered editorial intelligence monitoring the digital ecosystem across Africa 24/7.',
            '/avatars/ai-author.png')
          ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
          RETURNING id`,
@@ -175,7 +175,7 @@ export const syncGNewsArticles = inngest.createFunction(
               messages: [
                 {
                   role: "user",
-                  content: `Expand this news story for FutureStack readers:
+                  content: `Expand this news story for DISCOVA readers:
 
 HEADLINE: ${raw.title}
 SUMMARY: ${raw.description}
@@ -183,7 +183,7 @@ SOURCE CONTENT: ${raw.content?.slice(0, 1500) || raw.description}
 SOURCE: ${raw.source.name}
 PUBLISHED: ${raw.publishedAt}
 
-Write the full FutureStack article now. Return ONLY valid JSON.`,
+Write the full DISCOVA article now. Return ONLY valid JSON.`,
                 },
               ],
             });

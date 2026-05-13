@@ -8,7 +8,7 @@ import type {
 
 export const inngest = new Inngest({
   id: "futurestack-news",
-  name: "FutureStack News",
+  name: "DISCOVA",
   schemas: {
     "news/fetch.signals": {} as { data: FetchSignalsEvent },
     "news/signal.received": {} as { data: SignalReceivedEvent },

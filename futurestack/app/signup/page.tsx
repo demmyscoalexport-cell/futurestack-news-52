@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
-  Layers,
+  Compass,
   Mail,
   Lock,
   User,
@@ -95,10 +95,10 @@ export default function SignupPage() {
         <div className="relative z-10 text-center max-w-md">
           <div className="mb-8 flex justify-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/25">
-              <Layers className="h-6 w-6 text-primary-foreground" />
+              <Compass className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="self-center text-2xl font-bold">
-              FutureStack<span className="text-primary">News</span>
+            <span className="self-center text-2xl font-black tracking-tight">
+              DIS<span className="text-primary">COVA</span>
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-tight">
@@ -125,10 +125,10 @@ export default function SignupPage() {
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 lg:px-12">
         <div className="mb-6 flex items-center gap-2 lg:hidden">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+            <Compass className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold">
-            FutureStack<span className="text-primary">News</span>
+          <span className="font-black tracking-tight">
+            DIS<span className="text-primary">COVA</span>
           </span>
         </div>
 

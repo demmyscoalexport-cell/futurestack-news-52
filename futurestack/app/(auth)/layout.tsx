@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Layers } from "lucide-react";
+import { Compass } from "lucide-react";
 
 export default function AuthLayout({
   children,
@@ -18,10 +18,10 @@ export default function AuthLayout({
       <header className="relative z-10 flex items-center px-6 py-5 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Layers className="h-5 w-5 text-primary-foreground" />
+            <Compass className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-foreground">
-            FutureStack<span className="text-primary">News</span>
+          <span className="font-black tracking-tight text-foreground">
+            DIS<span className="text-primary">COVA</span>
           </span>
         </Link>
       </header>

@@ -97,8 +97,8 @@ Return JSON: {"meta_title": "...", "meta_description": "...", "og_title": "...",
 
       const { rows: inserted } = await db.query(
         `INSERT INTO authors (name, slug, bio, avatar)
-         VALUES ('FutureStack AI', 'futurestack-ai',
-           'AI-powered editorial engine that monitors the AI tool ecosystem 24/7.',
+         VALUES ('DISCOVA AI', 'discova-ai',
+           'AI-powered editorial engine that monitors the digital tool ecosystem across Africa 24/7.',
            '/avatars/ai-author.png')
          ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
          RETURNING id`,

@@ -54,7 +54,7 @@ export function WeeklyDigestEmail({
                 textTransform: "uppercase",
               }}
             >
-              Week {weekNumber} · FutureStack News
+              Week {weekNumber} · DISCOVA
             </Text>
             <Text
               style={{
@@ -177,7 +177,7 @@ export function WeeklyDigestEmail({
                 margin: "0",
               }}
             >
-              You're receiving this because you subscribed to FutureStack News.
+              You're receiving this because you subscribed to DISCOVA — Africa's discovery platform.
             </Text>
             <Text
               style={{

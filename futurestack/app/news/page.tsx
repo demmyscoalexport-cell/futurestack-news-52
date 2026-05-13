@@ -5,7 +5,7 @@ import { NewsContent } from "./news-content";
 export const metadata = {
   title: "News & Insights",
   description:
-    "Stay ahead with AI tools, SaaS trends, and automation strategies from FutureStack News.",
+    "Stay ahead with AI tools, digital trends, and startup strategies from DISCOVA — Africa's discovery platform.",
 };
 
 export default async function NewsPage() {

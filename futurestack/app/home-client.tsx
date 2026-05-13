@@ -109,20 +109,19 @@ export function HomeClient({
               {/* Left copy */}
               <div>
                 {/* Pill */}
-                <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/25 bg-violet-500/8 px-3.5 py-1.5 text-xs text-violet-300 mb-6">
-                  <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
-                  Discover. Evaluate. Build Your Future.
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-3.5 py-1.5 text-xs text-emerald-300 mb-6">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  🌍 Africa Discovers. Africa Decides.
                 </div>
 
                 {/* Heading */}
                 <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-white lg:text-5xl xl:text-6xl">
-                  Discover the Best<br />
-                  <span className="gradient-text">AI Tools</span> and<br />
-                  <span className="gradient-text">Smart Desk Setups</span>
+                  Africa&apos;s Digital<br />
+                  <span className="gradient-text">Discovery Engine</span>
                 </h1>
 
                 <p className="mt-5 text-base text-muted-foreground lg:text-lg max-w-lg leading-relaxed">
-                  Explore 5000+ AI tools, compare features, build powerful stacks and create your ideal AI-powered workspace.
+                  Find tools that actually work in Africa — rated for 3G, Android, Naira budgets, and real startup realities.
                 </p>
 
                 {/* Search */}
@@ -137,7 +136,7 @@ export function HomeClient({
                         if (e.key === "Enter" && searchQuery.trim())
                           window.location.href = `/tools?search=${encodeURIComponent(searchQuery)}`;
                       }}
-                      placeholder="Search AI tools, categories, stacks..."
+                      placeholder="Search tools, workflows, stacks, opportunities..."
                       className="w-full rounded-lg border border-border/60 bg-secondary/60 pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
                     />
                   </div>
@@ -177,7 +176,7 @@ export function HomeClient({
                       <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
                       <div className="h-2.5 w-2.5 rounded-full bg-green-500/60" />
                       <div className="ml-3 flex-1 rounded bg-secondary/60 h-4 flex items-center px-2">
-                        <span className="text-[9px] text-muted-foreground">futurestack.ai</span>
+                        <span className="text-[9px] text-muted-foreground">discova.africa</span>
                       </div>
                     </div>
                     {/* Mock tool grid */}

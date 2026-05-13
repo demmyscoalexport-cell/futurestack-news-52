@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         slug
           ?.split("-")
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ") || "FutureStack Tool",
+          .join(" ") || "DISCOVA Tool",
       tagline: "The ultimate AI discovery platform",
       logo_url:
         "https://images.unsplash.com/photo-1673852528751-2ea89104fcce?q=80&w=200&auto=format&fit=crop",
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
             <div
               style={{ fontSize: "24px", fontWeight: "bold", color: "#94a3b8" }}
             >
-              FutureStack News
+              DISCOVA
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export async function GET(request: Request) {
               <div
                 style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}
               >
-                FutureStack Score™
+                DISCOVA Score™
               </div>
             </div>
 

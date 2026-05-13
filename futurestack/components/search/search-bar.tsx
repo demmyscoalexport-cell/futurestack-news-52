@@ -77,7 +77,7 @@ export function SearchBar() {
         onClick={() => setOpen(true)}
         className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors w-64"
       >
-        <span className="flex-1 text-left">Search FutureStack...</span>
+        <span className="flex-1 text-left">Search DISCOVA...</span>
         <kbd className="hidden sm:flex px-1.5 py-0.5 text-[10px] font-medium bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400">
           <span className="text-xs mr-0.5">⌘</span>K
         </kbd>

@@ -35,7 +35,7 @@ export function StackCard({
 }: StackCardProps) {
   const displayTools = stack.tools?.slice(0, 4) || [];
   const remainingCount = (stack.tools?.length || 0) - 4;
-  const creatorName = stack.creator?.name || "FutureStack User";
+  const creatorName = stack.creator?.name || "DISCOVA User";
   const creatorInitials = creatorName
     .split(" ")
     .map((n) => n[0])

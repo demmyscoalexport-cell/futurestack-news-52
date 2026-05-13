@@ -20,10 +20,10 @@ export async function GET(request: Request) {
 
     const title = article?.title || "AI Intelligence Report";
     const excerpt =
-      article?.meta_description || "The latest from FutureStack News";
+      article?.meta_description || "The latest from DISCOVA — Africa's discovery platform";
     const category = (article?.article_categories as any)?.name || "Analysis";
     const authorName =
-      (article?.profiles as any)?.full_name || "FutureStack Team";
+      (article?.profiles as any)?.full_name || "DISCOVA Team";
     const date = article?.published_at
       ? new Date(article.published_at).toLocaleDateString("en-US", {
           month: "short",
@@ -161,7 +161,7 @@ export async function GET(request: Request) {
                   {authorName}
                 </div>
                 <div style={{ color: "#64748b", fontSize: "13px" }}>
-                  FutureStack News
+                  DISCOVA
                 </div>
               </div>
             </div>

@@ -53,7 +53,7 @@ export async function fetchGNewsArticles(opts: {
   });
 
   const res = await fetch(`${BASE_URL}/search?${params}`, {
-    headers: { "User-Agent": "FutureStackNews/1.0" },
+    headers: { "User-Agent": "DISCOVA/1.0" },
     next: { revalidate: 3600 },
   });
 

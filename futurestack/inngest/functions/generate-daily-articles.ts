@@ -53,7 +53,7 @@ const ARTICLE_TYPES = [
   "africa-tech-focus",    // Africa-specific tool recommendations
 ];
 
-const SYSTEM_PROMPT = `You are a senior tech journalist for FutureStack News — a platform for freelancers, agency owners, and SaaS founders in Africa and globally.
+const SYSTEM_PROMPT = `You are a senior tech journalist for DISCOVA — Africa's digital discovery operating system for creators, founders, freelancers, and businesses across Africa and emerging markets.
 
 Your writing is: sharp, practical, opinionated, and jargon-free. Every sentence earns its place. No fluff.
 Your readers want to know: "Should I use this tool today, and will it help my business?"
@@ -134,7 +134,7 @@ export const generateDailyArticles = inngest.createFunction(
         max_tokens: 1500,
         messages: [{
           role: "user",
-          content: `Today is ${today}. Plan exactly ${count} diverse, high-value article topics for FutureStack News readers (freelancers, agency owners, SaaS founders — especially in Africa).
+          content: `Today is ${today}. Plan exactly ${count} diverse, high-value article topics for DISCOVA readers (creators, founders, freelancers, and businesses — especially across Africa and emerging markets).
 
 Use the actual tools below as the subject matter. Mix article types across: tool spotlights, comparisons, how-to guides, trend roundups, and Africa-tech angles.
 
@@ -174,13 +174,13 @@ Return ONLY the JSON array.`,
     // Step 3: Resolve the AI author ID once
     const authorId = await step.run("resolve-ai-author", async () => {
       const { rows } = await db.query(
-        `SELECT id FROM authors WHERE name = 'FutureStack AI' LIMIT 1`,
+        `SELECT id FROM authors WHERE name = 'DISCOVA AI' LIMIT 1`,
       );
       if (rows[0]) return rows[0].id as string;
       const { rows: inserted } = await db.query(
         `INSERT INTO authors (name, slug, bio, avatar)
-         VALUES ('FutureStack AI', 'futurestack-ai',
-           'AI-powered editorial intelligence monitoring the AI tool ecosystem 24/7.',
+         VALUES ('DISCOVA AI', 'discova-ai',
+           'AI-powered editorial intelligence monitoring the digital tool ecosystem across Africa 24/7.',
            '/avatars/ai-author.png')
          ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
          RETURNING id`,
@@ -206,7 +206,7 @@ Return ONLY the JSON array.`,
           system: SYSTEM_PROMPT,
           messages: [{
             role: "user",
-            content: `Write this article for FutureStack News.
+            content: `Write this article for DISCOVA.
 
 Title: ${plan.title}
 Angle: ${plan.angle}

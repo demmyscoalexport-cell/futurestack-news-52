@@ -66,7 +66,7 @@ function getCategoryColor(cat: string): string {
 }
 
 export function ArticleCard({ article, variant = "default", className }: ArticleCardProps) {
-  const authorName = article.author?.name || article.author_name || "FutureStack AI";
+  const authorName = article.author?.name || article.author_name || "DISCOVA AI";
   const sourceName: string | null = article.source_name || null;
   const featuredImage: string = article.featuredImage || article.hero_image || article.cover_image_url || "";
   const publishedAt: string = article.publishedAt || article.published_at || new Date().toISOString();

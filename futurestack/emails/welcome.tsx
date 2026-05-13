@@ -18,12 +18,12 @@ interface Props {
 
 export function WelcomeEmail({
   firstName = "Developer",
-  magicLink = "https://futurestack.news/login",
+  magicLink = "https://discova.africa/login",
 }: Props) {
   return (
     <Html>
       <Head />
-      <Preview>Welcome to FutureStack News! Let's build your stack.</Preview>
+      <Preview>Welcome to DISCOVA — Africa Discovers. Africa Decides.</Preview>
       <Body style={{ backgroundColor: "#0f172a", fontFamily: "sans-serif" }}>
         <Container
           style={{ maxWidth: "600px", margin: "0 auto", padding: "40px 20px" }}
@@ -31,13 +31,26 @@ export function WelcomeEmail({
           <Section style={{ textAlign: "center", marginBottom: "40px" }}>
             <Text
               style={{
+                color: "#4f46e5",
+                fontSize: "14px",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                margin: "0 0 8px 0",
+              }}
+            >
+              🌍 Africa&apos;s Digital Discovery OS
+            </Text>
+            <Text
+              style={{
                 color: "#f1f5f9",
                 fontSize: "28px",
                 fontWeight: 900,
                 margin: "8px 0",
+                letterSpacing: "-0.02em",
               }}
             >
-              Welcome to FutureStack, {firstName}! 🚀
+              Welcome to DISCOVA, {firstName}! 🚀
             </Text>
           </Section>
 
@@ -57,10 +70,9 @@ export function WelcomeEmail({
                 fontSize: "16px",
               }}
             >
-              You've just unlocked access to the most extensive AI discovery
-              platform on the internet. Whether you are aiming to code faster,
-              edit video, or build automated CRMs, your perfectly curated AI
-              stack is waiting.
+              You&apos;ve joined Africa&apos;s most powerful digital discovery platform.
+              Discover tools that actually work in Africa, build your perfect stack,
+              and find opportunities designed for your reality.
             </Text>
 
             <Section style={{ textAlign: "center" }}>
@@ -76,7 +88,7 @@ export function WelcomeEmail({
                   display: "inline-block",
                 }}
               >
-                Start Building Your Stack
+                Start Discovering →
               </Button>
             </Section>
           </Section>
@@ -96,7 +108,7 @@ export function WelcomeEmail({
                 margin: "0",
               }}
             >
-              FutureStack News • Unsubscribe instantly at any point.
+              DISCOVA — Africa Discovers. Africa Decides. • Unsubscribe instantly at any point.
             </Text>
           </Section>
         </Container>

@@ -7,7 +7,7 @@ import type {
 
 const DEFAULT_AUTHOR = {
   id: "futurestack-editorial",
-  name: "FutureStack Editorial",
+  name: "DISCOVA Editorial",
   avatar: "/images/authors/futurestack.png",
   role: "Editorial Team",
 };

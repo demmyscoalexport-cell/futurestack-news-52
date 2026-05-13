@@ -48,7 +48,7 @@ export function UpgradeTrialEndingEmail() {
                 fontSize: "16px",
               }}
             >
-              Your FutureStack Pro trial drops back to the free tier in exactly
+              Your DISCOVA Pro trial drops back to the free tier in exactly
               72 hours. Don't lose access to unlimited stack builds, deep AI
               radar analytics, and our advanced comparison matrices.
             </Text>
