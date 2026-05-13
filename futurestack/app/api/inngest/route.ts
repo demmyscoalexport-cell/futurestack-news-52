@@ -16,6 +16,7 @@ import { discoverWatchdog } from "@/inngest/functions/watchdog";
 import { autoAffiliate } from "@/inngest/functions/auto-affiliate";
 import { generateToolSpotlight } from "@/inngest/functions/generate-tool-spotlight";
 import { syncScrapingBeeNews } from "@/inngest/functions/sync-scrapingbee-news";
+import { syncAlternativeToTools, syncAlternativeToNews } from "@/inngest/functions/sync-alternativeto";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -38,6 +39,9 @@ export const { GET, POST, PUT } = serve({
     syncAfricaTools,
     // Platform watchdog
     discoverWatchdog,
+    // AlternativeTo content engine
+    syncAlternativeToTools,
+    syncAlternativeToNews,
     // Downstream tool pipeline (triggered by discova/tool.added)
     autoAffiliate,
     generateToolSpotlight,
