@@ -12,3 +12,9 @@ id = "S8BB3vEh6B3QZSW6LSd4q"
 uri = "file://futurestack/supabase/missing_tables.tar.gz"
 type = "unspecified"
 title = "DISCOVA — missing_tables.sql (Gap-Fill Migration)"
+
+[[outputs]]
+id = "sszqaTTfc4b_Ch6eQI_Yd"
+uri = "file://futurestack/supabase/missing_tables.txt"
+type = "text"
+title = "DISCOVA — Copy & Run in Supabase SQL Editor"
