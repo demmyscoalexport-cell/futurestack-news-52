@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import {
   Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
   BookmarkCheck, ChevronDown, Zap, Globe, Layers,
@@ -69,13 +70,17 @@ export function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-            <Compass className="h-4 w-4 text-white" />
+        <Link href="/" className="flex items-center shrink-0">
+          <div className="bg-white rounded-md px-2 py-0.5">
+            <Image
+              src="/discova-logo.png"
+              alt="Discova"
+              width={80}
+              height={27}
+              className="h-[22px] w-auto object-contain"
+              priority
+            />
           </div>
-          <span className="font-black text-foreground text-sm tracking-tight">
-            DIS<span className="text-primary">COVA</span>
-          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -181,11 +186,16 @@ export function Header() {
             <SheetContent side="right" className="w-80 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-border/40 p-4">
-                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                      <Compass className="h-4 w-4 text-white" />
+                  <Link href="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="bg-white rounded-md px-2 py-0.5">
+                      <Image
+                        src="/discova-logo.png"
+                        alt="Discova"
+                        width={80}
+                        height={27}
+                        className="h-[22px] w-auto object-contain"
+                      />
                     </div>
-                    <span className="font-black text-sm tracking-tight">DIS<span className="text-primary">COVA</span></span>
                   </Link>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>
                     <X className="h-4 w-4" />

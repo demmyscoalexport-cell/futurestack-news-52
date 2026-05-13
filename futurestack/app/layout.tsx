@@ -42,6 +42,14 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "DISCOVA", url: BASE_URL }],
   creator: "DISCOVA",
+  icons: {
+    icon: [
+      { url: "/discova-logo.png", type: "image/png" },
+    ],
+    apple: [
+      { url: "/discova-logo.png" },
+    ],
+  },
   alternates: {
     canonical: BASE_URL,
   },

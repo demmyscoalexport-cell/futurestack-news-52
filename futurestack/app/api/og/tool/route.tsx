@@ -45,10 +45,15 @@ export async function GET(request: Request) {
         >
           {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{ fontSize: "24px", fontWeight: "bold", color: "#94a3b8" }}
-            >
-              DISCOVA
+            <div style={{ background: "white", borderRadius: "10px", padding: "6px 14px", display: "flex", alignItems: "center" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://discova.africa/discova-logo.png"
+                alt="Discova"
+                width={130}
+                height={44}
+                style={{ height: "36px", width: "auto", objectFit: "contain" }}
+              />
             </div>
           </div>
 

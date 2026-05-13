@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Compass } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -16,13 +16,17 @@ export default function AuthLayout({
 
       {/* Logo bar */}
       <header className="relative z-10 flex items-center px-6 py-5 lg:px-8">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Compass className="h-5 w-5 text-primary-foreground" />
+        <Link href="/" className="flex items-center">
+          <div className="bg-white rounded-xl px-3 py-1.5 shadow-sm">
+            <Image
+              src="/discova-logo.png"
+              alt="Discova"
+              width={130}
+              height={44}
+              className="h-9 w-auto object-contain"
+              priority
+            />
           </div>
-          <span className="font-black tracking-tight text-foreground">
-            DIS<span className="text-primary">COVA</span>
-          </span>
         </Link>
       </header>
 
