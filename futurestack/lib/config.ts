@@ -37,7 +37,7 @@ export const config = {
   /** Email via Resend */
   email: {
     resendKey: optional("RESEND_API_KEY"),
-    from: optional("RESEND_FROM_EMAIL", "noreply@discova.africa"),
+    from: optional("RESEND_FROM_EMAIL", "noreply@primeaxistech.store"),
     fromName: optional("RESEND_FROM_NAME", "DISCOVA"),
   },
 
@@ -78,7 +78,7 @@ export const config = {
 
   /** Application */
   app: {
-    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://discova.africa"),
+    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://primeaxistech.store"),
     env: (process.env.NODE_ENV ?? "development") as
       | "development"
       | "production"

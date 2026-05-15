@@ -18,7 +18,7 @@ interface Props {
 
 export function WelcomeEmail({
   firstName = "Developer",
-  magicLink = "https://discova.africa/login",
+  magicLink = "https://primeaxistech.store/login",
 }: Props) {
   return (
     <Html>

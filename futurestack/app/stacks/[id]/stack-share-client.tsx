@@ -37,7 +37,7 @@ export function StackShareClient({
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const shareUrl = `https://discova.africa/stacks/${stackId}`;
+  const shareUrl = `https://primeaxistech.store/stacks/${stackId}`;
   const shareText = `My power stack: ${stack.name} — built with ${tools.length} hand-picked tools on DISCOVA 🌍`;
 
   const copyLink = async () => {

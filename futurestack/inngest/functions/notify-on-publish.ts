@@ -41,7 +41,7 @@ export const notifyOnPublish = inngest.createFunction(
         const batch = subscribers.slice(i, i + 100);
         await resend.batch.send(
           batch.map((sub) => ({
-            from: process.env.RESEND_FROM_EMAIL || "DISCOVA <digest@discova.africa>",
+            from: process.env.RESEND_FROM_EMAIL || "DISCOVA <digest@primeaxistech.store>",
             to: sub.email,
             subject: `New: ${article.title}`,
             html: `
