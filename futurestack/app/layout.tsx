@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const BASE_URL = "https://primeaxistech.store";
+const BASE_URL = "https://discova.africa";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

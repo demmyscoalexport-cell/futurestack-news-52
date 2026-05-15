@@ -48,7 +48,7 @@ export async function GET(request: Request) {
             <div style={{ background: "white", borderRadius: "10px", padding: "6px 14px", display: "flex", alignItems: "center" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://primeaxistech.store/discova-logo.png"
+                src="https://discova.africa/discova-logo.png"
                 alt="Discova"
                 width={130}
                 height={44}
