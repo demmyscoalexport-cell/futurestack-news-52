@@ -65,7 +65,7 @@ function getPopularity(tool: ToolProfileCardProps["tool"]) {
 
 function formatDate(iso?: string) {
   if (!iso) return null;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 /** Square logo with letter fallback on error */
