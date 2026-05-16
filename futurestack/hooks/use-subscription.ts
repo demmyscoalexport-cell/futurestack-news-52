@@ -67,6 +67,23 @@ export function useSubscription() {
     [plan],
   );
 
+  const startPaystackUpgrade = useCallback(
+    async (planId: string, trigger: string, currency: "USD" | "NGN" = "USD") => {
+      const { track } = await import("@/lib/analytics");
+      track.upgradeStarted(plan, trigger);
+
+      const res = await fetch("/api/paystack/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, currency }),
+      });
+      const { url, error } = await res.json();
+      if (error) throw new Error(error);
+      window.location.href = url;
+    },
+    [plan],
+  );
+
   const openBillingPortal = useCallback(async () => {
     const res = await fetch("/api/stripe/portal");
     const { url, error } = await res.json();
@@ -82,6 +99,7 @@ export function useSubscription() {
     loading,
     canUseFeature,
     startUpgrade,
+    startPaystackUpgrade,
     openBillingPortal,
   };
 }

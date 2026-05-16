@@ -48,6 +48,13 @@ export const config = {
     webhookSecret: optional("STRIPE_WEBHOOK_SECRET"),
   },
 
+  /** Paystack payments (Africa-first) */
+  paystack: {
+    secretKey: optional("PAYSTACK_SECRET_KEY"),
+    publicKey: optional("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY"),
+    webhookSecret: optional("PAYSTACK_WEBHOOK_SECRET"),
+  },
+
   /** Push notifications */
   notifications: {
     oneSignalAppId: optional("NEXT_PUBLIC_ONESIGNAL_APP_ID"),
