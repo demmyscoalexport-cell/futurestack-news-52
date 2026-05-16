@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Plus } from "lucide-react";
@@ -14,7 +15,20 @@ interface ToolCardProps {
   className?: string;
 }
 
-/** Renders tool logo image with letter-initial fallback */
+const CLOUD = "dxizihlmo";
+
+/** Wraps any image URL through Cloudinary fetch for global CDN + auto format.
+ *  Cloudinary fetch expects the raw remote URL appended (not percent-encoded). */
+function cdnUrl(src: string, px: number): string {
+  if (!src) return "";
+  // Already a Cloudinary URL — don't double-proxy
+  if (src.includes("cloudinary.com")) return src;
+  // Simple-icons SVG — serve directly (tiny, already fast)
+  if (src.includes("cdn.simpleicons.org")) return src;
+  return `https://res.cloudinary.com/${CLOUD}/image/fetch/f_auto,q_auto,w_${px},h_${px},c_pad/${src}`;
+}
+
+/** Renders tool logo image with Cloudinary CDN delivery and letter-initial fallback */
 export function ToolLogo({
   tool,
   size = 16,
@@ -24,13 +38,20 @@ export function ToolLogo({
   size?: number;
   className?: string;
 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const px = size * 4; // e.g. size=10 → 40px
   const sizeClass =
-    size === 10 ? "h-10 w-10" : size === 12 ? "h-12 w-12" : "h-16 w-16";
+    size === 8  ? "h-8 w-8"   :
+    size === 10 ? "h-10 w-10" :
+    size === 12 ? "h-12 w-12" : "h-16 w-16";
   const textSize =
-    size === 10 ? "text-sm" : size === 12 ? "text-lg" : "text-2xl";
-  const isExternal = tool.logo?.startsWith("http");
+    size === 8  ? "text-xs"   :
+    size === 10 ? "text-sm"   :
+    size === 12 ? "text-lg"   : "text-2xl";
 
-  if (tool.logo) {
+  const logoSrc = tool.logo ? cdnUrl(tool.logo, px) : "";
+
+  if (logoSrc && !imgFailed) {
     return (
       <div
         className={cn(
@@ -41,16 +62,13 @@ export function ToolLogo({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={tool.logo}
+          src={logoSrc}
           alt={`${tool.name} logo`}
-          width={size * 4}
-          height={size * 4}
+          width={px}
+          height={px}
           className="h-full w-full object-contain"
           loading="lazy"
-          onError={(e) => {
-            // On error, hide image and show parent's bg
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
+          onError={() => setImgFailed(true)}
         />
       </div>
     );

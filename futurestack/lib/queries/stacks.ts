@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { resolveToolLogo } from "@/lib/logo-resolver";
 import type { Stack } from "@/lib/types";
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
@@ -46,7 +47,7 @@ function mapStack(row: any): Stack {
     tools: (row.tools || []).map((t: any) => ({
       ...t,
       shortDescription: t.tagline || "",
-      logo: t.logo || "",
+      logo: resolveToolLogo(t.name ?? "", t.logo, t.website_url ?? t.website),
       reviewCount: t.review_count || 0,
       badges: t.tags || [],
       pricing: { hasFree: t.pricing_model === "freemium", plans: [] },

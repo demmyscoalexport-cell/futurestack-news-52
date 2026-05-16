@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RoleSelector } from "@/components/ui/role-selector";
 import { ToolBadge } from "@/components/ui/tool-badge";
+import { ToolLogo } from "@/components/cards/tool-card";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/auth-provider";
 import type { UserRole, Tool } from "@/lib/types";
@@ -267,11 +268,7 @@ export function StackBuilderContent({
                               onClick={() => addToStack(t)}
                               className="flex items-center gap-2 rounded-lg border border-border bg-background p-3 text-left transition-all hover:border-primary hover:bg-primary/5"
                             >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary">
-                                <span className="text-sm font-bold text-primary">
-                                  {t.name[0]}
-                                </span>
-                              </div>
+                              <ToolLogo tool={t} size={8} />
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-medium">
                                   {t.name}
@@ -333,11 +330,7 @@ export function StackBuilderContent({
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary transition-colors group-hover:bg-primary/10">
-                              <span className="text-sm font-bold text-primary">
-                                {t.name[0]}
-                              </span>
-                            </div>
+                            <ToolLogo tool={t} size={10} />
                             <div className="min-w-0 flex-1">
                               <p className="font-medium">{t.name}</p>
                               <p className="line-clamp-1 text-sm text-muted-foreground">
@@ -418,11 +411,7 @@ export function StackBuilderContent({
                                 <span className="flex h-6 w-6 items-center justify-center rounded bg-muted text-xs font-medium text-muted-foreground">
                                   {i + 1}
                                 </span>
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background">
-                                  <span className="text-sm font-bold text-primary">
-                                    {t.name[0]}
-                                  </span>
-                                </div>
+                                <ToolLogo tool={t} size={8} />
                                 <div className="min-w-0 flex-1">
                                   <p className="truncate text-sm font-medium">
                                     {t.name}
