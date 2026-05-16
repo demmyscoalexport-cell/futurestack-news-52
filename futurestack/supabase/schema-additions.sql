@@ -2,6 +2,8 @@
 -- DISCOVA — Supabase Schema Additions
 -- Paste this entire file into the Supabase SQL Editor and run it.
 -- Safe to run multiple times (IF NOT EXISTS / OR REPLACE).
+--
+-- Run AFTER deploy_schema.sql (base tables must already exist).
 -- ================================================================
 
 -- ── 1. Video columns on tools ────────────────────────────────────
@@ -35,39 +37,34 @@ CREATE TABLE IF NOT EXISTS affiliate_clicks (
 CREATE INDEX IF NOT EXISTS affiliate_clicks_tool_idx ON affiliate_clicks(tool_id);
 CREATE INDEX IF NOT EXISTS affiliate_clicks_time_idx ON affiliate_clicks(clicked_at DESC);
 
--- ── 4. Enable RLS on all sensitive tables ────────────────────────
-ALTER TABLE tools           ENABLE ROW LEVEL SECURITY;
-ALTER TABLE articles        ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reviews         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE affiliate_links ENABLE ROW LEVEL SECURITY;
-ALTER TABLE affiliate_clicks ENABLE ROW LEVEL SECURITY;
+-- ── 4. Web push subscriptions ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  endpoint   text NOT NULL UNIQUE,
+  p256dh     text NOT NULL,
+  auth       text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
--- ── 5. Tools policies ────────────────────────────────────────────
-DROP POLICY IF EXISTS "tools_public_select"  ON tools;
-CREATE POLICY "tools_public_select" ON tools FOR SELECT USING (true);
+-- ── 5. Enable RLS on new tables ──────────────────────────────────
+ALTER TABLE affiliate_links    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE affiliate_clicks   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
+-- ── 6. Admin write policies on tools & articles ──────────────────
+-- (deploy_schema.sql already created the public-read policies)
 DROP POLICY IF EXISTS "tools_admin_write" ON tools;
 CREATE POLICY "tools_admin_write" ON tools FOR ALL
   USING      (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'))
   WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
-
--- ── 6. Articles policies ─────────────────────────────────────────
-DROP POLICY IF EXISTS "articles_public_select" ON articles;
-CREATE POLICY "articles_public_select" ON articles FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "articles_admin_write" ON articles;
 CREATE POLICY "articles_admin_write" ON articles FOR ALL
   USING      (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'))
   WITH CHECK (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- ── 7. Reviews policies ──────────────────────────────────────────
-DROP POLICY IF EXISTS "reviews_public_select" ON reviews;
-CREATE POLICY "reviews_public_select" ON reviews FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "reviews_own_insert" ON reviews;
-CREATE POLICY "reviews_own_insert" ON reviews FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
-
+-- ── 7. Admin policy on reviews ────────────────────────────────────
 DROP POLICY IF EXISTS "reviews_admin_all" ON reviews;
 CREATE POLICY "reviews_admin_all" ON reviews FOR ALL
   USING      (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'))
@@ -88,7 +85,12 @@ DROP POLICY IF EXISTS "affiliate_clicks_admin_select" ON affiliate_clicks;
 CREATE POLICY "affiliate_clicks_admin_select" ON affiliate_clicks
   FOR SELECT USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- ── 10. RPC: affiliate summary stats ─────────────────────────────
+-- ── 10. Push subscriptions: service role only ────────────────────
+DROP POLICY IF EXISTS "push_subscriptions_service_role" ON push_subscriptions;
+CREATE POLICY "push_subscriptions_service_role"
+  ON push_subscriptions FOR ALL TO service_role USING (true);
+
+-- ── 11. RPC: affiliate summary stats ─────────────────────────────
 CREATE OR REPLACE FUNCTION get_affiliate_stats()
 RETURNS json
 LANGUAGE sql
@@ -104,7 +106,7 @@ AS $$
   FROM affiliate_clicks;
 $$;
 
--- ── 11. RPC: per-tool affiliate data + click counts ───────────────
+-- ── 12. RPC: per-tool affiliate data + click counts ───────────────
 CREATE OR REPLACE FUNCTION get_affiliate_tools()
 RETURNS TABLE (
   id              uuid,
@@ -148,13 +150,16 @@ AS $$
     ), '[]'::json)
   FROM tools t
   LEFT JOIN affiliate_links al ON al.tool_id = t.id
-  LEFT JOIN affiliate_clicks c ON c.tool_id = t.id
-  GROUP BY t.id, t.name, t.slug, t.logo, al.id, al.affiliate_url,
-           al.partner_name, al.commission_rate, al.notes, al.is_active
-  ORDER BY COALESCE(SUM(CASE WHEN c.clicked_at >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END), 0) DESC, t.name ASC;
+  LEFT JOIN affiliate_clicks c  ON c.tool_id  = t.id
+  GROUP BY t.id, t.name, t.slug, t.logo,
+           al.id, al.affiliate_url, al.partner_name,
+           al.commission_rate, al.notes, al.is_active
+  ORDER BY
+    COALESCE(SUM(CASE WHEN c.clicked_at >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END), 0) DESC,
+    t.name ASC;
 $$;
 
--- ── 12. RPC: daily click trend (30 days) ─────────────────────────
+-- ── 13. RPC: daily click trend (30 days) ─────────────────────────
 CREATE OR REPLACE FUNCTION get_affiliate_daily_trend()
 RETURNS TABLE (day date, clicks bigint)
 LANGUAGE sql
@@ -168,7 +173,7 @@ AS $$
   ORDER BY 1 ASC;
 $$;
 
--- ── 13. RPC: top tools by clicks ─────────────────────────────────
+-- ── 14. RPC: top tools by clicks ─────────────────────────────────
 CREATE OR REPLACE FUNCTION get_top_affiliate_tools(p_days int DEFAULT 30, p_limit int DEFAULT 10)
 RETURNS TABLE (name text, slug text, logo text, clicks bigint)
 LANGUAGE sql
@@ -184,7 +189,8 @@ AS $$
   LIMIT p_limit;
 $$;
 
--- ── 14. Platform analytics summary ───────────────────────────────
+-- ── 15. Platform analytics summary ───────────────────────────────
+-- NOTE: tools uses is_featured (not featured), articles status is lowercase 'published'
 CREATE OR REPLACE FUNCTION get_platform_stats()
 RETURNS json
 LANGUAGE sql
@@ -192,30 +198,14 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT json_build_object(
-    'total_tools',       (SELECT COUNT(*) FROM tools),
-    'featured_tools',    (SELECT COUNT(*) FROM tools WHERE featured = true),
-    'africa_friendly',   (SELECT COUNT(*) FROM tools WHERE africa_friendly = true),
-    'total_articles',    (SELECT COUNT(*) FROM articles),
-    'published_articles',(SELECT COUNT(*) FROM articles WHERE status = 'PUBLISHED'),
-    'total_reviews',     (SELECT COUNT(*) FROM reviews),
-    'total_users',       (SELECT COUNT(*) FROM profiles),
-    'affiliate_links',   (SELECT COUNT(*) FROM affiliate_links WHERE is_active = true),
-    'total_clicks',      (SELECT COUNT(*) FROM affiliate_clicks)
+    'total_tools',       (SELECT COUNT(*)   FROM tools),
+    'featured_tools',    (SELECT COUNT(*)   FROM tools    WHERE is_featured = true),
+    'africa_friendly',   (SELECT COUNT(*)   FROM tools    WHERE africa_friendly = true),
+    'total_articles',    (SELECT COUNT(*)   FROM articles),
+    'published_articles',(SELECT COUNT(*)   FROM articles WHERE status = 'published'),
+    'total_reviews',     (SELECT COUNT(*)   FROM reviews),
+    'total_users',       (SELECT COUNT(*)   FROM profiles),
+    'affiliate_links',   (SELECT COUNT(*)   FROM affiliate_links  WHERE is_active = true),
+    'total_clicks',      (SELECT COUNT(*)   FROM affiliate_clicks)
   );
 $$;
-
--- ── 15. Web push subscriptions ────────────────────────────────────
-CREATE TABLE IF NOT EXISTS push_subscriptions (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  endpoint   text NOT NULL UNIQUE,
-  p256dh     text NOT NULL,
-  auth       text NOT NULL,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
-ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
-
--- Service role can do everything; anonymous cannot read
-CREATE POLICY "service role full access on push_subscriptions"
-  ON push_subscriptions FOR ALL TO service_role USING (true);
