@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "FutureStack News"
+title = "DISCOVA"
 version = "1.0.0"
 
 [[services]]
@@ -13,3 +13,18 @@ PORT = "3000"
 
 [services.development]
 run = "cd /home/runner/workspace/futurestack && npm run dev"
+
+[services.production]
+
+[services.production.build]
+args = ["bash", "-c", "cd /home/runner/workspace/futurestack && npm run build"]
+
+[services.production.build.env]
+NODE_ENV = "production"
+
+[services.production.run]
+args = ["bash", "-c", "cd /home/runner/workspace/futurestack && npm run start"]
+
+[services.production.run.env]
+PORT = "3000"
+NODE_ENV = "production"
