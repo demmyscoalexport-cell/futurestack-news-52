@@ -52,8 +52,7 @@ yarn-error.log*
 # ── Testing ──────────────────────────────────────────────────
 /coverage
 
-# ── PWA ──────────────────────────────────────────────────────
-**/public/sw.js
+# ── PWA build artifacts (keep our custom sw.js tracked) ──────
 **/public/workbox-*.js
 
 # Common ignores
