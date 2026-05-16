@@ -146,6 +146,8 @@ const navSections = [
   { href: "/admin/tools-queue", icon: CheckCircle, label: "Tools Queue (PH)" },
   { href: "/admin/tools", icon: CheckCircle, label: "Tool Submissions" },
   { href: "/admin/reviews", icon: Star, label: "Review Moderation" },
+  { href: "/admin/opportunities", icon: Activity, label: "Opportunities" },
+  { href: "/admin/deals", icon: TrendingUp, label: "Deals & Discounts" },
   { href: "/admin/newsletter", icon: Mail, label: "Newsletter" },
   { href: "/admin/users", icon: Users, label: "User Management" },
   { href: "/admin/affiliates", icon: TrendingUp, label: "Affiliate Links" },

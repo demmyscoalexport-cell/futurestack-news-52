@@ -1,13 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Tag, Clock, ExternalLink, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const DEALS = [
+interface Deal {
+  id: string | number;
+  name: string;
+  tagline: string | null;
+  discount: string;
+  original_price?: string | null;
+  originalPrice?: string;
+  deal_price?: string;
+  dealPrice?: string;
+  category: string | null;
+  expiry: string | null;
+  badge: string | null;
+  badge_color?: string | null;
+  badgeColor?: string;
+  hot: boolean;
+  africa: boolean;
+  type: string;
+  url: string;
+}
+
+const STATIC_DEALS: Deal[] = [
   {
     id: 1,
     name: "Notion",
@@ -147,21 +167,40 @@ const FILTER_TABS = [
   { id: "discount", label: "Discount" },
 ];
 
+function normalise(d: Deal) {
+  return {
+    ...d,
+    dealPrice: d.deal_price ?? d.dealPrice ?? "",
+    originalPrice: d.original_price ?? d.originalPrice ?? "—",
+    badgeColor: d.badge_color ?? d.badgeColor ?? "bg-slate-500/15 text-slate-300 border-slate-500/20",
+  };
+}
+
 export function DealsClient() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeCategory, setActiveCategory] = useState("All Tools");
+  const [deals, setDeals] = useState<Deal[]>(STATIC_DEALS);
+  const [fromDb, setFromDb] = useState(false);
 
-  const visibleDeals = DEALS.filter((d) => {
-    const matchFilter = activeFilter === "all" || d.type === activeFilter;
-    const matchCat =
-      activeCategory === "All Tools" ||
-      activeCategory === "AI Tools"
-        ? d.category === "AI Tools" || matchFilter
-        : d.category === activeCategory;
+  useEffect(() => {
+    fetch("/api/deals?limit=100")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.deals && data.deals.length > 0) {
+          setDeals(data.deals);
+          setFromDb(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const visibleDeals = deals.filter((d) => {
+    const norm = normalise(d);
+    const matchFilter = activeFilter === "all" || norm.type === activeFilter;
     if (activeCategory === "All Tools") return matchFilter;
-    if (activeCategory === "AI Tools") return matchFilter && (d.name.includes("GPT") || d.name.includes("Copilot") || d.name.includes("Grammarly"));
-    return matchFilter && d.category === activeCategory;
-  });
+    if (activeCategory === "AI Tools") return matchFilter && (norm.name.includes("GPT") || norm.name.includes("Copilot") || norm.name.includes("Grammarly"));
+    return matchFilter && norm.category === activeCategory;
+  }).map(normalise);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -188,7 +227,8 @@ export function DealsClient() {
               </p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <Zap className="h-3.5 w-3.5 text-amber-400" />
-                <span>{DEALS.length} active deals right now</span>
+                <span>{deals.length} active deals right now</span>
+                {fromDb && <span className="text-primary/60">• live</span>}
               </div>
             </div>
           </div>
@@ -246,15 +286,17 @@ export function DealsClient() {
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-sm font-bold text-foreground">{deal.name}</h3>
-                            <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${deal.badgeColor}`}>
-                              {deal.badge}
-                            </span>
+                            {deal.badge && (
+                              <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${deal.badgeColor}`}>
+                                {deal.badge}
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground">{deal.tagline}</p>
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-lg font-black text-foreground">{deal.dealPrice}</p>
-                          {deal.originalPrice !== "—" && (
+                          {deal.originalPrice && deal.originalPrice !== "—" && (
                             <p className="text-[10px] text-muted-foreground line-through">{deal.originalPrice}</p>
                           )}
                         </div>
@@ -264,7 +306,7 @@ export function DealsClient() {
                           <p className="text-xs font-medium text-primary">{deal.discount}</p>
                           <div className="flex items-center gap-1 mt-0.5">
                             <Clock className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground">{deal.expiry}</span>
+                            <span className="text-[10px] text-muted-foreground">{deal.expiry ?? "Ongoing"}</span>
                           </div>
                         </div>
                         <Button size="sm" className="h-8 text-xs" asChild>
