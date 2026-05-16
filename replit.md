@@ -24,42 +24,19 @@ cd futurestack && npm run migrate:supabase # 📦 Export Replit PG data → Supa
 
 ---
 
-## ✅ Switching to Supabase (Backend Migration)
+## ✅ Supabase Connection (Active Project: nuyigpwhmyiogfzsdvzw)
 
-The app is already wired to auto-detect Supabase. Adding one secret is all that's needed.
+Required secrets (all set in Replit Secrets):
+- `NEXT_PUBLIC_SUPABASE_URL` = https://nuyigpwhmyiogfzsdvzw.supabase.co
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = from Supabase → Settings → API → anon/public
+- `SUPABASE_SERVICE_ROLE_KEY` = from Supabase → Settings → API → service_role
+- `SUPABASE_DB_URL` = Transaction pooler URI (port 6543) from Supabase → Settings → Database
+- `SUPABASE_DB_PASSWORD` = your DB password
 
-### Step 1 — Resume your Supabase project
-Go to [supabase.com/dashboard](https://supabase.com/dashboard) → find project `mjqkptowvgzmrojlgcms` → click **Restore project** (takes ~2 min).
-
-### Step 2 — Apply the schema
-In Supabase → **SQL Editor → New Query**, paste and run:
-```
-futurestack/supabase/deploy_schema.sql
-```
-
-### Step 3 — Export and import your data
+To migrate data from Replit PG → Supabase (runs via HTTPS, no DB URL needed):
 ```bash
-cd futurestack && npm run migrate:supabase
+cd futurestack && node scripts/migrate-js.mjs
 ```
-This generates `futurestack/supabase/data_migration.sql`. Paste and run it in Supabase SQL Editor.
-
-### Step 4 — Get the connection string
-Supabase Dashboard → **Settings → Database → Connection string**
-Copy the **Transaction pooler** URI (port 6543):
-```
-postgresql://postgres.xxxx:[PASSWORD]@aws-0-[region].pooler.supabase.com:6543/postgres
-```
-
-### Step 5 — Add the secret
-In Replit → Secrets, add:
-```
-SUPABASE_DB_URL = postgresql://postgres.xxxx:[PASSWORD]@...
-```
-
-### Step 6 — Restart
-Restart the "FutureStack Dev" workflow. The admin panel header will show **"Supabase ✓"** in green when active.
-
-> The `lib/db.ts` pool automatically picks up `SUPABASE_DB_URL` over `DATABASE_URL`. All 24 API routes and inngest functions keep working unchanged — Supabase is 100% PostgreSQL-compatible.
 
 ---
 
