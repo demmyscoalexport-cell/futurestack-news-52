@@ -48,3 +48,9 @@ id = "2Qo6sSUieu8o-U1CZ5dc0"
 uri = "file://futurestack/public/brand-logos/wordmark-minimal.jpg"
 type = "image"
 title = "Option 5 — Minimal Wordmark"
+
+[[outputs]]
+id = "1Yq_2WcfGxeuX1irEzugW"
+uri = "file://futurestack/supabase/discova-supabase-setup.tar.gz"
+type = "unspecified"
+title = "DISCOVA — Supabase Setup Files (Schema + Data)"

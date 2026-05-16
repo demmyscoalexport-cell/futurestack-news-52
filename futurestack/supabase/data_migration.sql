@@ -1,6 +1,6 @@
 -- ════════════════════════════════════════════════════════════
 -- DISCOVA — Data Migration: Replit PG → Supabase
--- Generated: 2026-05-13T19:28:52.087Z
+-- Generated: 2026-05-16T02:53:17.467Z
 -- Run this AFTER applying supabase/deploy_schema.sql
 -- ════════════════════════════════════════════════════════════
 
