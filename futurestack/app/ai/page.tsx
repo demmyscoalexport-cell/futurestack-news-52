@@ -58,11 +58,42 @@ export default function AIPage() {
             "You are DISCOVA AI — the AI assistant for DISCOVA, Africa's digital discovery operating system. You help African creators, founders, freelancers, and businesses discover tools that work for their realities: slow internet, Android devices, Naira budgets, Paystack/Flutterwave payments, and startup affordability. Always consider African context in your recommendations. Be practical, specific, and mention pricing in Naira where possible. Recommend tools that have free plans or affordable African-friendly pricing.",
         }),
       });
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.reply || "I couldn't generate a response. Please try again." },
-      ]);
+
+      if (!res.ok || !res.body) throw new Error("No response");
+
+      // Add an empty assistant message and stream into it
+      const assistantId = Date.now().toString();
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (line.startsWith("0:")) {
+            try {
+              full += JSON.parse(line.substring(2));
+              setMessages((prev) => {
+                const next = [...prev];
+                next[next.length - 1] = { role: "assistant", content: full };
+                return next;
+              });
+            } catch { /* ignore parse errors */ }
+          }
+        }
+      }
+
+      if (!full) {
+        setMessages((prev) => {
+          const next = [...prev];
+          next[next.length - 1] = { role: "assistant", content: "I couldn't generate a response. Please try again." };
+          return next;
+        });
+      }
     } catch {
       setMessages((prev) => [
         ...prev,
