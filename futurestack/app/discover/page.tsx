@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ section?: string }>;
+  searchParams: { section?: string };
 }
 
 export default async function DiscoverPage({ searchParams }: PageProps) {
-  const { section } = await searchParams;
+  const { section } = searchParams;
 
   const rawTools = await getTools({ limit: 100 });
   const tools = rawTools.map((row: Record<string, unknown>) => ({

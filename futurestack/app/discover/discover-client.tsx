@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import {
   Search, TrendingUp, Wifi, Smartphone, DollarSign,
-  Star, ArrowRight, Zap, Globe, Users, Sparkles, Filter,
+  Star, ArrowRight, Zap, Globe, Users, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,10 +108,9 @@ function getToolsForSection(tools: Tool[], section: string, search: string): Too
         .slice(0, 12);
 
     case "students":
+      // Free tools in student-relevant categories only
       return hasFree(byRating)
         .filter((t) => ["writing", "productivity", "data", "design"].includes(t.category as string))
-        .concat(hasFree(byRating))
-        .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
         .slice(0, 12);
 
     case "naira":
