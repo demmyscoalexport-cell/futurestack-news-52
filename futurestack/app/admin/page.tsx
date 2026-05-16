@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Database,
   RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { DB_SOURCE } from "@/lib/db";
 import { config } from "@/lib/config";
@@ -153,6 +154,7 @@ const navSections = [
   { href: "/admin/affiliates", icon: TrendingUp, label: "Affiliate Links" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/system", icon: Activity, label: "System Health" },
+  { href: "/admin/errors", icon: AlertTriangle, label: "Error Monitor" },
 ];
 
 export default async function AdminPage() {

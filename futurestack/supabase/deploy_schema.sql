@@ -602,3 +602,27 @@ DROP TRIGGER IF EXISTS deals_updated_at ON deals;
 CREATE TRIGGER deals_updated_at
   BEFORE UPDATE ON deals
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ──────────────────────────────────────────────────────────
+-- ERROR LOGS  (app-wide error monitoring)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS error_logs (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  level      text        NOT NULL DEFAULT 'error' CHECK (level IN ('error','warn','info')),
+  message    text        NOT NULL,
+  stack      text,
+  url        text,
+  user_id    text,
+  user_email text,
+  context    jsonb       DEFAULT '{}',
+  resolved   boolean     DEFAULT false,
+  created_at timestamptz DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS error_logs_created_idx  ON error_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS error_logs_level_idx    ON error_logs(level);
+CREATE INDEX IF NOT EXISTS error_logs_resolved_idx ON error_logs(resolved);
+
+ALTER TABLE error_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "error_logs_admin_only" ON error_logs;
+CREATE POLICY "error_logs_admin_only" ON error_logs USING (false);

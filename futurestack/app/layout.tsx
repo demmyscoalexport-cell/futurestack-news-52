@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ErrorBoundary } from "@/components/providers/error-boundary";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -120,7 +121,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
             <Toaster richColors closeButton position="top-right" />
           </AuthProvider>
         </ThemeProvider>
