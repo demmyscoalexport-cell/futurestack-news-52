@@ -15,13 +15,9 @@ import {
   Clock,
   Eye,
   ExternalLink,
-  Share2,
-  Bookmark,
-  Twitter,
-  Linkedin,
-  Link as LinkIcon,
   ArrowRight,
 } from "lucide-react";
+import { ArticleActions } from "./article-actions";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -259,20 +255,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </div>
             )}
 
-            <div className="mt-5 flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Twitter className="mr-1.5 h-3.5 w-3.5" />Share
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Linkedin className="mr-1.5 h-3.5 w-3.5" />Share
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <LinkIcon className="mr-1.5 h-3.5 w-3.5" />Copy Link
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Bookmark className="mr-1.5 h-3.5 w-3.5" />Save
-              </Button>
-            </div>
+            <ArticleActions title={article.title} slug={slug} />
           </div>
         </section>
 
@@ -330,14 +313,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <div className="sticky top-24 space-y-6">
                   <div className="rounded-xl border border-border/40 bg-card p-5">
                     <h4 className="font-semibold text-foreground mb-4 text-sm">Quick Actions</h4>
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
-                        <Share2 className="mr-2 h-3.5 w-3.5" />Share Article
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
-                        <Bookmark className="mr-2 h-3.5 w-3.5" />Save for Later
-                      </Button>
-                    </div>
+                    <ArticleActions title={article.title} slug={slug} variant="sidebar" />
                   </div>
 
                   <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-5">
