@@ -71,19 +71,22 @@ export function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="h-8 w-8 rounded-lg bg-[#0c1929] ring-1 ring-amber-400/25 flex items-center justify-center overflow-hidden shadow-md">
-            <Image
-              src="/discova-mark.png"
-              alt="DISCOVA"
-              width={30}
-              height={30}
-              className="h-[30px] w-[30px] object-contain"
-              priority
-            />
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="h-9 w-9 rounded-xl bg-[#080f1c] ring-2 ring-amber-400/70 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.35)]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 4h7c4.418 0 8 3.582 8 8s-3.582 8-8 8H5V4z" fill="#F59E0B" />
+              <path d="M5 4h7c4.418 0 8 3.582 8 8s-3.582 8-8 8H5V4z" fill="url(#dgrad)" />
+              <path d="M8.5 7.5h3.2c2.485 0 4.5 2.015 4.5 4.5s-2.015 4.5-4.5 4.5H8.5V7.5z" fill="#0a1628" />
+              <defs>
+                <linearGradient id="dgrad" x1="5" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#FCD34D" />
+                  <stop offset="1" stopColor="#F59E0B" />
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
-          <span className="font-black text-foreground tracking-tight text-base">
-            DIS<span className="text-primary">COVA</span>
+          <span className="font-black tracking-tight text-[17px] leading-none">
+            <span className="text-white">DIS</span><span style={{background:"linear-gradient(90deg,#a78bfa,#c084fc,#e879f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>COVA</span>
           </span>
         </Link>
 
@@ -202,18 +205,21 @@ export function Header() {
             <SheetContent side="right" className="w-80 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-border/40 p-4">
-                  <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="h-8 w-8 rounded-lg bg-[#0c1929] ring-1 ring-amber-400/25 flex items-center justify-center overflow-hidden shadow-md">
-                      <Image
-                        src="/discova-mark.png"
-                        alt="DISCOVA"
-                        width={30}
-                        height={30}
-                        className="h-[30px] w-[30px] object-contain"
-                      />
+                  <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="h-9 w-9 rounded-xl bg-[#080f1c] ring-2 ring-amber-400/70 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.35)]">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 4h7c4.418 0 8 3.582 8 8s-3.582 8-8 8H5V4z" fill="url(#dgrad2)" />
+                        <path d="M8.5 7.5h3.2c2.485 0 4.5 2.015 4.5 4.5s-2.015 4.5-4.5 4.5H8.5V7.5z" fill="#0a1628" />
+                        <defs>
+                          <linearGradient id="dgrad2" x1="5" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+                            <stop stopColor="#FCD34D" />
+                            <stop offset="1" stopColor="#F59E0B" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
                     </div>
-                    <span className="font-black text-foreground tracking-tight text-base">
-                      DIS<span className="text-primary">COVA</span>
+                    <span className="font-black tracking-tight text-[17px] leading-none">
+                      <span className="text-white">DIS</span><span style={{background:"linear-gradient(90deg,#a78bfa,#c084fc,#e879f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>COVA</span>
                     </span>
                   </Link>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>
