@@ -79,3 +79,4 @@ externalPort = 8000
 [userenv]
 
 [userenv.shared]
+NEXT_PUBLIC_SUPABASE_URL = "https://nuyigpwhmyiogfzsdvzw.supabase.co"
