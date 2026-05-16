@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import {
   Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
-  BookmarkCheck, ChevronDown, Zap, Globe, Layers,
+  BookmarkCheck, ChevronDown, Zap, Globe, Layers, Rocket,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -49,6 +49,7 @@ const mobileNav = [
   { name: "Insights", href: "/news", icon: Globe, desc: "News & analysis" },
   { name: "Africa Hub", href: "/africa", icon: Globe, desc: "Made for Africa" },
   { name: "Enterprise", href: "/enterprise", icon: Globe, desc: "For teams & orgs" },
+  { name: "Submit Your Tool", href: "/submit-tool", icon: Rocket, desc: "Get listed on DISCOVA" },
 ];
 
 export function Header() {
@@ -117,6 +118,18 @@ export function Header() {
 
         {/* Right Side */}
         <div className="flex items-center gap-1.5">
+          {/* Submit CTA — desktop only */}
+          <Button
+            size="sm"
+            className="hidden lg:flex h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5 mr-1"
+            asChild
+          >
+            <Link href="/submit-tool">
+              <Rocket className="h-3 w-3" />
+              Submit a Tool
+            </Link>
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
