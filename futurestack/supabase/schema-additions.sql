@@ -199,7 +199,7 @@ SET search_path = public
 AS $$
   SELECT json_build_object(
     'total_tools',       (SELECT COUNT(*)   FROM tools),
-    'featured_tools',    (SELECT COUNT(*)   FROM tools    WHERE is_featured = true),
+    'featured_tools',    (SELECT COUNT(*)   FROM tools    WHERE featured = true),
     'africa_friendly',   (SELECT COUNT(*)   FROM tools    WHERE africa_friendly = true),
     'total_articles',    (SELECT COUNT(*)   FROM articles),
     'published_articles',(SELECT COUNT(*)   FROM articles WHERE status = 'published'),
