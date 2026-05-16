@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Tag, Clock, ExternalLink, Zap, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Tag, Clock, ExternalLink, Zap, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const DEALS = [
   {
@@ -17,12 +17,12 @@ const DEALS = [
     dealPrice: "$0",
     category: "Productivity",
     expiry: "Ongoing",
-    badge: "🎓 Student",
+    badge: "Student",
     badgeColor: "bg-violet-500/15 text-violet-300 border-violet-500/20",
-    filterType: "Student",
     hot: true,
     africa: true,
-    href: "https://www.notion.so/product/notion-for-education",
+    type: "student",
+    url: "https://notion.so/students",
   },
   {
     id: 2,
@@ -33,12 +33,12 @@ const DEALS = [
     dealPrice: "$7.50/mo",
     category: "Design",
     expiry: "Jun 30, 2026",
-    badge: "🌍 Africa",
+    badge: "Africa",
     badgeColor: "bg-emerald-500/15 text-emerald-300 border-emerald-500/20",
-    filterType: "Discount",
     hot: true,
     africa: true,
-    href: "https://www.canva.com/canva-for-nonprofits/",
+    type: "discount",
+    url: "https://canva.com/canva-for-nonprofits/",
   },
   {
     id: 3,
@@ -49,12 +49,12 @@ const DEALS = [
     dealPrice: "$0",
     category: "Design",
     expiry: "Ongoing",
-    badge: "🎓 Student",
+    badge: "Student",
     badgeColor: "bg-violet-500/15 text-violet-300 border-violet-500/20",
-    filterType: "Student",
     hot: false,
     africa: true,
-    href: "https://www.figma.com/education/",
+    type: "student",
+    url: "https://figma.com/education/",
   },
   {
     id: 4,
@@ -65,12 +65,12 @@ const DEALS = [
     dealPrice: "$0",
     category: "Video",
     expiry: "Ongoing",
-    badge: "🆓 Free",
+    badge: "Free",
     badgeColor: "bg-green-500/15 text-green-300 border-green-500/20",
-    filterType: "Free",
     hot: true,
     africa: true,
-    href: "https://www.capcut.com/",
+    type: "free",
+    url: "https://capcut.com",
   },
   {
     id: 5,
@@ -81,12 +81,12 @@ const DEALS = [
     dealPrice: "$0",
     category: "Developer",
     expiry: "Ongoing",
-    badge: "🎓 Student",
+    badge: "Student",
     badgeColor: "bg-violet-500/15 text-violet-300 border-violet-500/20",
-    filterType: "Student",
     hot: false,
     africa: true,
-    href: "https://education.github.com/pack",
+    type: "student",
+    url: "https://education.github.com/pack",
   },
   {
     id: 6,
@@ -97,12 +97,12 @@ const DEALS = [
     dealPrice: "$0 (Free plan)",
     category: "Writing",
     expiry: "Ongoing",
-    badge: "🆓 Free",
+    badge: "Free",
     badgeColor: "bg-green-500/15 text-green-300 border-green-500/20",
-    filterType: "Free",
     hot: false,
     africa: true,
-    href: "https://www.grammarly.com/",
+    type: "free",
+    url: "https://grammarly.com",
   },
   {
     id: 7,
@@ -113,12 +113,12 @@ const DEALS = [
     dealPrice: "$0 (Free plan)",
     category: "Developer",
     expiry: "Ongoing",
-    badge: "🆓 Free",
+    badge: "Free",
     badgeColor: "bg-green-500/15 text-green-300 border-green-500/20",
-    filterType: "Free",
     hot: true,
     africa: true,
-    href: "https://supabase.com/pricing",
+    type: "free",
+    url: "https://supabase.com",
   },
   {
     id: 8,
@@ -129,41 +129,46 @@ const DEALS = [
     dealPrice: "$0 (Hobby)",
     category: "Developer",
     expiry: "Ongoing",
-    badge: "🆓 Free",
+    badge: "Free",
     badgeColor: "bg-green-500/15 text-green-300 border-green-500/20",
-    filterType: "Free",
     hot: false,
     africa: true,
-    href: "https://vercel.com/pricing",
+    type: "free",
+    url: "https://vercel.com",
   },
 ];
 
-const SIDEBAR_CATEGORIES = ["All Tools", "AI Tools", "Design", "Developer", "Productivity", "Video", "Writing"];
+const CATEGORIES = ["All Tools", "AI Tools", "Design", "Developer", "Productivity", "Video", "Writing"];
 
-const CATEGORY_MAP: Record<string, string> = {
-  "All Tools": "",
-  "AI Tools": "AI",
-  "Design": "Design",
-  "Developer": "Developer",
-  "Productivity": "Productivity",
-  "Video": "Video",
-  "Writing": "Writing",
-};
+const FILTER_TABS = [
+  { id: "all", label: "All" },
+  { id: "free", label: "Free" },
+  { id: "student", label: "Student" },
+  { id: "discount", label: "Discount" },
+];
 
 export function DealsClient() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState("all");
   const [activeCategory, setActiveCategory] = useState("All Tools");
 
-  const visible = DEALS.filter((d) => {
-    const matchesFilter = activeFilter === "All" || d.filterType === activeFilter;
-    const matchesCategory = activeCategory === "All Tools" || d.category === CATEGORY_MAP[activeCategory];
-    return matchesFilter && matchesCategory;
+  const visibleDeals = DEALS.filter((d) => {
+    const matchFilter = activeFilter === "all" || d.type === activeFilter;
+    const matchCat =
+      activeCategory === "All Tools" ||
+      activeCategory === "AI Tools"
+        ? d.category === "AI Tools" || matchFilter
+        : d.category === activeCategory;
+    if (activeCategory === "All Tools") return matchFilter;
+    if (activeCategory === "AI Tools") return matchFilter && (d.name.includes("GPT") || d.name.includes("Copilot") || d.name.includes("Grammarly"));
+    return matchFilter && d.category === activeCategory;
   });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
+
+        {/* Hero */}
         <section className="relative overflow-hidden border-b border-border/30">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute top-0 left-1/3 h-[300px] w-[300px] rounded-full bg-rose-600/8 blur-[80px]" />
@@ -172,7 +177,7 @@ export function DealsClient() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/25 bg-rose-500/8 px-3.5 py-1.5 text-xs text-rose-300 mb-5">
                 <Tag className="h-3 w-3" />
-                Deals & Discounts — Updated Weekly
+                Deals &amp; Discounts — Updated Weekly
               </div>
               <h1 className="text-3xl font-bold text-white lg:text-5xl mb-4">
                 Best tool deals for<br />
@@ -191,54 +196,59 @@ export function DealsClient() {
 
         <div className="container mx-auto px-4 lg:px-6 py-10">
           <div className="grid lg:grid-cols-4 gap-8">
+            {/* Deals grid */}
             <div className="lg:col-span-3">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-bold text-foreground">
-                  {activeFilter === "All" && activeCategory === "All Tools" ? "All" : activeFilter !== "All" ? activeFilter : activeCategory} Deals{" "}
-                  <span className="text-muted-foreground font-normal text-sm">({visible.length})</span>
+                  All Deals{" "}
+                  <span className="text-muted-foreground font-normal text-sm">({visibleDeals.length})</span>
                 </h2>
                 <div className="flex gap-2">
-                  {["All", "Free", "Student", "Discount"].map((f) => (
+                  {FILTER_TABS.map((f) => (
                     <button
-                      key={f}
-                      onClick={() => setActiveFilter(f)}
+                      key={f.id}
+                      onClick={() => setActiveFilter(f.id)}
                       className={`rounded-full px-3 py-1 text-xs transition-colors ${
-                        activeFilter === f
+                        activeFilter === f.id
                           ? "bg-primary text-white"
                           : "bg-secondary/60 text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {f}
+                      {f.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {visible.length === 0 ? (
-                <div className="py-16 text-center text-muted-foreground">
-                  <p className="mb-3">No deals match this filter.</p>
+              {visibleDeals.length === 0 ? (
+                <div className="rounded-xl border border-border/50 bg-card p-10 text-center">
+                  <p className="text-sm text-muted-foreground">No deals match this filter.</p>
                   <button
-                    onClick={() => { setActiveFilter("All"); setActiveCategory("All Tools"); }}
-                    className="text-primary hover:underline text-sm"
+                    onClick={() => { setActiveFilter("all"); setActiveCategory("All Tools"); }}
+                    className="mt-3 text-xs text-primary hover:underline"
                   >
                     Clear filters
                   </button>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-3">
-                  {visible.map((deal) => (
+                  {visibleDeals.map((deal) => (
                     <div
                       key={deal.id}
-                      className={`rounded-xl border bg-card p-4 hover:border-primary/40 transition-all ${deal.hot ? "border-primary/30" : "border-border/50"}`}
+                      className={`rounded-xl border bg-card p-4 hover:border-primary/40 transition-all ${
+                        deal.hot ? "border-primary/30" : "border-border/50"
+                      }`}
                     >
                       {deal.hot && (
-                        <div className="text-[10px] text-rose-400 font-semibold mb-2">🔥 HOT DEAL</div>
+                        <div className="text-[10px] text-rose-400 font-semibold mb-2">HOT DEAL</div>
                       )}
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-sm font-bold text-foreground">{deal.name}</h3>
-                            <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${deal.badgeColor}`}>{deal.badge}</span>
+                            <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${deal.badgeColor}`}>
+                              {deal.badge}
+                            </span>
                           </div>
                           <p className="text-xs text-muted-foreground">{deal.tagline}</p>
                         </div>
@@ -258,7 +268,7 @@ export function DealsClient() {
                           </div>
                         </div>
                         <Button size="sm" className="h-8 text-xs" asChild>
-                          <a href={deal.href} target="_blank" rel="noopener noreferrer">
+                          <a href={deal.url} target="_blank" rel="noopener noreferrer">
                             Get Deal <ExternalLink className="ml-1.5 h-3 w-3" />
                           </a>
                         </Button>
@@ -269,9 +279,10 @@ export function DealsClient() {
               )}
             </div>
 
+            {/* Sidebar */}
             <div className="space-y-5">
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                <h3 className="font-bold text-sm text-foreground mb-2">📬 Deal Alerts</h3>
+                <h3 className="font-bold text-sm text-foreground mb-2">Deal Alerts</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Get notified about new deals and discounts for African builders every week.
                 </p>
@@ -282,24 +293,24 @@ export function DealsClient() {
 
               <div className="rounded-xl border border-border/50 bg-card p-4">
                 <h3 className="font-bold text-sm text-foreground mb-3">Browse by Category</h3>
-                {SIDEBAR_CATEGORIES.map((cat) => (
+                {CATEGORIES.map((cat) => (
                   <button
                     key={cat}
-                    onClick={() => { setActiveCategory(cat); setActiveFilter("All"); }}
-                    className={`w-full flex items-center justify-between py-2 text-xs transition-colors rounded px-1 ${
+                    onClick={() => setActiveCategory(cat)}
+                    className={`w-full flex items-center justify-between py-2 text-xs transition-colors ${
                       activeCategory === cat
-                        ? "text-primary font-medium"
+                        ? "text-foreground font-medium"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     <span>{cat}</span>
-                    <ArrowRight className="h-3 w-3" />
+                    <ArrowRight className={`h-3 w-3 transition-opacity ${activeCategory === cat ? "opacity-100 text-primary" : "opacity-0"}`} />
                   </button>
                 ))}
               </div>
 
               <div className="rounded-xl border border-border/50 bg-card p-4">
-                <h3 className="font-bold text-sm text-foreground mb-2">💡 Submit a Deal</h3>
+                <h3 className="font-bold text-sm text-foreground mb-2">Submit a Deal</h3>
                 <p className="text-xs text-muted-foreground mb-3">Found a great deal for African builders? Share it!</p>
                 <Button variant="outline" size="sm" className="w-full text-xs" asChild>
                   <Link href="/submit-tool">Submit Deal</Link>

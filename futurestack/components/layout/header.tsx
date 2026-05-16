@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-
+import Image from "next/image";
 import {
   Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
   BookmarkCheck, ChevronDown, Zap, Globe, Layers, Rocket,
@@ -71,19 +71,19 @@ export function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow">
-            <svg viewBox="0 0 20 20" fill="none" className="h-4.5 w-4.5" width="18" height="18">
-              <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.5"/>
-              <circle cx="10" cy="10" r="1.5" fill="white"/>
-              <line x1="10" y1="3" x2="10" y2="5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="10" y1="14.5" x2="10" y2="17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="3" y1="10" x2="5.5" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="14.5" y1="10" x2="17" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="h-8 w-8 rounded-lg bg-[#0c1929] ring-1 ring-amber-400/25 flex items-center justify-center overflow-hidden shadow-md">
+            <Image
+              src="/discova-mark.png"
+              alt="DISCOVA"
+              width={30}
+              height={30}
+              className="h-[30px] w-[30px] object-contain"
+              priority
+            />
           </div>
-          <span className="font-black text-base tracking-tight text-foreground">
-            DIS<span className="gradient-text">COVA</span>
+          <span className="font-black text-foreground tracking-tight text-base">
+            DIS<span className="text-primary">COVA</span>
           </span>
         </Link>
 
@@ -202,19 +202,18 @@ export function Header() {
             <SheetContent side="right" className="w-80 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-border/40 p-4">
-                  <Link href="/" className="flex items-center gap-2 group" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/25">
-                      <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
-                        <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.5"/>
-                        <circle cx="10" cy="10" r="1.5" fill="white"/>
-                        <line x1="10" y1="3" x2="10" y2="5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                        <line x1="10" y1="14.5" x2="10" y2="17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                        <line x1="3" y1="10" x2="5.5" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                        <line x1="14.5" y1="10" x2="17" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
+                  <Link href="/" className="flex items-center gap-2.5" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="h-8 w-8 rounded-lg bg-[#0c1929] ring-1 ring-amber-400/25 flex items-center justify-center overflow-hidden shadow-md">
+                      <Image
+                        src="/discova-mark.png"
+                        alt="DISCOVA"
+                        width={30}
+                        height={30}
+                        className="h-[30px] w-[30px] object-contain"
+                      />
                     </div>
-                    <span className="font-black text-base tracking-tight text-foreground">
-                      DIS<span className="gradient-text">COVA</span>
+                    <span className="font-black text-foreground tracking-tight text-base">
+                      DIS<span className="text-primary">COVA</span>
                     </span>
                   </Link>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>

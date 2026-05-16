@@ -122,23 +122,16 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
           <div className="container relative mx-auto px-4 lg:px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
             <div className="max-w-3xl mx-auto text-center">
 
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/8 px-4 py-1.5 text-xs text-emerald-300 mb-7">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                🌍 The Global Tools OS — Built Africa-First
-              </div>
-
               {/* Headline */}
-              <h1 className="text-5xl font-bold leading-[1.08] tracking-tight text-white lg:text-6xl xl:text-7xl mb-6">
-                Find the perfect tool
-                <br />
+              <h1 className="text-5xl font-bold leading-[1.06] tracking-tight text-white lg:text-6xl xl:text-7xl mb-6">
+                Discover tools that<br />
                 <span className="bg-gradient-to-r from-violet-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
-                  for any task, instantly
+                  move your work forward
                 </span>
               </h1>
 
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
-                Discova is the intelligence layer for software — discover, compare, and build stacks from 400+ AI tools, SaaS products, and apps. Curated for founders, freelancers, and builders across Africa and beyond.
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
+                Find, compare, and build stacks from 400+ AI tools, SaaS products, and apps — curated and rated for founders, freelancers, and builders.
               </p>
 
               {/* Search — full width, centred */}

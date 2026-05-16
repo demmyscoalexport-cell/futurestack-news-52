@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import {
   BookOpen, Clock, Users, Star, ArrowRight,
   GraduationCap, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 
 const FEATURED_GUIDES = [
   {
     id: 1,
-    slug: "ai-tools-for-african-creators",
+    slug: "ai-tools-african-creators",
     title: "Complete Guide to AI Tools for African Creators",
     desc: "Everything a Nigerian, Ghanaian, or Kenyan creator needs to know about using AI tools effectively in 2026.",
     readTime: "15 min read",
@@ -57,7 +57,7 @@ const FEATURED_GUIDES = [
   },
   {
     id: 5,
-    slug: "free-design-tools-africa",
+    slug: "free-design-tools-african-smbs",
     title: "Best Free Design Tools for African SMBs",
     desc: "Design professional materials without paying for Adobe. A complete guide to free and freemium design tools.",
     readTime: "10 min read",
@@ -68,7 +68,7 @@ const FEATURED_GUIDES = [
   },
   {
     id: 6,
-    slug: "paystack-flutterwave-guide",
+    slug: "paystack-flutterwave-developer-guide",
     title: "Understanding Paystack + Flutterwave: A Developer's Guide",
     desc: "Integrate African payment gateways into your web and mobile applications with step-by-step code examples.",
     readTime: "25 min read",
@@ -80,7 +80,7 @@ const FEATURED_GUIDES = [
 ];
 
 const CATEGORIES = [
-  { name: "All Topics", count: 150, icon: "📚" },
+  { name: "All", count: 151, icon: "📚" },
   { name: "AI Tools", count: 24, icon: "🤖" },
   { name: "No-Code", count: 18, icon: "⚡" },
   { name: "Design", count: 15, icon: "🎨" },
@@ -98,19 +98,21 @@ const difficultyColor: Record<string, string> = {
 };
 
 export function LearnClient() {
-  const [activeTopic, setActiveTopic] = useState("All Topics");
+  const [activeCategory, setActiveCategory] = useState("All");
 
-  const filtered = activeTopic === "All Topics"
+  const visibleGuides = activeCategory === "All"
     ? FEATURED_GUIDES
-    : FEATURED_GUIDES.filter((g) => g.category === activeTopic);
+    : FEATURED_GUIDES.filter((g) => g.category === activeCategory);
 
-  const featuredGuides = filtered.filter((g) => g.featured);
-  const allGuides = filtered;
+  const featuredGuides = visibleGuides.filter((g) => g.featured);
+  const allGuides = visibleGuides;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
+
+        {/* Hero */}
         <section className="relative overflow-hidden border-b border-border/30">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute top-0 right-1/3 h-[300px] w-[300px] rounded-full bg-cyan-600/8 blur-[80px]" />
@@ -139,29 +141,41 @@ export function LearnClient() {
 
         <div className="container mx-auto px-4 lg:px-6 py-10">
           <div className="grid lg:grid-cols-4 gap-8">
+
+            {/* Main */}
             <div className="lg:col-span-3 space-y-8">
+
+              {/* Featured */}
               {featuredGuides.length > 0 && (
                 <div>
-                  <h2 className="font-bold text-foreground mb-4">⭐ Featured Guides</h2>
+                  <h2 className="font-bold text-foreground mb-4">Featured Guides</h2>
                   <div className="space-y-3">
                     {featuredGuides.map((guide) => (
                       <Link
                         key={guide.id}
                         href={`/news/${guide.slug}`}
-                        className="block rounded-xl border border-primary/20 bg-primary/5 p-5 hover:border-primary/40 transition-all group"
+                        className="block rounded-xl border border-primary/20 bg-primary/5 p-5 hover:border-primary/40 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start gap-4">
                           <span className="text-3xl">{guide.emoji}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <span className="text-[10px] bg-primary/15 text-primary border border-primary/20 rounded px-1.5 py-0.5">{guide.category}</span>
-                              <span className={`rounded border px-1.5 py-0.5 text-[10px] ${difficultyColor[guide.level]}`}>{guide.level}</span>
+                              <span className="text-[10px] bg-primary/15 text-primary border border-primary/20 rounded px-1.5 py-0.5">
+                                {guide.category}
+                              </span>
+                              <span className={`rounded border px-1.5 py-0.5 text-[10px] ${difficultyColor[guide.level]}`}>
+                                {guide.level}
+                              </span>
                             </div>
-                            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors mb-1.5">{guide.title}</h3>
+                            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors mb-1.5">
+                              {guide.title}
+                            </h3>
                             <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{guide.desc}</p>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{guide.readTime}</span>
-                              <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />Featured</span>
+                              <span className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />Featured
+                              </span>
                             </div>
                           </div>
                           <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -172,17 +186,22 @@ export function LearnClient() {
                 </div>
               )}
 
+              {/* All guides */}
               <div>
-                <h2 className="font-bold text-foreground mb-4">
-                  {activeTopic === "All Topics" ? "All Guides" : activeTopic}
-                  {filtered.length !== FEATURED_GUIDES.length && (
-                    <span className="ml-2 text-muted-foreground font-normal text-sm">({filtered.length})</span>
-                  )}
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold text-foreground">
+                    {activeCategory === "All" ? "All Guides" : activeCategory}{" "}
+                    <span className="text-muted-foreground font-normal text-sm">({allGuides.length})</span>
+                  </h2>
+                </div>
+
                 {allGuides.length === 0 ? (
-                  <div className="py-12 text-center text-muted-foreground">
-                    <p className="mb-3">No guides yet for this topic.</p>
-                    <button onClick={() => setActiveTopic("All Topics")} className="text-primary hover:underline text-sm">
+                  <div className="rounded-xl border border-border/50 bg-card p-10 text-center">
+                    <p className="text-sm text-muted-foreground">No guides in this category yet.</p>
+                    <button
+                      onClick={() => setActiveCategory("All")}
+                      className="mt-3 text-xs text-primary hover:underline"
+                    >
                       View all guides
                     </button>
                   </div>
@@ -192,21 +211,26 @@ export function LearnClient() {
                       <Link
                         key={guide.id}
                         href={`/news/${guide.slug}`}
-                        className="block rounded-xl border border-border/50 bg-card p-4 hover:border-primary/40 transition-all group"
+                        className="block rounded-xl border border-border/50 bg-card p-4 hover:border-primary/40 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start gap-3">
                           <span className="text-xl">{guide.emoji}</span>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                              <span className="text-[10px] bg-secondary/60 text-muted-foreground px-1.5 py-0.5 rounded">{guide.category}</span>
-                              <span className={`rounded border px-1.5 py-0.5 text-[10px] ${difficultyColor[guide.level]}`}>{guide.level}</span>
+                              <span className="text-[10px] bg-secondary/60 text-muted-foreground px-1.5 py-0.5 rounded">
+                                {guide.category}
+                              </span>
+                              <span className={`rounded border px-1.5 py-0.5 text-[10px] ${difficultyColor[guide.level]}`}>
+                                {guide.level}
+                              </span>
                             </div>
-                            <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">{guide.title}</h3>
+                            <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
+                              {guide.title}
+                            </h3>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Clock className="h-3 w-3" />{guide.readTime}
                             </div>
                           </div>
-                          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
                         </div>
                       </Link>
                     ))}
@@ -215,9 +239,10 @@ export function LearnClient() {
               </div>
             </div>
 
+            {/* Sidebar */}
             <div className="space-y-5">
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                <h3 className="font-bold text-sm text-foreground mb-2">📧 Learning Newsletter</h3>
+                <h3 className="font-bold text-sm text-foreground mb-2">Learning Newsletter</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Get 1 actionable tutorial and 1 tool deep-dive every week, free.
                 </p>
@@ -228,14 +253,14 @@ export function LearnClient() {
 
               <div className="rounded-xl border border-border/50 bg-card p-4">
                 <h3 className="font-bold text-sm text-foreground mb-3">Browse Topics</h3>
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat.name}
-                      onClick={() => setActiveTopic(cat.name)}
-                      className={`w-full flex items-center gap-2 py-2 px-2 rounded-lg text-xs transition-colors ${
-                        activeTopic === cat.name
-                          ? "bg-primary/10 text-primary font-medium"
+                      onClick={() => setActiveCategory(cat.name)}
+                      className={`w-full flex items-center gap-2 py-2 text-xs transition-colors rounded-lg px-2 ${
+                        activeCategory === cat.name
+                          ? "bg-secondary/60 text-foreground font-medium"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                       }`}
                     >

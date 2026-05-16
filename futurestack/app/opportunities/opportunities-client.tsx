@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Briefcase, GraduationCap, Zap, Globe,
-  ArrowRight, DollarSign, Clock, MapPin, Star,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import {
+  Briefcase, GraduationCap, Zap, Globe,
+  ArrowRight, DollarSign, Clock, MapPin, Star, X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const OPPORTUNITY_TYPES = [
   { id: "all",          label: "All",          icon: Globe,          count: "530+", color: "text-foreground",  bg: "bg-secondary/60"   },
@@ -20,19 +20,11 @@ const OPPORTUNITY_TYPES = [
   { id: "accelerators", label: "Accelerators", icon: Globe,          count: "15+",  color: "text-orange-400", bg: "bg-orange-500/10"  },
 ];
 
-const TYPE_TO_FILTER: Record<string, string[]> = {
-  jobs:         ["Remote Job"],
-  grants:       ["Grant"],
-  scholarships: ["Scholarship"],
-  gigs:         ["AI Gig"],
-  fellowships:  ["Fellowship"],
-  accelerators: ["Accelerator"],
-};
-
 const OPPORTUNITIES = [
   {
     id: 1,
-    type: "Remote Job",
+    type: "jobs",
+    typeLabel: "Remote Job",
     typeColor: "bg-blue-500/15 text-blue-300 border-blue-500/20",
     title: "AI Content Writer — Remote",
     company: "TechStart Africa",
@@ -42,11 +34,12 @@ const OPPORTUNITIES = [
     deadline: "Jun 30, 2026",
     featured: true,
     africa: true,
-    href: "#",
+    url: "https://techstartafrica.com/jobs",
   },
   {
     id: 2,
-    type: "Grant",
+    type: "grants",
+    typeLabel: "Grant",
     typeColor: "bg-green-500/15 text-green-300 border-green-500/20",
     title: "Tony Elumelu Foundation Grant 2026",
     company: "Tony Elumelu Foundation",
@@ -56,11 +49,12 @@ const OPPORTUNITIES = [
     deadline: "Jul 15, 2026",
     featured: true,
     africa: true,
-    href: "https://www.tonyelumelufoundation.org",
+    url: "https://www.tonyelumelufoundation.org",
   },
   {
     id: 3,
-    type: "Remote Job",
+    type: "jobs",
+    typeLabel: "Remote Job",
     typeColor: "bg-blue-500/15 text-blue-300 border-blue-500/20",
     title: "No-Code Developer (Bubble/Webflow)",
     company: "Andela",
@@ -70,11 +64,12 @@ const OPPORTUNITIES = [
     deadline: "Ongoing",
     featured: false,
     africa: true,
-    href: "https://andela.com",
+    url: "https://andela.com/hiring/",
   },
   {
     id: 4,
-    type: "Scholarship",
+    type: "scholarships",
+    typeLabel: "Scholarship",
     typeColor: "bg-violet-500/15 text-violet-300 border-violet-500/20",
     title: "ALX Africa AI & Tech Scholarship",
     company: "ALX Africa",
@@ -84,11 +79,12 @@ const OPPORTUNITIES = [
     deadline: "Aug 1, 2026",
     featured: false,
     africa: true,
-    href: "https://www.alxafrica.com",
+    url: "https://www.alxafrica.com",
   },
   {
     id: 5,
-    type: "AI Gig",
+    type: "gigs",
+    typeLabel: "AI Gig",
     typeColor: "bg-amber-500/15 text-amber-300 border-amber-500/20",
     title: "AI Prompt Engineer — Freelance",
     company: "Upwork Africa",
@@ -98,11 +94,12 @@ const OPPORTUNITIES = [
     deadline: "Ongoing",
     featured: false,
     africa: true,
-    href: "https://upwork.com",
+    url: "https://upwork.com",
   },
   {
     id: 6,
-    type: "Fellowship",
+    type: "fellowships",
+    typeLabel: "Fellowship",
     typeColor: "bg-pink-500/15 text-pink-300 border-pink-500/20",
     title: "Founder Fellowship — African Startup Ecosystem",
     company: "Ventures Platform",
@@ -112,11 +109,12 @@ const OPPORTUNITIES = [
     deadline: "Sep 1, 2026",
     featured: false,
     africa: true,
-    href: "https://venturesplatform.com",
+    url: "https://venturesplatform.com",
   },
   {
     id: 7,
-    type: "Remote Job",
+    type: "jobs",
+    typeLabel: "Remote Job",
     typeColor: "bg-blue-500/15 text-blue-300 border-blue-500/20",
     title: "Social Media Manager (Africa Markets)",
     company: "Flutterwave",
@@ -126,11 +124,12 @@ const OPPORTUNITIES = [
     deadline: "Jun 25, 2026",
     featured: false,
     africa: true,
-    href: "https://flutterwave.com/ng/careers",
+    url: "https://flutterwave.com/ng/careers",
   },
   {
     id: 8,
-    type: "Accelerator",
+    type: "accelerators",
+    typeLabel: "Accelerator",
     typeColor: "bg-orange-500/15 text-orange-300 border-orange-500/20",
     title: "YC Africa Cohort Application",
     company: "Y Combinator",
@@ -140,7 +139,7 @@ const OPPORTUNITIES = [
     deadline: "Rolling",
     featured: true,
     africa: false,
-    href: "https://ycombinator.com/apply",
+    url: "https://ycombinator.com/apply",
   },
 ];
 
@@ -149,9 +148,10 @@ export function OpportunitiesClient() {
 
   const filtered = activeType === "all"
     ? OPPORTUNITIES
-    : OPPORTUNITIES.filter((o) => TYPE_TO_FILTER[activeType]?.includes(o.type));
+    : OPPORTUNITIES.filter((o) => o.type === activeType);
 
   const activeLabel = OPPORTUNITY_TYPES.find((t) => t.id === activeType)?.label ?? "All";
+  const sidebarTypes = OPPORTUNITY_TYPES.filter((t) => t.id !== "all");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -221,9 +221,9 @@ export function OpportunitiesClient() {
                 {activeType !== "all" && (
                   <button
                     onClick={() => setActiveType("all")}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Clear filter ✕
+                    <X className="h-3 w-3" /> Clear filter
                   </button>
                 )}
               </div>
@@ -250,7 +250,7 @@ export function OpportunitiesClient() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${opp.typeColor}`}>{opp.type}</span>
+                        <span className={`rounded border px-1.5 py-0.5 text-[10px] font-medium ${opp.typeColor}`}>{opp.typeLabel}</span>
                         {opp.africa && (
                           <span className="text-[10px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 rounded px-1.5 py-0.5">🌍 Africa</span>
                         )}
@@ -264,7 +264,7 @@ export function OpportunitiesClient() {
                       </div>
                     </div>
                     <Button size="sm" variant="outline" className="h-8 text-xs shrink-0" asChild>
-                      <a href={opp.href} target="_blank" rel="noopener noreferrer">Apply</a>
+                      <a href={opp.url} target="_blank" rel="noopener noreferrer">Apply</a>
                     </Button>
                   </div>
                   <div className="mt-3 flex gap-1 flex-wrap">
@@ -279,7 +279,7 @@ export function OpportunitiesClient() {
             {/* Sidebar */}
             <div className="space-y-5">
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                <h3 className="font-bold text-sm text-foreground mb-2">📬 Get Opportunity Alerts</h3>
+                <h3 className="font-bold text-sm text-foreground mb-2">Get Opportunity Alerts</h3>
                 <p className="text-xs text-muted-foreground mb-4">
                   Get notified when new jobs, grants, and gigs are posted for Africa.
                 </p>
@@ -289,8 +289,8 @@ export function OpportunitiesClient() {
               </div>
 
               <div className="rounded-xl border border-border/50 bg-card p-4">
-                <h3 className="font-bold text-sm text-foreground mb-3">🎯 Browse by Type</h3>
-                {OPPORTUNITY_TYPES.filter((t) => t.id !== "all").map((t) => (
+                <h3 className="font-bold text-sm text-foreground mb-3">Browse by Type</h3>
+                {sidebarTypes.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setActiveType(t.id)}
@@ -305,7 +305,7 @@ export function OpportunitiesClient() {
               </div>
 
               <div className="rounded-xl border border-border/50 bg-card p-4">
-                <h3 className="font-bold text-sm text-foreground mb-3">📋 Submit an Opportunity</h3>
+                <h3 className="font-bold text-sm text-foreground mb-3">Submit an Opportunity</h3>
                 <p className="text-xs text-muted-foreground mb-3">
                   Know of a grant, job, or fellowship for African builders? Share it with the community.
                 </p>

@@ -45,7 +45,6 @@ const QUICK_FILTERS = [
 
 /** Return a filtered + sorted list of tools for the active section */
 function getToolsForSection(tools: Tool[], section: string, search: string): Tool[] {
-  // Apply text search first
   const searched = search
     ? tools.filter(
         (t) =>
@@ -65,12 +64,10 @@ function getToolsForSection(tools: Tool[], section: string, search: string): Too
   const byCat   = (cats: string[]) => searched.filter((t) => cats.includes(t.category as string));
 
   switch (section) {
-    // ── Country trending: same africa-friendly pool, different sort + offset ──
     case "trending-nigeria":
       return africa(byRating).slice(0, 12);
 
     case "trending-kenya":
-      // offset by 4 so it shows genuinely different tools
       return [...africa(byUpvotes).slice(4, 16), ...africa(byRating).slice(0, 4)]
         .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
         .slice(0, 12);
@@ -84,7 +81,6 @@ function getToolsForSection(tools: Tool[], section: string, search: string): Too
         .slice(0, 12);
 
     case "works-3g":
-      // Tools that are africa-friendly or free (proxy: lightweight enough for 3G)
       return africa(byRating).concat(hasFree(byRating))
         .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
         .slice(0, 12);
@@ -108,24 +104,20 @@ function getToolsForSection(tools: Tool[], section: string, search: string): Too
         .slice(0, 12);
 
     case "students":
-      // Free tools in student-relevant categories only
       return hasFree(byRating)
         .filter((t) => ["writing", "productivity", "data", "design"].includes(t.category as string))
         .slice(0, 12);
 
     case "naira":
-      // africa-friendly + free tier = no USD card needed
       return hasFree(africa(byRating)).slice(0, 12);
 
     case "viral":
-      // newest + highest upvotes
       return byUpvotes.filter((t) => t.is_new || (Number(t.upvote_count) || 0) > 0)
         .concat(byNewest.slice(0, 6))
         .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
         .slice(0, 12);
 
     case "hidden":
-      // highly rated but not featured — undiscovered tools
       return byRating
         .filter((t) => !t.is_featured && (Number(t.rating) || 0) >= 4)
         .slice(0, 12);
@@ -230,7 +222,7 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
               {/* Stats */}
               <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
                 <span>✅ {tools.length}+ tools indexed</span>
-                <span>🌍 Africa-rated & tested</span>
+                <span>🌍 Africa-rated &amp; tested</span>
                 <span>⚡ Updated daily</span>
               </div>
             </div>
