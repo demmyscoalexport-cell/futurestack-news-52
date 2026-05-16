@@ -9,7 +9,13 @@ export const metadata: Metadata = {
     "Discover trending tools, AI apps, and workflows curated for African users. Works on 3G. Android-optimized. Naira-friendly.",
 };
 
-export default async function DiscoverPage() {
+interface PageProps {
+  searchParams: Promise<{ section?: string }>;
+}
+
+export default async function DiscoverPage({ searchParams }: PageProps) {
+  const { section } = await searchParams;
+
   const rawTools = await getTools({ limit: 100 });
   const tools = rawTools.map((row: Record<string, unknown>) => ({
     ...row,
@@ -20,5 +26,5 @@ export default async function DiscoverPage() {
     ),
   }));
 
-  return <DiscoverClient tools={tools} />;
+  return <DiscoverClient tools={tools} initialSection={section} />;
 }
