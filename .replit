@@ -80,3 +80,7 @@ externalPort = 8000
 
 [userenv.shared]
 NEXT_PUBLIC_SUPABASE_URL = "https://nuyigpwhmyiogfzsdvzw.supabase.co"
+NEXT_PUBLIC_VAPID_PUBLIC_KEY = "BP0VvcA4VlOtarH_6xjpTaVz9zVXOquR-pQQ8GAYPbOfsQdxgTaOKE3MLJfKBO0P6PAccOQLpE6RYcGjJKdS6mM"
+VAPID_PUBLIC_KEY = "BP0VvcA4VlOtarH_6xjpTaVz9zVXOquR-pQQ8GAYPbOfsQdxgTaOKE3MLJfKBO0P6PAccOQLpE6RYcGjJKdS6mM"
+VAPID_PRIVATE_KEY = "kNKgAxQQOw_e0fOlWTAK3I0bTjd_WhQ52T8vd2npkys"
+VAPID_SUBJECT = "mailto:hello@discova.africa"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/supabase/admin-guard";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
@@ -9,47 +9,15 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
-  const { rows } = await db.query(`
-    SELECT
-      t.id, t.name, t.slug, t.logo,
-      al.id          AS affiliate_id,
-      al.affiliate_url,
-      al.partner_name,
-      al.commission_rate,
-      al.notes,
-      al.is_active,
-      COALESCE(c30.cnt, 0)::int AS clicks_30d,
-      COALESCE(c7.cnt,  0)::int AS clicks_7d,
-      COALESCE(c1.cnt,  0)::int AS clicks_today,
-      COALESCE(spark.data, '[]'::json) AS sparkline
-    FROM tools t
-    LEFT JOIN affiliate_links al ON al.tool_id = t.id
-    LEFT JOIN LATERAL (
-      SELECT COUNT(*) AS cnt FROM affiliate_clicks
-      WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '30 days'
-    ) c30 ON true
-    LEFT JOIN LATERAL (
-      SELECT COUNT(*) AS cnt FROM affiliate_clicks
-      WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '7 days'
-    ) c7 ON true
-    LEFT JOIN LATERAL (
-      SELECT COUNT(*) AS cnt FROM affiliate_clicks
-      WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '1 day'
-    ) c1 ON true
-    LEFT JOIN LATERAL (
-      SELECT json_agg(json_build_object('day', day::text, 'clicks', cnt) ORDER BY day) AS data
-      FROM (
-        SELECT date_trunc('day', clicked_at)::date AS day, COUNT(*)::int AS cnt
-        FROM affiliate_clicks
-        WHERE tool_id = t.id AND clicked_at >= NOW() - INTERVAL '30 days'
-        GROUP BY 1
-      ) sub
-    ) spark ON true
-    WHERE t.status = 'active'
-    ORDER BY COALESCE(c30.cnt, 0) DESC, t.name ASC
-  `);
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("get_affiliate_tools");
 
-  return NextResponse.json(rows);
+  if (error) {
+    console.error("affiliate GET error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data ?? []);
 }
 
 /* ─── POST — create new affiliate link ─── */
@@ -61,49 +29,46 @@ export async function POST(req: NextRequest) {
   const { tool_id, affiliate_url, partner_name, commission_rate, notes } = body;
 
   if (!tool_id || !affiliate_url || !partner_name) {
-    return NextResponse.json({ error: "tool_id, affiliate_url, and partner_name are required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "tool_id, affiliate_url, and partner_name are required" },
+      { status: 400 },
+    );
   }
 
-  const { rows } = await db.query(
-    `INSERT INTO affiliate_links (tool_id, affiliate_url, partner_name, commission_rate, notes)
-     VALUES ($1, $2, $3, $4, $5)
-     ON CONFLICT (tool_id) DO UPDATE SET
-       affiliate_url = EXCLUDED.affiliate_url,
-       partner_name  = EXCLUDED.partner_name,
-       commission_rate = EXCLUDED.commission_rate,
-       notes = EXCLUDED.notes,
-       updated_at = NOW()
-     RETURNING *`,
-    [tool_id, affiliate_url, partner_name, commission_rate || 0, notes || null],
-  );
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("affiliate_links")
+    .upsert(
+      { tool_id, affiliate_url, partner_name, commission_rate: commission_rate || 0, notes: notes || null, updated_at: new Date().toISOString() },
+      { onConflict: "tool_id" },
+    )
+    .select()
+    .single();
 
-  return NextResponse.json(rows[0]);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }
 
-/* ─── PUT — update existing affiliate link (by id in body) ─── */
+/* ─── PUT — update existing affiliate link (id in body) ─── */
 export async function PUT(req: NextRequest) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
   const body = await req.json();
   const { id, affiliate_url, partner_name, commission_rate, notes } = body;
-
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const { rows } = await db.query(
-    `UPDATE affiliate_links SET
-       affiliate_url   = $1,
-       partner_name    = $2,
-       commission_rate = $3,
-       notes           = $4,
-       updated_at      = NOW()
-     WHERE id = $5
-     RETURNING *`,
-    [affiliate_url, partner_name, commission_rate || 0, notes || null, id],
-  );
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("affiliate_links")
+    .update({ affiliate_url, partner_name, commission_rate: commission_rate || 0, notes: notes || null, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
 
-  if (!rows[0]) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(rows[0]);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(data);
 }
 
 /* ─── PATCH — toggle is_active ─── */
@@ -114,10 +79,13 @@ export async function PATCH(req: NextRequest) {
   const { id, is_active } = await req.json();
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  await db.query(
-    `UPDATE affiliate_links SET is_active = $1, updated_at = NOW() WHERE id = $2`,
-    [is_active, id],
-  );
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("affiliate_links")
+    .update({ is_active, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
 
@@ -130,6 +98,9 @@ export async function DELETE(req: NextRequest) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  await db.query(`DELETE FROM affiliate_links WHERE id = $1`, [id]);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("affiliate_links").delete().eq("id", id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

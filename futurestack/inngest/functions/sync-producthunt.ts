@@ -9,6 +9,7 @@
  */
 import { inngest } from "../client";
 import { db as pool } from "@/lib/db";
+import { upsertTool, getExistingToolSlugs } from "@/lib/supabase-writer";
 import {
   fetchAllPHPosts,
   mapPHTopicsToCategory,
@@ -191,6 +192,23 @@ export const syncProductHuntTools = inngest.createFunction(
               slug,
             ],
           );
+
+          // Also write to Supabase (the live database)
+          await upsertTool({
+            name:              post.name,
+            slug,
+            short_description: post.tagline,
+            description,
+            logo,
+            website,
+            category,
+            has_free,
+            africa_friendly,
+            rating:       parseFloat(rating.toFixed(1)),
+            review_count: Math.floor(post.votesCount / 10),
+            tags,
+            featured:     false,
+          }).catch(() => {});
 
           results.push({ slug, name: post.name, website, tagline: post.tagline, description });
         } catch (err) {

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -19,6 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 const BASE_URL = "https://discova.africa";
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -43,16 +45,10 @@ export const metadata: Metadata = {
   authors: [{ name: "DISCOVA", url: BASE_URL }],
   creator: "DISCOVA",
   icons: {
-    icon: [
-      { url: "/discova-logo.png", type: "image/png" },
-    ],
-    apple: [
-      { url: "/discova-logo.png" },
-    ],
+    icon: [{ url: "/discova-logo.png", type: "image/png" }],
+    apple: [{ url: "/discova-logo.png" }],
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
+  alternates: { canonical: BASE_URL },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -96,15 +92,26 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
       className={`${inter.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}',{page_path:window.location.pathname});`}
+            </Script>
+          </>
+        )}
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <ThemeProvider
           attribute="class"

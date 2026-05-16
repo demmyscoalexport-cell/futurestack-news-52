@@ -6,10 +6,10 @@
  *   - Tools drop below threshold (triggers africa + producthunt sync)
  *   - DB is unreachable (logs critical alert)
  *
- * Also logs a daily health summary with full DB counts.
+ * Reads metrics from Supabase (the live database).
  */
 import { inngest } from "../client";
-import { db } from "@/lib/db";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface HealthMetrics {
   tools: number;
@@ -23,48 +23,38 @@ interface HealthMetrics {
 
 async function getMetrics(): Promise<HealthMetrics> {
   try {
-    const [toolsResult, articlesResult, stacksResult] = await Promise.all([
-      db.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE true)::int AS total,
-          COUNT(*) FILTER (WHERE status = 'active')::int AS active
-        FROM tools
-      `),
-      db.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE true)::int AS total,
-          COUNT(*) FILTER (WHERE status = 'published')::int AS published
-        FROM articles
-      `),
-      db.query(`SELECT COUNT(*)::int AS total FROM stacks`),
+    const supabase = createAdminClient();
+
+    const [toolsTotal, toolsAll, articlesPublished, articlesTotal, stacks] = await Promise.all([
+      supabase.from("tools").select("*", { count: "exact", head: true }).eq("featured", true),
+      supabase.from("tools").select("*", { count: "exact", head: true }),
+      supabase.from("articles").select("*", { count: "exact", head: true }).eq("status", "PUBLISHED"),
+      supabase.from("articles").select("*", { count: "exact", head: true }),
+      supabase.from("stacks").select("*", { count: "exact", head: true }),
     ]);
 
     return {
-      tools: toolsResult.rows[0]?.total ?? 0,
-      activeTools: toolsResult.rows[0]?.active ?? 0,
-      articles: articlesResult.rows[0]?.total ?? 0,
-      publishedArticles: articlesResult.rows[0]?.published ?? 0,
-      stacks: stacksResult.rows[0]?.total ?? 0,
-      dbReachable: true,
-      checkedAt: new Date().toISOString(),
+      tools:            toolsAll.count ?? 0,
+      activeTools:      toolsAll.count ?? 0,
+      articles:         articlesTotal.count ?? 0,
+      publishedArticles: articlesPublished.count ?? 0,
+      stacks:           stacks.count ?? 0,
+      dbReachable:      true,
+      checkedAt:        new Date().toISOString(),
     };
   } catch {
     return {
-      tools: 0,
-      activeTools: 0,
-      articles: 0,
-      publishedArticles: 0,
-      stacks: 0,
-      dbReachable: false,
-      checkedAt: new Date().toISOString(),
+      tools: 0, activeTools: 0, articles: 0,
+      publishedArticles: 0, stacks: 0,
+      dbReachable: false, checkedAt: new Date().toISOString(),
     };
   }
 }
 
 // Thresholds — if counts drop below these, watchdog triggers recovery
 const THRESHOLDS = {
-  activeTools: 30,        // trigger PH + Africa tool sync
-  publishedArticles: 5,   // trigger GNews + Africa news sync
+  activeTools:      30,
+  publishedArticles: 5,
 };
 
 export const discoverWatchdog = inngest.createFunction(
@@ -73,32 +63,26 @@ export const discoverWatchdog = inngest.createFunction(
     name: "DISCOVA Platform Watchdog",
     concurrency: { limit: 1 },
     triggers: [
-      { cron: "0 * * * *" },               // Every hour
+      { cron: "0 * * * *" },
       { event: "watchdog/check.requested" },
     ],
   },
   async ({ step, logger }) => {
     logger.info("Watchdog: starting health check");
 
-    // Step 1: Get current DB metrics
     const metrics = await step.run("get-metrics", getMetrics);
 
     if (!metrics.dbReachable) {
       logger.error("CRITICAL: Database is unreachable");
-      return {
-        status: "critical",
-        error: "DB unreachable",
-        metrics,
-      };
+      return { status: "critical", error: "DB unreachable", metrics };
     }
 
     logger.info(
-      `Metrics — Active tools: ${metrics.activeTools}, Published articles: ${metrics.publishedArticles}, Stacks: ${metrics.stacks}`,
+      `Metrics — Tools: ${metrics.activeTools}, Published articles: ${metrics.publishedArticles}, Stacks: ${metrics.stacks}`,
     );
 
     const actions: string[] = [];
 
-    // Step 2: Recovery — tools below threshold
     if (metrics.activeTools < THRESHOLDS.activeTools) {
       await step.run("trigger-tool-sync", async () => {
         logger.warn(`Tools low (${metrics.activeTools} < ${THRESHOLDS.activeTools}) — triggering recovery`);
@@ -110,7 +94,6 @@ export const discoverWatchdog = inngest.createFunction(
       actions.push(`tool-recovery (${metrics.activeTools} active)`);
     }
 
-    // Step 3: Recovery — articles below threshold
     if (metrics.publishedArticles < THRESHOLDS.publishedArticles) {
       await step.run("trigger-news-sync", async () => {
         logger.warn(`Articles low (${metrics.publishedArticles} < ${THRESHOLDS.publishedArticles}) — triggering recovery`);
@@ -122,21 +105,18 @@ export const discoverWatchdog = inngest.createFunction(
       actions.push(`news-recovery (${metrics.publishedArticles} published)`);
     }
 
-    // Step 4: Daily summary — log full metrics once per day (at midnight run)
     const hour = new Date().getUTCHours();
     if (hour === 0) {
       await step.run("daily-summary", async () => {
-        logger.info(`Daily Summary — Tools: ${metrics.activeTools} active / ${metrics.tools} total | Articles: ${metrics.publishedArticles} published / ${metrics.articles} total | Stacks: ${metrics.stacks}`);
+        logger.info(
+          `Daily Summary — Tools: ${metrics.activeTools} total | Articles: ${metrics.publishedArticles} published / ${metrics.articles} total | Stacks: ${metrics.stacks}`,
+        );
       });
     }
 
     const status = actions.length > 0 ? "recovery-triggered" : "healthy";
     logger.info(`Watchdog done: ${status}${actions.length ? " | " + actions.join(", ") : ""}`);
 
-    return {
-      status,
-      metrics,
-      actionsTriggered: actions,
-    };
+    return { status, metrics, actionsTriggered: actions };
   },
 );

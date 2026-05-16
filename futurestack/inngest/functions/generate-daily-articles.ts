@@ -8,6 +8,7 @@
 import { inngest } from "../client";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
+import { resolveAIAuthor, upsertArticle } from "@/lib/supabase-writer";
 
 function makeClient(): Anthropic | null {
   const baseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL;
@@ -173,19 +174,7 @@ Return ONLY the JSON array.`,
 
     // Step 3: Resolve the AI author ID once
     const authorId = await step.run("resolve-ai-author", async () => {
-      const { rows } = await db.query(
-        `SELECT id FROM authors WHERE name = 'DISCOVA AI' LIMIT 1`,
-      );
-      if (rows[0]) return rows[0].id as string;
-      const { rows: inserted } = await db.query(
-        `INSERT INTO authors (name, slug, bio, avatar)
-         VALUES ('DISCOVA AI', 'discova-ai',
-           'AI-powered editorial intelligence monitoring the digital tool ecosystem across Africa 24/7.',
-           '/avatars/ai-author.png')
-         ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
-         RETURNING id`,
-      );
-      return inserted[0]?.id as string | null;
+      return await resolveAIAuthor();
     });
 
     // Step 4: Generate + save each article (sequential to stay within rate limits)
@@ -294,6 +283,26 @@ Write the full article now. Return ONLY valid JSON.`,
         );
         return rows[0] as { id: string; slug: string; status: string } | undefined;
       });
+
+      // Also write to Supabase (the live database)
+      if (saved?.slug) {
+        await step.run(`supabase-write-${i + 1}`, async () => {
+          const wordCount = (result.content || "").split(/\s+/).length;
+          await upsertArticle({
+            title:      result.title || plan.title,
+            slug:       saved.slug,
+            excerpt:    result.excerpt || plan.excerpt || "",
+            content:    result.content || "",
+            hero_image: heroImage,
+            author_id:  authorId,
+            category:   result.category || plan.category || "ai-tools",
+            tags:       result.tags || [],
+            read_time:  Math.max(1, Math.ceil(wordCount / 200)),
+            status:     "published",
+            featured:   false,
+          }).catch(e => logger.warn(`Supabase write failed: ${e}`));
+        });
+      }
 
       results.push({
         title: result.title || plan.title,

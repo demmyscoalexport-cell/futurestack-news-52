@@ -9,6 +9,7 @@
 import { inngest } from "../client";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
+import { resolveAIAuthor, upsertArticle } from "@/lib/supabase-writer";
 import {
   fetchMultipleTopics,
   categoriseArticle,
@@ -139,21 +140,9 @@ export const syncGNewsArticles = inngest.createFunction(
 
     logger.info(`${newArticles.length} new articles to process`);
 
-    // Step 3: Resolve or create the AI author
+    // Step 3: Resolve or create the AI author (Supabase)
     const authorId = await step.run("resolve-author", async () => {
-      const { rows } = await db.query(
-        `SELECT id FROM authors WHERE slug = 'futurestack-ai' LIMIT 1`,
-      );
-      if (rows[0]) return rows[0].id as string;
-      const { rows: ins } = await db.query(
-        `INSERT INTO authors (name, slug, bio, avatar)
-         VALUES ('DISCOVA AI', 'discova-ai',
-           'AI-powered editorial intelligence monitoring the digital ecosystem across Africa 24/7.',
-           '/avatars/ai-author.png')
-         ON CONFLICT (slug) DO UPDATE SET bio = EXCLUDED.bio
-         RETURNING id`,
-      );
-      return ins[0]?.id as string;
+      return await resolveAIAuthor();
     });
 
     // Step 4: Process each article — expand with Claude + save
@@ -256,6 +245,20 @@ Write the full DISCOVA article now. Return ONLY valid JSON.`,
             new Date(raw.publishedAt),
           ],
         );
+
+        // Also write to Supabase (the live database)
+        await upsertArticle({
+          title,
+          slug,
+          excerpt,
+          content,
+          hero_image:  raw.image || null,
+          author_id:   authorId,
+          category:    category ?? "ai-tools",
+          tags,
+          read_time:   readingTime,
+          status:      "published",
+        }).catch(() => {});
 
         return rows[0] as { id: string; slug: string; status: string } | undefined;
       });
