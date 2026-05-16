@@ -9,75 +9,7 @@ import {
   GraduationCap, Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const FEATURED_GUIDES = [
-  {
-    id: 1,
-    slug: "ai-tools-african-creators",
-    title: "Complete Guide to AI Tools for African Creators",
-    desc: "Everything a Nigerian, Ghanaian, or Kenyan creator needs to know about using AI tools effectively in 2026.",
-    readTime: "15 min read",
-    level: "Beginner",
-    category: "AI Tools",
-    emoji: "🤖",
-    featured: true,
-  },
-  {
-    id: 2,
-    slug: "whatsapp-business-system",
-    title: "How to Build a WhatsApp Business System From Scratch",
-    desc: "Step-by-step guide to setting up a complete WhatsApp commerce system — catalog, orders, payments, and customer follow-up.",
-    readTime: "12 min read",
-    level: "Beginner",
-    category: "Business",
-    emoji: "💬",
-    featured: true,
-  },
-  {
-    id: 3,
-    slug: "no-code-saas-2026",
-    title: "No-Code SaaS in 2026: Build Your First Product",
-    desc: "How African founders are launching software businesses without writing a single line of code.",
-    readTime: "20 min read",
-    level: "Intermediate",
-    category: "No-Code",
-    emoji: "🚀",
-    featured: false,
-  },
-  {
-    id: 4,
-    slug: "freelancing-with-ai",
-    title: "Freelancing with AI: Double Your Income in 90 Days",
-    desc: "How to use AI tools to dramatically increase your freelancing output and attract international clients.",
-    readTime: "18 min read",
-    level: "Intermediate",
-    category: "Freelancing",
-    emoji: "💼",
-    featured: false,
-  },
-  {
-    id: 5,
-    slug: "free-design-tools-african-smbs",
-    title: "Best Free Design Tools for African SMBs",
-    desc: "Design professional materials without paying for Adobe. A complete guide to free and freemium design tools.",
-    readTime: "10 min read",
-    level: "Beginner",
-    category: "Design",
-    emoji: "🎨",
-    featured: false,
-  },
-  {
-    id: 6,
-    slug: "paystack-flutterwave-developer-guide",
-    title: "Understanding Paystack + Flutterwave: A Developer's Guide",
-    desc: "Integrate African payment gateways into your web and mobile applications with step-by-step code examples.",
-    readTime: "25 min read",
-    level: "Advanced",
-    category: "Developer",
-    emoji: "💳",
-    featured: false,
-  },
-];
+import { GUIDES as FEATURED_GUIDES } from "./[slug]/guide-metadata";
 
 const CATEGORIES = [
   { name: "All", count: 151, icon: "📚" },
@@ -153,7 +85,7 @@ export function LearnClient() {
                     {featuredGuides.map((guide) => (
                       <Link
                         key={guide.id}
-                        href={`/news/${guide.slug}`}
+                        href={`/learn/${guide.slug}`}
                         className="block rounded-xl border border-primary/20 bg-primary/5 p-5 hover:border-primary/40 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start gap-4">
@@ -210,7 +142,7 @@ export function LearnClient() {
                     {allGuides.map((guide) => (
                       <Link
                         key={guide.id}
-                        href={`/news/${guide.slug}`}
+                        href={`/learn/${guide.slug}`}
                         className="block rounded-xl border border-border/50 bg-card p-4 hover:border-primary/40 transition-all cursor-pointer group"
                       >
                         <div className="flex items-start gap-3">
