@@ -72,12 +72,19 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-5">
           {/* Brand Column */}
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Compass className="h-5 w-5 text-primary-foreground" />
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow">
+                <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+                  <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.5"/>
+                  <circle cx="10" cy="10" r="1.5" fill="white"/>
+                  <line x1="10" y1="3" x2="10" y2="5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="10" y1="14.5" x2="10" y2="17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="3" y1="10" x2="5.5" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="14.5" y1="10" x2="17" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
               </div>
-              <span className="font-black text-foreground tracking-tight">
-                DIS<span className="text-primary">COVA</span>
+              <span className="font-black text-lg tracking-tight text-foreground">
+                DIS<span className="gradient-text">COVA</span>
               </span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">

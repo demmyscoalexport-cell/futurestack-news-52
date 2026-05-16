@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+
 import {
   Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
   BookmarkCheck, ChevronDown, Zap, Globe, Layers, Rocket,
@@ -71,17 +71,20 @@ export function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0">
-          <div className="bg-white rounded-md px-2 py-0.5">
-            <Image
-              src="/discova-logo.png"
-              alt="Discova"
-              width={80}
-              height={27}
-              className="h-[22px] w-auto object-contain"
-              priority
-            />
+        <Link href="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow">
+            <svg viewBox="0 0 20 20" fill="none" className="h-4.5 w-4.5" width="18" height="18">
+              <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.5"/>
+              <circle cx="10" cy="10" r="1.5" fill="white"/>
+              <line x1="10" y1="3" x2="10" y2="5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="10" y1="14.5" x2="10" y2="17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="3" y1="10" x2="5.5" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              <line x1="14.5" y1="10" x2="17" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
           </div>
+          <span className="font-black text-base tracking-tight text-foreground">
+            DIS<span className="gradient-text">COVA</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -199,16 +202,20 @@ export function Header() {
             <SheetContent side="right" className="w-80 p-0 bg-background border-border/40">
               <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b border-border/40 p-4">
-                  <Link href="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="bg-white rounded-md px-2 py-0.5">
-                      <Image
-                        src="/discova-logo.png"
-                        alt="Discova"
-                        width={80}
-                        height={27}
-                        className="h-[22px] w-auto object-contain"
-                      />
+                  <Link href="/" className="flex items-center gap-2 group" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-lg shadow-primary/25">
+                      <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                        <circle cx="10" cy="10" r="7" stroke="white" strokeWidth="1.5"/>
+                        <circle cx="10" cy="10" r="1.5" fill="white"/>
+                        <line x1="10" y1="3" x2="10" y2="5.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                        <line x1="10" y1="14.5" x2="10" y2="17" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                        <line x1="3" y1="10" x2="5.5" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                        <line x1="14.5" y1="10" x2="17" y2="10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
                     </div>
+                    <span className="font-black text-base tracking-tight text-foreground">
+                      DIS<span className="gradient-text">COVA</span>
+                    </span>
                   </Link>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMobileMenuOpen(false)}>
                     <X className="h-4 w-4" />
