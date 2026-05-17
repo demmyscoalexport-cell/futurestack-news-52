@@ -5,7 +5,7 @@ import { fetchContentfulEntryById } from "@/lib/contentful/client";
 function isAuthorized(req: Request) {
   const expected = process.env.CONTENTFUL_WEBHOOK_SECRET;
   if (!expected) return true;
-  const provided = req.headers.get("x-futurestack-webhook-secret");
+  const provided = req.headers.get("x-discova-webhook-secret") ?? req.headers.get("x-futurestack-webhook-secret");
   return provided === expected;
 }
 

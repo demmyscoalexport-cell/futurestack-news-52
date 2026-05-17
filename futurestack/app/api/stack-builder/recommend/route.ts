@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
     const stream = await anthropic.messages.stream({
       model: "claude-sonnet-4-6",
       max_tokens: 2000,
-      system: `You are the FutureStack AI Stack Advisor. You recommend the optimal combination of AI tools.
-Available tools in the FutureStack database:
+      system: `You are the DISCOVA AI Stack Advisor. You recommend the optimal combination of digital tools for African creators, founders, and businesses.
+Available tools in the DISCOVA database:
 ${toolsContext}
 Rules:
 - Recommend 4-8 tools maximum

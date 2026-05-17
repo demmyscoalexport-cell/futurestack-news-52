@@ -37,8 +37,8 @@ export function StackShareClient({
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const shareUrl = `https://futurestack.live/stacks/${stackId}`;
-  const shareText = `My AI tool stack: ${stack.name} — built with ${tools.length} hand-picked tools on FutureStack News 🚀`;
+  const shareUrl = `https://discova.africa/stacks/${stackId}`;
+  const shareText = `My power stack: ${stack.name} — built with ${tools.length} hand-picked tools on DISCOVA 🌍`;
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);
@@ -58,7 +58,7 @@ export function StackShareClient({
       "_blank",
     );
 
-  const author = stack.profiles?.full_name || "FutureStack User";
+  const author = stack.profiles?.full_name || "DISCOVA User";
   const avgScore = tools.length
     ? (
         tools.reduce(
@@ -105,7 +105,7 @@ export function StackShareClient({
             </div>
             {avgScore && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl text-sm flex items-center gap-1.5">
-                <span className="text-slate-400">Avg FutureStack Score™:</span>
+                <span className="text-slate-400">Avg DISCOVA Score™:</span>
                 <span className="font-black text-emerald-400">{avgScore}</span>
               </div>
             )}

@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "concurrently \"next dev\" \"npx --yes inngest-cli@latest dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "health": "node scripts/healthcheck.mjs",
     "restore": "node scripts/restore.mjs",
+    "migrate:supabase": "node scripts/migrate-to-supabase.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",
     "prepare": "husky"
@@ -63,6 +65,7 @@
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "@tanstack/react-query": "^5.96.1",
+    "@types/web-push": "^3.6.4",
     "@vercel/analytics": "1.6.1",
     "ai": "^6.0.158",
     "autoprefixer": "^10.4.20",
@@ -105,6 +108,7 @@
     "stripe": "^21.0.1",
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",
+    "web-push": "^3.6.7",
     "zod": "^3.25.76"
   },
   "devDependencies": {

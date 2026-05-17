@@ -204,16 +204,13 @@ export default function RadarPage() {
               >
                 <div className="px-6 pb-4 pt-2 border-t border-slate-800 space-y-2">
                   {previousRadars.map((pr, idx) => (
-                    <a
+                    <div
                       key={idx}
-                      href="#"
-                      className="flex justify-between items-center py-2 text-slate-400 hover:text-white group"
+                      className="flex justify-between items-center py-2 text-slate-400 cursor-default"
                     >
-                      <span className="group-hover:underline">
-                        {pr.week}, {pr.year}
-                      </span>
-                      <Search className="w-4 h-4 opacity-50 group-hover:opacity-100" />
-                    </a>
+                      <span className="text-sm">{pr.week}, {pr.year}</span>
+                      <span className="text-xs bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">Archive — Pro</span>
+                    </div>
                   ))}
                 </div>
               </motion.div>

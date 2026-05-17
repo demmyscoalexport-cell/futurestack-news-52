@@ -1,11 +1,15 @@
 /**
  * Inngest function: sync-producthunt-tools
  *
- * Runs daily (or on-demand) to pull the latest Product Hunt launches
- * and upsert them into the tools table.
+ * Runs daily at 8 AM UTC. Pulls exactly 10 brand-new Product Hunt launches,
+ * inserts them as active tools, then fires downstream events for:
+ *   • AI-generated tool-spotlight article   (discova/tool.added)
+ *   • Automatic affiliate link assignment   (discova/tool.added)
+ *   • Score calculation                     (already runs nightly)
  */
 import { inngest } from "../client";
 import { db as pool } from "@/lib/db";
+import { upsertTool, getExistingToolSlugs } from "@/lib/supabase-writer";
 import {
   fetchAllPHPosts,
   mapPHTopicsToCategory,
@@ -16,7 +20,7 @@ import {
   type PHPost,
 } from "@/lib/producthunt";
 
-// PH topic slugs we care about — covers AI, SaaS, dev tools, productivity
+// PH topic slugs we sample from daily (rotated so we get variety)
 const SYNC_TOPICS = [
   "artificial-intelligence",
   "developer-tools",
@@ -28,81 +32,86 @@ const SYNC_TOPICS = [
   "audio",
 ];
 
+const DAILY_TARGET = 10; // exactly 10 new tools per day
+
 export const syncProductHuntTools = inngest.createFunction(
   {
     id: "sync-producthunt-tools",
     name: "Sync Product Hunt Tools",
     concurrency: { limit: 1 },
     triggers: [
-      { cron: "0 8 * * *" }, // Every day at 8am UTC
+      { cron: "0 8 * * *" }, // Every day at 8 AM UTC
       { event: "producthunt/sync.requested" },
     ],
   },
   async ({ step, logger, event }) => {
-    const limitPerTopic: number = (event.data as any)?.limitPerTopic ?? 50;
+    const limitPerTopic: number = (event.data as any)?.limitPerTopic ?? 20;
     const topics: string[] = (event.data as any)?.topics ?? SYNC_TOPICS;
-    const order: "VOTES" | "NEWEST" | "FEATURED" =
-      (event.data as any)?.order ?? "NEWEST";
+    const dailyTarget: number = (event.data as any)?.dailyTarget ?? DAILY_TARGET;
 
-    logger.info(`Starting PH sync: ${topics.length} topics, ${limitPerTopic}/topic, order=${order}`);
+    logger.info(`Starting PH sync: targeting ${dailyTarget} new tools from ${topics.length} topics`);
 
-    // Step 1: Fetch posts from all topics in parallel
-    const postsByTopic = await step.run("fetch-ph-posts", async () => {
+    // Step 1: Fetch recent posts from all topics
+    const allPosts = await step.run("fetch-ph-posts", async () => {
       const results = await Promise.allSettled(
-        topics.map((topic) => fetchAllPHPosts(limitPerTopic, topic, order)),
+        topics.map((topic) => fetchAllPHPosts(limitPerTopic, topic, "NEWEST")),
       );
 
-      const allPosts: PHPost[] = [];
       const seen = new Set<string>();
+      const posts: PHPost[] = [];
 
       for (const result of results) {
         if (result.status === "fulfilled") {
           for (const post of result.value) {
             if (!seen.has(post.id)) {
               seen.add(post.id);
-              allPosts.push(post);
+              posts.push(post);
             }
           }
         }
       }
 
-      logger.info(`Fetched ${allPosts.length} unique posts from PH`);
-      return allPosts;
+      // Sort by newest first
+      posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      logger.info(`Fetched ${posts.length} unique posts from PH`);
+      return posts;
     });
 
-    // Step 2: Filter out posts already in DB by website URL
+    // Step 2: Filter out tools already in DB, cap at dailyTarget
     const newPosts = await step.run("filter-existing-tools", async () => {
-      if (postsByTopic.length === 0) return [];
+      if (allPosts.length === 0) return [];
 
-      // Get all existing website_urls
       const { rows } = await pool.query<{ website_url: string; slug: string }>(
-        "SELECT website_url, slug FROM tools WHERE status = 'active'",
+        "SELECT website_url, slug FROM tools WHERE status IN ('active','pending_review')",
       );
       const existingUrls = new Set(rows.map((r) => r.website_url?.toLowerCase()));
       const existingSlugs = new Set(rows.map((r) => r.slug));
 
-      const filtered = postsByTopic.filter((post) => {
-        if (!post.website && !post.url) return false;
-        const url = (post.website || post.url).toLowerCase();
-        if (existingUrls.has(url)) return false;
-        // Also skip if slug already exists
-        const slug = phNameToSlug(post.name);
-        if (existingSlugs.has(slug)) return false;
-        return true;
-      });
+      const filtered = allPosts
+        .filter((post) => {
+          if (!post.website && !post.url) return false;
+          const url = (post.website || post.url).toLowerCase();
+          if (existingUrls.has(url)) return false;
+          const slug = phNameToSlug(post.name);
+          if (existingSlugs.has(slug)) return false;
+          return true;
+        })
+        .slice(0, dailyTarget); // hard cap
 
-      logger.info(`${filtered.length} new tools to insert (${postsByTopic.length - filtered.length} already exist)`);
+      logger.info(
+        `${filtered.length} new tools selected (${allPosts.length - filtered.length} already exist or skipped)`,
+      );
       return filtered;
     });
 
     if (newPosts.length === 0) {
-      logger.info("No new tools to add");
-      return { inserted: 0, skipped: postsByTopic.length };
+      logger.info("No new tools to add today");
+      return { inserted: 0, skipped: allPosts.length };
     }
 
-    // Step 3: Insert new tools into DB
-    const result = await step.run("insert-tools", async () => {
-      let inserted = 0;
+    // Step 3: Insert tools as ACTIVE and collect inserted IDs
+    const insertedTools = await step.run("insert-tools", async () => {
+      const results: { slug: string; name: string; website: string; tagline: string; description: string }[] = [];
       let failed = 0;
 
       for (const post of newPosts) {
@@ -123,9 +132,7 @@ export const syncProductHuntTools = inngest.createFunction(
           if (has_free) tags.push("free");
           if (post.votesCount >= 500) tags.push("trending");
           if (has_free) tags.push("africa-friendly");
-
           const africa_friendly = has_free;
-
           const phUrl = `https://www.producthunt.com/posts/${post.slug}`;
 
           await pool.query(
@@ -140,8 +147,8 @@ export const syncProductHuntTools = inngest.createFunction(
              ) VALUES (
                $1,$2,$3,$4,$5,$6,$6,$7,
                $8,$9,$10,$11,$12,$13,
-               $14,false,false,false,
-               'pending_review',$15,$16,$17,
+               $14,false,false,true,
+               'active',$15,$16,$17,
                'producthunt',$18
              )
              ON CONFLICT (slug) DO UPDATE SET
@@ -150,20 +157,13 @@ export const syncProductHuntTools = inngest.createFunction(
                logo            = EXCLUDED.logo,
                upvote_count    = EXCLUDED.upvote_count,
                rating          = EXCLUDED.rating,
-               producthunt_url = EXCLUDED.producthunt_url`,
+               producthunt_url = EXCLUDED.producthunt_url,
+               status          = 'active'`,
             [
-              post.name,
-              slug,
-              post.tagline,
-              description,
-              logo,
-              website,
-              category,
-              pricing_model,
-              JSON.stringify([]),
-              has_free,
-              africa_friendly,
-              parseFloat(rating.toFixed(1)),
+              post.name, slug, post.tagline, description, logo,
+              website, category,
+              pricing_model, JSON.stringify([]), has_free,
+              africa_friendly, parseFloat(rating.toFixed(1)),
               Math.floor(post.votesCount / 10),
               tags,
               post.votesCount,
@@ -173,42 +173,80 @@ export const syncProductHuntTools = inngest.createFunction(
             ],
           );
 
-          // Insert default tool scores based on rating
+          // Insert default tool scores
           const baseScore = rating;
           await pool.query(
-            `INSERT INTO tool_scores (tool_id, ease_of_use, value_for_money, feature_depth, support_quality, integration_richness, ai_capability)
+            `INSERT INTO tool_scores (
+               tool_id, ease_of_use, value_for_money, feature_depth,
+               support_quality, integration_richness, ai_capability
+             )
              SELECT id, $1, $2, $3, $4, $5, $6 FROM tools WHERE slug = $7
              ON CONFLICT (tool_id) DO NOTHING`,
             [
               baseScore,
-              has_free ? baseScore + 0.5 : baseScore - 0.5,
+              has_free ? Math.min(10, baseScore + 0.5) : Math.max(0, baseScore - 0.5),
               baseScore,
-              7.0,
-              7.0,
+              7.0, 7.0,
               baseScore,
-              category === "writing" || category === "code"
-                ? baseScore + 0.3
-                : baseScore,
+              category === "writing" || category === "code" ? Math.min(10, baseScore + 0.3) : baseScore,
               slug,
             ],
           );
 
-          inserted++;
+          // Also write to Supabase (the live database)
+          await upsertTool({
+            name:              post.name,
+            slug,
+            short_description: post.tagline,
+            description,
+            logo,
+            website,
+            category,
+            has_free,
+            africa_friendly,
+            rating:       parseFloat(rating.toFixed(1)),
+            review_count: Math.floor(post.votesCount / 10),
+            tags,
+            featured:     false,
+          }).catch(() => {});
+
+          results.push({ slug, name: post.name, website, tagline: post.tagline, description });
         } catch (err) {
           logger.error(`Failed to insert ${post.name}: ${(err as Error).message}`);
           failed++;
         }
       }
 
-      return { inserted, failed };
+      logger.info(`Inserted ${results.length} tools, ${failed} failed`);
+      return { tools: results, failed };
     });
 
-    logger.info(`PH sync complete: ${result.inserted} inserted, ${result.failed} failed`);
+    // Step 4: Fire downstream events for each inserted tool
+    // (auto-affiliate + article generation both listen to discova/tool.added)
+    if (insertedTools.tools.length > 0) {
+      await step.run("fire-downstream-events", async () => {
+        for (const tool of insertedTools.tools) {
+          await inngest.send({
+            name: "discova/tool.added",
+            data: {
+              slug: tool.slug,
+              name: tool.name,
+              website: tool.website,
+              tagline: tool.tagline,
+              description: tool.description,
+              source: "producthunt",
+            },
+          });
+        }
+        logger.info(`Fired discova/tool.added for ${insertedTools.tools.length} tools`);
+      });
+    }
+
     return {
-      inserted: result.inserted,
-      failed: result.failed,
-      skipped: postsByTopic.length - newPosts.length,
-      total_fetched: postsByTopic.length,
+      inserted: insertedTools.tools.length,
+      failed: insertedTools.failed,
+      skipped: allPosts.length - newPosts.length,
+      total_fetched: allPosts.length,
     };
   },
 );

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       .single();
 
     const name = stack?.name || "My AI Stack";
-    const author = (stack?.profiles as any)?.full_name || "FutureStack User";
+    const author = (stack?.profiles as any)?.full_name || "DISCOVA User";
     const tools = (stack?.stack_tools || [])
       .sort((a: any, b: any) => a.position - b.position)
       .map((st: any) => st.tools)
@@ -210,7 +210,7 @@ export async function GET(request: Request) {
               <div
                 style={{ color: "#64748b", fontSize: "16px", fontWeight: 700 }}
               >
-                FutureStack News
+                DISCOVA
               </div>
             </div>
             <div

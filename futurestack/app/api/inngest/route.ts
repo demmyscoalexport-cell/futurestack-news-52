@@ -10,10 +10,18 @@ import { calculateFutureStackScores } from "@/inngest/functions/calculate-scores
 import { generateEmbeddings } from "@/inngest/functions/generate-embeddings";
 import { syncProductHuntTools } from "@/inngest/functions/sync-producthunt";
 import { syncGNewsArticles } from "@/inngest/functions/sync-gnews";
+import { syncAfricaNews } from "@/inngest/functions/sync-africa-news";
+import { syncAfricaTools } from "@/inngest/functions/sync-africa-tools";
+import { discoverWatchdog } from "@/inngest/functions/watchdog";
+import { autoAffiliate } from "@/inngest/functions/auto-affiliate";
+import { generateToolSpotlight } from "@/inngest/functions/generate-tool-spotlight";
+import { syncScrapingBeeNews } from "@/inngest/functions/sync-scrapingbee-news";
+import { syncAlternativeToTools, syncAlternativeToNews } from "@/inngest/functions/sync-alternativeto";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
+    // Core pipeline
     fetchAISignals,
     processSignal,
     generateArticle,
@@ -22,7 +30,20 @@ export const { GET, POST, PUT } = serve({
     generateWeeklyRadar,
     calculateFutureStackScores,
     generateEmbeddings,
+    // Content sync
     syncProductHuntTools,
     syncGNewsArticles,
+    syncScrapingBeeNews,
+    // Africa-specific sync
+    syncAfricaNews,
+    syncAfricaTools,
+    // Platform watchdog
+    discoverWatchdog,
+    // AlternativeTo content engine
+    syncAlternativeToTools,
+    syncAlternativeToNews,
+    // Downstream tool pipeline (triggered by discova/tool.added)
+    autoAffiliate,
+    generateToolSpotlight,
   ],
 });

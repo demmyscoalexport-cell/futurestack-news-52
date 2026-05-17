@@ -37,6 +37,8 @@ interface NewsContentProps {
   initialArticles: Article[];
 }
 
+const PAGE_SIZE = 12;
+
 export function NewsContent({ initialArticles }: NewsContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<
@@ -44,6 +46,7 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
   >([]);
   const [selectedAudiences, setSelectedAudiences] = useState<UserRole[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const toggle = <T,>(arr: T[], item: T) =>
     arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
@@ -74,6 +77,7 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
     setSelectedCategories([]);
     setSelectedAudiences([]);
     setSearchQuery("");
+    setVisibleCount(PAGE_SIZE);
   };
   const hasActiveFilters =
     selectedCategories.length > 0 ||
@@ -200,14 +204,14 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
 
                 <div className="hidden lg:flex items-center justify-between mb-6">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredArticles.length}{" "}
+                    Showing {Math.min(visibleCount, filteredArticles.length)} of {filteredArticles.length}{" "}
                     {filteredArticles.length === 1 ? "article" : "articles"}
                   </p>
                 </div>
 
                 {filteredArticles.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                    {filteredArticles.map((a) => (
+                    {filteredArticles.slice(0, visibleCount).map((a) => (
                       <ArticleCard key={a.id} article={a} />
                     ))}
                   </div>
@@ -232,9 +236,13 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
                   </div>
                 )}
 
-                {filteredArticles.length > 0 && (
+                {filteredArticles.length > visibleCount && (
                   <div className="mt-12 flex justify-center">
-                    <Button variant="outline" size="lg">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                    >
                       Load More Articles
                     </Button>
                   </div>

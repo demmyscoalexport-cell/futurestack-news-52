@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 export const calculateFutureStackScores = inngest.createFunction(
   {
     id: "calculate-scores",
-    name: "Recalculate FutureStack Scores",
+    name: "Recalculate DISCOVA Scores",
     triggers: [{ cron: "0 2 * * *" }],
   },
   async ({ step }) => {

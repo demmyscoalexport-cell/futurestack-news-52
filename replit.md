@@ -1,13 +1,14 @@
-# FutureStack News
+# DISCOVA — Africa's Digital Discovery Operating System
 
 AI-powered SaaS & AI tool discovery platform — find, compare, and build stacks of the best tools for your role.
 
 ## Quick Start
 
 ```bash
-cd futurestack && npm run dev        # Start the app (port 3000 + Inngest dev server)
-cd futurestack && npm run health     # ✅ Verify everything is working
-cd futurestack && npm run restore    # 🔧 Fix any broken state (logos, DB, etc.)
+cd futurestack && npm run dev              # Start the app (port 3000 + Inngest dev server)
+cd futurestack && npm run health           # ✅ Verify everything is working
+cd futurestack && npm run restore          # 🔧 Fix any broken state (logos, DB, etc.)
+cd futurestack && npm run migrate:supabase # 📦 Export Replit PG data → Supabase SQL
 ```
 
 ## Maintenance Scripts
@@ -16,91 +17,127 @@ cd futurestack && npm run restore    # 🔧 Fix any broken state (logos, DB, etc
 |--------|---------|---------|
 | Health check | `npm run health` | Verify all pages, APIs, DB, and logos |
 | Restore | `npm run restore` | Re-seed missing data + restore logos |
-| Quick seed | `node scripts/seed-pg.mjs --quick` | Seed Replit PG (fast, Clearbit logos) |
+| Quick seed | `node scripts/seed-pg.mjs --quick` | Seed DB (fast, Clearbit logos) |
 | Full seed | `node scripts/seed-pg.mjs` | Full seed with WaveSpeed AI logos |
 | Regen logos | `POST /api/generate-logos` | Bulk AI logo generation for all tools |
+| Migrate to Supabase | `npm run migrate:supabase` | Export data as SQL for Supabase import |
+
+---
+
+## ✅ Supabase Connection (Active Project: nuyigpwhmyiogfzsdvzw)
+
+Required secrets (all set in Replit Secrets):
+- `NEXT_PUBLIC_SUPABASE_URL` = https://nuyigpwhmyiogfzsdvzw.supabase.co
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` = from Supabase → Settings → API → anon/public
+- `SUPABASE_SERVICE_ROLE_KEY` = from Supabase → Settings → API → service_role
+- `SUPABASE_DB_URL` = Transaction pooler URI (port 6543) from Supabase → Settings → Database
+- `SUPABASE_DB_PASSWORD` = your DB password
+
+To migrate data from Replit PG → Supabase (runs via HTTPS, no DB URL needed):
+```bash
+cd futurestack && node scripts/migrate-js.mjs
+```
+
+---
+
+## ✅ Connecting Contentful (CMS for Articles & Tools)
+
+Contentful is already fully wired — the client, mappers, webhook handler, and sync API all exist. You just need to add 3 secrets.
+
+### Step 1 — Create a Contentful account
+Go to [contentful.com](https://contentful.com) → create a free account → create a **Space** named "DISCOVA".
+
+### Step 2 — Create your Content Models
+In your Space → **Content Model**, create two types:
+
+**`newsArticle`** with fields:
+- `title` (Short text, required)
+- `slug` (Short text, required, unique)
+- `excerpt` (Short text)
+- `body` (Long text / Rich text)
+- `tags` (Short text, list)
+- `heroImageUrl` (Short text)
+- `publishedAt` (Date & time)
+- `readingTime` (Integer)
+- `status` (Short text: published/draft/archived)
+
+**`tool`** with fields:
+- `name` (Short text, required)
+- `slug` (Short text, required, unique)
+- `tagline` (Short text)
+- `description` (Long text)
+- `logoUrl` (Short text)
+- `websiteUrl` (Short text)
+- `categorySlug` (Short text)
+- `tags` (Short text, list)
+- `pricingModel` (Short text)
+- `freeTier` (Boolean)
+- `verified` (Boolean)
+- `status` (Short text: published/draft/archived)
+
+### Step 3 — Get your API keys
+Contentful → **Settings → API Keys → Add API Key**. Note:
+- Space ID
+- Content Delivery API access token
+- Content Management API token (Settings → CMA tokens)
+
+### Step 4 — Add secrets to Replit
+```
+CONTENTFUL_SPACE_ID          = your-space-id
+CONTENTFUL_DELIVERY_TOKEN    = your-delivery-token
+CONTENTFUL_MANAGEMENT_TOKEN  = your-management-token
+CONTENTFUL_ENVIRONMENT       = master
+CONTENTFUL_WEBHOOK_SECRET    = any-random-secret-string
+```
+
+### Step 5 — Set up the webhook in Contentful
+Contentful → **Settings → Webhooks → Add Webhook**:
+- URL: `https://your-domain.replit.app/api/contentful/sync`
+- Triggers: **Publish**, **Unpublish**, **Delete** for Entry
+- Header: `x-discova-webhook-secret: your-secret`
+
+### Step 6 — Manual bulk sync
+To pull all existing Contentful articles into your DB at once:
+```bash
+curl -X POST https://your-app.replit.app/api/contentful/pull \
+  -H "x-discova-sync-secret: your-secret" \
+  -H "Content-Type: application/json" \
+  -d '{"syncNews": true, "syncTools": true}'
+```
+
+After this, every time you **Publish** an article in Contentful it automatically appears on DISCOVA.
+
+---
 
 ## Stack
 
-- Next.js 15 + React 19 + TypeScript
-- **Replit PostgreSQL** (heliumdb) — primary database via `pg` driver
-- Inngest (background job orchestration — INNGEST_DEV=1 for local)
+- **Next.js 16** + React 19 + TypeScript
+- **PostgreSQL** — Replit heliumdb (default) OR Supabase (set `SUPABASE_DB_URL`)
+- **Supabase** — auth (login/signup/dashboard) + typed JS client (`lib/supabase/db.ts`)
+- **Contentful** — headless CMS for editorial articles and curated tools
+- Inngest — background job orchestration
 - Tailwind CSS + Framer Motion
-- Cloudinary (image hosting)
-- WaveSpeed AI flux-schnell (AI logo generation)
-- Supabase credentials kept (for auth pages, but core content runs on Replit PG)
+- Cloudinary — image hosting
+- WaveSpeed AI — AI logo generation
 
 ## Where Things Live
 
 - `futurestack/` — main Next.js application
 - `futurestack/app/` — Next.js App Router pages and API routes
-- `futurestack/app/home-client.tsx` — homepage with role selector (Freelancer/Agency/Founder persona cards with Unsplash images)
-- `futurestack/app/tools/tools-content.tsx` — Futurepedia-style tools directory
-- `futurestack/components/cards/tool-profile-card.tsx` — tool card with real logos, pricing, tags, ratings
-- `futurestack/components/ui/role-selector.tsx` — persona selector with Unsplash photo cards
-- `futurestack/lib/db.ts` — PostgreSQL pool (connects to Replit heliumdb)
-- `futurestack/lib/image-gen.ts` — shared WaveSpeed + Cloudinary pipeline (use this, NOT HTTP self-calls)
+- `futurestack/lib/db.ts` — PostgreSQL pool (auto-detects Supabase vs Replit PG)
+- `futurestack/lib/supabase/db.ts` — Typed Supabase admin client for JS-style queries
+- `futurestack/lib/supabase/` — Auth clients (client.ts, server.ts, admin.ts)
+- `futurestack/lib/contentful/` — Contentful service, client, mappers, types, pipeline
+- `futurestack/lib/queries/` — SQL query files (tools.ts, articles.ts, stacks.ts, radar.ts)
+- `futurestack/lib/image-gen.ts` — WaveSpeed + Cloudinary pipeline
 - `futurestack/lib/logo-resolver.ts` — logo priority: local SVG → stored URL → Google favicon
-- `futurestack/lib/queries/tools.ts` — pg-backed tool queries
-- `futurestack/lib/queries/articles.ts` — pg-backed article queries
-- `futurestack/lib/queries/stacks.ts` — pg-backed stack queries
-- `futurestack/lib/supabase/` — Supabase clients (still used for auth routes)
-- `futurestack/inngest/` — background job functions
-- `futurestack/scripts/healthcheck.mjs` — full health check (pages, APIs, DB, logos)
+- `futurestack/inngest/` — background job functions (daily articles, PH sync, scores, etc.)
+- `futurestack/scripts/healthcheck.mjs` — full health check
 - `futurestack/scripts/restore.mjs` — auto-restore broken state
-- `futurestack/scripts/seed-pg.mjs` — PostgreSQL seed script (54 tools, 8 articles, 9 stacks)
-- `futurestack/supabase/deploy_schema.sql` — schema reference (applied to Replit PG already)
-- `futurestack/public/tools/` — local SVG brand logos (ChatGPT, Claude, Canva, Figma, Zapier, etc.)
-
-## Database Schema (Replit PostgreSQL)
-
-Schema applied to Replit PostgreSQL (`heliumdb`). Key tables:
-- `tools` — `tagline`, `website_url`, `is_featured`, `status`, `pricing_model`, `logo`
-- `articles` — `hero_image`, `cover_image_url`, `category_id` (FK to `categories`), `reading_time`, `is_featured`
-- `categories` — article categories (separate from `tool_categories`)
-- `tool_scores` — computed `futurestack_score` from 6 sub-scores
-- `tool_pricing` — pricing tiers per tool (104 tiers seeded)
-- `stacks` + `stack_tools` — curated tool stacks
-- `authors` — article authors
-
-## Database Status (Last Verified)
-
-**Replit PostgreSQL:** ACTIVE (helium:5432, heliumdb) — always-on, no pausing.
-
-| Table | Count |
-|-------|-------|
-| tools (active) | 54 |
-| tools with logos | 54 |
-| tool_pricing tiers | 104 |
-| tool_scores | 54 |
-| articles | 8 |
-| stacks | 9 |
-| authors | 5 |
-| tool_alternatives | 28 |
-| categories | 10 |
-
-Re-seed if needed: `cd futurestack && node scripts/seed-pg.mjs --quick`
-
-## Logo System (Three-Tier Priority)
-
-1. **Local SVG** (`/public/tools/*.svg`) — exact brand logos for 20+ major tools (ChatGPT, Claude, Canva, Figma, Zapier, GitHub, Midjourney, etc.)
-2. **Clearbit** (`logo.clearbit.com/{domain}`) — stored in DB for all standard `.com/.io/.ai` domains
-3. **Google Favicon** (`google.com/s2/favicons?domain=X&sz=128`) — stored in DB for unusual TLDs (`.dev`, `.new`, `.art`, `.pro`)
-
-The `resolveToolLogo()` in `lib/logo-resolver.ts` handles the priority chain. The `ToolProfileCard` component falls back to a letter avatar on image error.
-
-## Credentials (Stored as Replit Secrets + .env.local)
-
-### Replit Secrets (always available in process.env)
-- `DATABASE_URL` + `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` — Replit PG
-- `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` — kept for auth routes
-
-### .env.local (Next.js only — not available in bare node scripts)
-- `WAVESPEED_API_KEY` — WaveSpeed AI image generation
-- `CLOUDINARY_CLOUD_NAME=dxizihlmo` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`
-- `INNGEST_DEV=1` — enables Inngest local dev mode
-
-The `scripts/healthcheck.mjs` loads `.env.local` automatically so it can verify these too.
+- `futurestack/scripts/seed-pg.mjs` — PostgreSQL seed script
+- `futurestack/scripts/migrate-to-supabase.mjs` — export data for Supabase migration
+- `futurestack/supabase/deploy_schema.sql` — schema (run this in Supabase SQL Editor first)
+- `futurestack/public/tools/` — local SVG brand logos
 
 ## API Routes
 
@@ -114,25 +151,34 @@ The `scripts/healthcheck.mjs` loads `.env.local` automatically so it can verify 
 | `/api/ask-ai` | POST | AI Q&A about tools (Replit Anthropic) |
 | `/api/stack-builder/recommend` | POST | AI stack recommendations |
 | `/api/stack-builder/save` | POST | Save a stack |
+| `/api/contentful/pull` | GET | Preview Contentful content |
+| `/api/contentful/pull` | POST | Sync Contentful → Database |
+| `/api/contentful/sync` | POST | Contentful webhook handler (auto-sync on publish) |
 | `/api/stripe/checkout` | POST | Stripe checkout (returns 503 if unconfigured) |
 | `/api/stripe/portal` | POST | Stripe billing portal |
-| `/api/stripe/webhook` | POST | Stripe webhook handler |
 | `/api/inngest` | GET/POST/PUT | Inngest event handler |
+
+## Database Schema
+
+Key tables (schema in `supabase/deploy_schema.sql`):
+- `tools` — `tagline`, `website_url`, `is_featured`, `status`, `pricing_model`, `logo`
+- `articles` — `hero_image`, `cover_image_url`, `category_id` (FK), `reading_time`, `is_featured`
+- `categories` — article categories
+- `tool_categories` — tool categories
+- `tool_scores` — computed `futurestack_score` from 6 sub-scores
+- `tool_pricing` — pricing tiers per tool
+- `stacks` + `stack_tools` — curated tool stacks
+- `authors` — article authors
 
 ## Architecture Decisions
 
-- **Data layer migrated from Supabase JS client to direct PostgreSQL** (`pg` pool)
-- `lib/db.ts` exports a singleton `Pool` connecting to Replit heliumdb
-- Core query files (`lib/queries/*.ts`) use SQL directly
-- **Image generation**: all WaveSpeed + Cloudinary logic lives in `lib/image-gen.ts` — never call `/api/generate-image` via HTTP from server code
-- Auth pages (`/login`, `/signup`, `/account`, `/dashboard`) still use Supabase client and may fail until Supabase project is restored
-- `ToolProfileCard` is a Client Component (uses useState for image error handling)
-- Search API (`/api/search`) uses pg directly — keyword search, no embeddings
-- Schema uses `categories` table for articles (not `tool_categories`)
-- Articles use `hero_image` as canonical image field (also has `cover_image_url` alias)
-- Inngest runs locally alongside Next.js via `concurrently`
-- Stripe routes return clean 503 when keys not configured (no crashes)
-- `ask-ai` uses Replit AI Anthropic integration (no separate API key needed)
+- **`lib/db.ts`**: Singleton pg.Pool. Checks `SUPABASE_DB_URL` first, falls back to `DATABASE_URL`. All raw SQL queries work with both — zero rewrites needed for migration.
+- **`lib/supabase/db.ts`**: Typed admin client for JS-style queries (`.from().select()`). Use for new code that doesn't need complex joins.
+- **Contentful**: News page tries Contentful first (if configured), merges with DB articles (deduplicated by slug), falls back to DB only.
+- **Image generation**: all WaveSpeed + Cloudinary logic lives in `lib/image-gen.ts` — never call `/api/generate-image` via HTTP from server code.
+- Inngest runs locally alongside Next.js via `concurrently`.
+- Stripe routes return clean 503 when keys not configured.
+- `ask-ai` uses Replit AI Anthropic integration (no separate API key needed).
 
 ## User Preferences
 
@@ -143,13 +189,11 @@ The `scripts/healthcheck.mjs` loads `.env.local` automatically so it can verify 
 
 ## Gotchas
 
-- Replit PostgreSQL never pauses — always available in the workspace
+- **DB auto-switch**: add `SUPABASE_DB_URL` secret → restart → done. Admin panel shows current DB source.
+- **Contentful webhook header**: `x-discova-webhook-secret` (legacy `x-futurestack-webhook-secret` still accepted).
+- **Never call `/api/generate-image` via HTTP from server code** — import `lib/image-gen.ts` directly.
+- **Never use `NEXT_PUBLIC_SITE_URL`** for internal server-to-server calls.
 - Run seed from `futurestack/` directory: `node scripts/seed-pg.mjs --quick`
-- `next.config.mjs` must have `allowedDevOrigins` for Replit preview to work
-- Supabase credentials kept in `.env.local` but project `mjqkptowvgzmrojlgcms` may be paused — auth pages need a live Supabase project
-- **Never call `/api/generate-image` via HTTP from server code** — import `lib/image-gen.ts` directly
-- **Never use `NEXT_PUBLIC_SITE_URL`** for internal server-to-server API calls (it resolves to production URL)
-- `logo-resolver.ts` step 3 passes through stored logo URLs as-is (do not add `!includes("clearbit")` check — that was the bug)
-- `ToolProfileCard` uses `useState(false)` for `errored` — always shows letter fallback when image fails
 - Google favicon URLs use root domain (strip subdomains): `chat.openai.com` → `openai.com`
 - Local SVG logos live in `futurestack/public/tools/` and are served at `/tools/name.svg`
+- Auth pages (`/login`, `/signup`, `/account`, `/dashboard`) need a live Supabase project

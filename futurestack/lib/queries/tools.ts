@@ -1,5 +1,16 @@
 import { db } from "@/lib/db";
 import { unstable_cache } from "next/cache";
+import { resolveToolLogo } from "@/lib/logo-resolver";
+
+// Apply logo resolver to a raw DB row so callers always get a usable logo URL
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withLogo<T extends Record<string, any>>(row: T): T {
+  return { ...row, logo: resolveToolLogo(row.name ?? "", row.logo, row.website_url ?? row.website) };
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withLogos<T extends Record<string, any>>(rows: T[]): T[] {
+  return rows.map(withLogo);
+}
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch((e) => {
@@ -18,7 +29,7 @@ export async function getFeaturedTools(limit = 6) {
        ORDER BY t.created_at DESC LIMIT $1`,
       [limit],
     );
-    return rows;
+    return withLogos(rows);
   }, []);
 }
 
@@ -32,7 +43,7 @@ export async function getTrendingTools(limit = 10) {
        ORDER BY t.review_count DESC, t.rating DESC LIMIT $1`,
       [limit],
     );
-    return rows;
+    return withLogos(rows);
   }, []);
 }
 
@@ -84,7 +95,7 @@ export async function getTools({
        LIMIT $${i++} OFFSET $${i++}`,
       params,
     );
-    return rows;
+    return withLogos(rows);
   }, []);
 }
 
@@ -132,10 +143,10 @@ export async function getToolBySlug(slug: string) {
       [slug],
     );
     if (!rows[0]) return null;
-    const tool = rows[0];
+    const tool = withLogo(rows[0]);
     const [pricing, alts, changelogs, reviews] = await Promise.all([
       db.query(`SELECT * FROM tool_pricing WHERE tool_id=$1 ORDER BY price_monthly ASC NULLS FIRST`, [tool.id]).then(r=>r.rows).catch(()=>[]),
-      db.query(`SELECT t2.id,t2.name,t2.slug,t2.logo,t2.tagline,ta.similarity_score FROM tool_alternatives ta JOIN tools t2 ON t2.id=ta.alternative_id WHERE ta.tool_id=$1 ORDER BY ta.similarity_score DESC LIMIT 6`,[tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT t2.id,t2.name,t2.slug,t2.logo,t2.tagline,t2.website_url,ta.similarity_score FROM tool_alternatives ta JOIN tools t2 ON t2.id=ta.alternative_id WHERE ta.tool_id=$1 ORDER BY ta.similarity_score DESC LIMIT 6`,[tool.id]).then(r=>r.rows).then(withLogos).catch(()=>[]),
       db.query(`SELECT * FROM tool_changelogs WHERE tool_id=$1 ORDER BY published_at DESC LIMIT 5`,[tool.id]).then(r=>r.rows).catch(()=>[]),
       db.query(`SELECT * FROM reviews WHERE tool_id=$1 ORDER BY created_at DESC LIMIT 10`,[tool.id]).then(r=>r.rows).catch(()=>[]),
     ]);
@@ -159,7 +170,7 @@ export async function getRecentTools(limit = 6) {
        ORDER BY t.created_at DESC LIMIT $1`,
       [limit],
     );
-    return rows;
+    return withLogos(rows);
   }, []);
 }
 
@@ -188,6 +199,6 @@ export async function searchTools(query: string, filters?: { category?: string; 
       `SELECT t.*,ts.futurestack_score FROM tools t LEFT JOIN tool_scores ts ON ts.tool_id=t.id WHERE ${where.join(" AND ")} LIMIT 20`,
       params,
     );
-    return rows;
+    return withLogos(rows);
   }, []);
 }

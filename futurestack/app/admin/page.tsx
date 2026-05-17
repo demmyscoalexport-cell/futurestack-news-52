@@ -15,7 +15,12 @@ import {
   Clock,
   TrendingUp,
   ExternalLink,
+  Database,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
+import { DB_SOURCE } from "@/lib/db";
+import { config } from "@/lib/config";
 
 async function getAdminData() {
   await checkAdminOrRedirect();
@@ -142,11 +147,14 @@ const navSections = [
   { href: "/admin/tools-queue", icon: CheckCircle, label: "Tools Queue (PH)" },
   { href: "/admin/tools", icon: CheckCircle, label: "Tool Submissions" },
   { href: "/admin/reviews", icon: Star, label: "Review Moderation" },
+  { href: "/admin/opportunities", icon: Activity, label: "Opportunities" },
+  { href: "/admin/deals", icon: TrendingUp, label: "Deals & Discounts" },
   { href: "/admin/newsletter", icon: Mail, label: "Newsletter" },
   { href: "/admin/users", icon: Users, label: "User Management" },
   { href: "/admin/affiliates", icon: TrendingUp, label: "Affiliate Links" },
   { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   { href: "/admin/system", icon: Activity, label: "System Health" },
+  { href: "/admin/errors", icon: AlertTriangle, label: "Error Monitor" },
 ];
 
 export default async function AdminPage() {
@@ -154,6 +162,7 @@ export default async function AdminPage() {
   const aff = data.affiliateStats as { today: number; week: number; month: number };
   const trend = data.dailyTrend as { day: string; clicks: number }[];
   const maxClicks = Math.max(...trend.map((d) => d.clicks), 1);
+  const contentfulConfigured = Boolean(config.contentful.spaceId && config.contentful.deliveryToken);
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -164,15 +173,21 @@ export default async function AdminPage() {
             <Shield className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-white">FutureStack Admin</h1>
+            <h1 className="text-lg font-black text-white">DISCOVA Admin</h1>
             <p className="text-xs text-slate-500">
               Signed in as {data.profile?.full_name}
             </p>
           </div>
         </div>
-        <Link href="/" className="text-sm text-slate-400 hover:text-white">
-          ← Back to Site
-        </Link>
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${DB_SOURCE === "supabase" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
+            <Database className="w-3 h-3" />
+            {DB_SOURCE === "supabase" ? "Supabase" : "Replit PG"}
+          </div>
+          <Link href="/" className="text-sm text-slate-400 hover:text-white">
+            ← Back to Site
+          </Link>
+        </div>
       </div>
 
       <div className="flex">
@@ -379,6 +394,78 @@ export default async function AdminPage() {
                   No pending submissions
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Contentful + Database Panel */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-6">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-sky-400" />
+                <h3 className="font-bold text-lg">Content Sources</h3>
+              </div>
+              <span className={`text-xs font-bold px-3 py-1 rounded-full border ${DB_SOURCE === "supabase" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border-amber-500/20"}`}>
+                DB: {DB_SOURCE === "supabase" ? "Supabase ✓" : "Replit PG"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Contentful */}
+              <div className="bg-slate-800/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${contentfulConfigured ? "bg-emerald-400" : "bg-slate-600"}`} />
+                  <span className="font-semibold text-sm">Contentful CMS</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${contentfulConfigured ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-700 text-slate-500"}`}>
+                    {contentfulConfigured ? "Connected" : "Not configured"}
+                  </span>
+                </div>
+                {contentfulConfigured ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-400">Articles and tools published in Contentful sync automatically via webhook. Trigger a manual sync below.</p>
+                    <div className="flex gap-2 mt-3">
+                      <a
+                        href="/api/contentful/pull"
+                        target="_blank"
+                        className="text-xs bg-sky-600 hover:bg-sky-500 text-white font-bold px-3 py-2 rounded-lg transition-colors"
+                      >
+                        Preview (GET)
+                      </a>
+                      <span className="text-xs text-slate-500 flex items-center">POST to /api/contentful/pull to sync</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 text-xs text-slate-500">
+                    <p>Add these secrets to activate:</p>
+                    <code className="block bg-slate-900 rounded p-2 font-mono text-slate-400 text-[10px] leading-relaxed">
+                      CONTENTFUL_SPACE_ID<br />
+                      CONTENTFUL_DELIVERY_TOKEN<br />
+                      CONTENTFUL_MANAGEMENT_TOKEN
+                    </code>
+                  </div>
+                )}
+              </div>
+
+              {/* Supabase migration */}
+              <div className="bg-slate-800/50 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-2 h-2 rounded-full ${DB_SOURCE === "supabase" ? "bg-emerald-400" : "bg-amber-400"}`} />
+                  <span className="font-semibold text-sm">Supabase Migration</span>
+                </div>
+                {DB_SOURCE === "supabase" ? (
+                  <p className="text-xs text-emerald-400 font-semibold">Already on Supabase — all queries are live.</p>
+                ) : (
+                  <div className="space-y-1.5 text-xs text-slate-500">
+                    <p>To migrate from Replit PG → Supabase:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                      <li>Run schema in Supabase SQL Editor</li>
+                      <li><code className="text-slate-300">npm run migrate:supabase</code></li>
+                      <li>Run generated <code className="text-slate-300">data_migration.sql</code></li>
+                      <li>Add secret: <code className="text-slate-300">SUPABASE_DB_URL</code></li>
+                      <li>Restart — auto-switches to Supabase</li>
+                    </ol>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -128,7 +128,7 @@ export async function fetchAllPHPosts(
   return all;
 }
 
-// ── Topic → FutureStack category mapping ────────────────────────────────────
+// ── Topic → DISCOVA category mapping ────────────────────────────────────
 
 const TOPIC_TO_CATEGORY: Record<string, string> = {
   "artificial-intelligence": "writing",
@@ -204,7 +204,7 @@ export function mapPHPricingModel(
   return { pricing_model: "freemium", has_free: true };
 }
 
-/** Convert PH upvote count to a rough FutureStack rating (6.0–9.5) */
+/** Convert PH upvote count to a rough DISCOVA rating (6.0–9.5) */
 export function votesToRating(votes: number): number {
   if (votes >= 2000) return 9.0 + Math.min(0.5, (votes - 2000) / 10000);
   if (votes >= 1000) return 8.5;

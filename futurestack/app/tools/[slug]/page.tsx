@@ -4,15 +4,15 @@ import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import {
-  Star,
   ShieldCheck,
   ChevronRight,
   ExternalLink,
-  BookmarkPlus,
   Zap,
 } from "lucide-react";
 import { AskAIWidget } from "@/components/tool/ask-ai-widget";
 import { FreelancerTrustSignals } from "@/components/tool/freelancer-trust-signals";
+import { ReviewsSection } from "@/components/tool/reviews-section";
+import { SaveToolButton } from "@/components/tool/save-tool-button";
 import { getToolBySlugCached } from "@/lib/queries/tools";
 import { tools as fallbackTools } from "@/lib/data";
 import { resolveToolLogo } from "@/lib/logo-resolver";
@@ -46,7 +46,7 @@ export async function generateMetadata(
   if (!resolved) return { title: "Tool Not Found" };
 
   return {
-    title: `${resolved.name} Reviews, Pricing & Info | FutureStack News`,
+    title: `${resolved.name} Reviews, Pricing & Info | DISCOVA`,
     description:
       (resolved as { short_description?: string }).short_description ||
       (resolved as { shortDescription?: string }).shortDescription ||
@@ -236,10 +236,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                     <ExternalLink className="w-4 h-4" />
                     Visit Website
                   </a>
-                  <button className="flex-1 inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium rounded-lg transition-colors">
-                    <BookmarkPlus className="w-4 h-4" />
-                    Save Tool
-                  </button>
+                  <SaveToolButton toolId={tool.id} toolSlug={tool.slug} />
                 </div>
               </div>
             </section>
@@ -263,10 +260,10 @@ export default async function ToolDetailPage({ params }: PageProps) {
               <p>{tool.description}</p>
             </section>
 
-            {/* FutureStack Scorecard */}
+            {/* DISCOVA Scorecard */}
             <section>
               <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">
-                FutureStack Scorecard
+                DISCOVA Scorecard
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {tool.tool_scores &&
@@ -303,69 +300,11 @@ export default async function ToolDetailPage({ params }: PageProps) {
             </section>
 
             {/* User Reviews */}
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  User Reviews
-                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 text-sm px-2 py-0.5 rounded-full">
-                    {tool.reviews?.length || 0}
-                  </span>
-                </h2>
-                <button className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">
-                  Write a Review
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {tool.reviews?.length > 0 ? (
-                  tool.reviews.map((review: any) => (
-                    <div
-                      key={review.id}
-                      className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                            {review.profiles?.avatar_url && (
-                              <img
-                                src={review.profiles.avatar_url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm text-slate-900 dark:text-white">
-                              {review.profiles?.full_name || "Anonymous"}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {new Date(review.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${i < review.rating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200 dark:fill-slate-800 dark:text-slate-800"}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-slate-600 dark:text-slate-300 text-sm mt-3">
-                        {review.content}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                    <p className="text-slate-500">
-                      No reviews yet. Be the first to share your experience!
-                    </p>
-                  </div>
-                )}
-              </div>
-            </section>
+            <ReviewsSection
+              toolId={tool.id}
+              toolName={tool.name}
+              initialReviews={tool.reviews ?? []}
+            />
 
             {/* Changelog Timeline */}
             <section>
@@ -463,7 +402,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                     The Ultimate Founder Stack
                   </p>
                   <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    by FutureStack <ChevronRight className="w-3 h-3" />
+                    by DISCOVA <ChevronRight className="w-3 h-3" />
                   </p>
                 </div>
                 <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 hover:border-indigo-200 transition-colors cursor-pointer group">

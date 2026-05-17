@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "FutureStack Score™ Methodology",
+  title: "Naija Score™ & DISCOVA Score™ Methodology",
   description:
-    "How we calculate the FutureStack Score™ — the most defensible AI tool rating system on the internet.",
+    "How we calculate the Naija Score™ and DISCOVA Score™ — Africa's most trusted tool rating system built for real African realities.",
   openGraph: {
-    title: "FutureStack Score™ Methodology | FutureStack News",
+    title: "Naija Score™ Methodology | DISCOVA",
     description:
-      "Transparent, multi-signal scoring for every AI tool. Learn how we calculate the industry-standard FutureStack Score™.",
+      "Transparent, multi-signal scoring for every tool. Rated for 3G performance, Android support, Naira pricing, and African payment compatibility.",
   },
 };
 
@@ -93,7 +93,7 @@ const signals = [
 const faqs = [
   {
     q: "Can a tool pay to increase its score?",
-    a: "No. The FutureStack Score™ is 100% algorithmic. We do offer paid Featured Listings for visibility, but those placements are always clearly labelled and have zero effect on the score.",
+    a: "No. The DISCOVA Score™ is 100% algorithmic. We do offer paid Featured Listings for visibility, but those placements are always clearly labelled and have zero effect on the score.",
   },
   {
     q: "How often is the score updated?",
@@ -118,7 +118,7 @@ export default function MethodologyPage() {
           Methodology v2.1 — Updated April 2026
         </div>
         <h1 className="text-5xl font-black mb-6 leading-tight tracking-tight">
-          The FutureStack Score™
+          The DISCOVA Score™
         </h1>
         <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
           A transparent, multi-signal rating system designed to be the most
@@ -135,7 +135,7 @@ export default function MethodologyPage() {
               9.2
             </div>
             <div className="text-slate-500 text-sm font-bold mt-2 uppercase tracking-widest">
-              FutureStack Score™
+              DISCOVA Score™
             </div>
           </div>
           <div className="flex-1">
@@ -145,7 +145,7 @@ export default function MethodologyPage() {
             <ul className="space-y-2 text-slate-400 text-sm">
               <li className="flex items-center gap-2">
                 <span className="text-emerald-400">✓</span> Top 5% of all tools
-                reviewed on FutureStack
+                reviewed on DISCOVA
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-emerald-400">✓</span> 4.7+ average star
@@ -271,7 +271,7 @@ export default function MethodologyPage() {
       <div className="max-w-4xl mx-auto px-4 pb-24 text-center">
         <div className="bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-800/40 rounded-3xl p-12">
           <h2 className="text-2xl font-black mb-4">
-            Browse tools by their FutureStack Score™
+            Browse tools by their DISCOVA Score™
           </h2>
           <p className="text-slate-400 mb-8">
             Sort the entire AI tool library by score to find the best tools for

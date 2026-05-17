@@ -1,0 +1,1054 @@
+🌍 DISCOVA — THE COMPLETE GLOBAL PLATFORM TRANSFORMATION PROMPT
+
+Full Rebrand + Enterprise Expansion Directive
+
+For Gemini 2.5 Pro / Claude Opus / GPT-5 / Cursor / Devin / Lovable / Bolt / Replit AI
+
+⸻
+
+MASTER INSTRUCTION
+
+You are not making edits to an existing project.
+
+You are completely transforming an old AI directory called “FutureStack News” into a world-class digital discovery ecosystem called:
+
+DISCOVA
+
+This transformation includes:
+
+* branding,
+* positioning,
+* navigation,
+* architecture,
+* categories,
+* discovery systems,
+* AI recommendation systems,
+* workflows,
+* enterprise modules,
+* monetization systems,
+* community systems,
+* educational systems,
+* startup ecosystems,
+* creator ecosystems,
+* and global scalability.
+
+This is no longer:
+
+* a simple AI tools website,
+* a Product Hunt clone,
+* or a tech blog.
+
+Discova becomes:
+
+“The Digital Discovery Operating System for Africa and Emerging Markets.”
+
+A platform where:
+
+* creators,
+* developers,
+* students,
+* founders,
+* teachers,
+* doctors,
+* lawyers,
+* businesses,
+* agencies,
+* freelancers,
+* researchers,
+* marketers,
+* media professionals,
+* remote workers,
+* ecommerce brands,
+* and startups
+
+discover the best tools, apps, workflows, systems, and opportunities to grow faster digitally.
+
+⸻
+
+SECTION 1 — FULL REBRAND
+
+REMOVE ALL OLD BRAND REFERENCES
+
+Completely remove:
+
+* FutureStack
+* FutureStack News
+* Future Stack
+* futurestack.live
+* old logos
+* old favicons
+* old metadata
+* old OG images
+* old sitemap branding
+* old environment variable labels
+* old README branding
+* old footer branding
+* old email branding
+* old analytics labels
+* old package naming
+* old domain references
+
+Replace ALL references globally with:
+
+DISCOVA
+
+⸻
+
+NEW BRAND POSITIONING
+
+Primary Tagline
+
+“Africa Discovers. Africa Decides.”
+
+Secondary Taglines
+
+* “Discover tools that actually work for African life.”
+* “Your digital advantage starts here.”
+* “The operating system for smarter work.”
+* “Every app. Every workflow. Rated for real life.”
+* “Digital tools built for ambition.”
+* “Find the apps shaping Africa’s future.”
+* “Tools, systems, and workflows for modern Africans.”
+
+⸻
+
+CORE POSITIONING
+
+Discova is:
+
+* Product Hunt for Africa
+* LinkedIn for digital productivity
+* Pinterest for workflows
+* Notion AI for recommendations
+* Bloomberg Terminal for digital intelligence
+* TikTok-style discovery for productivity apps
+* Gartner + G2 + Futurepedia + Reddit combined
+
+But built specifically for:
+
+* African realities,
+* emerging markets,
+* mobile-first users,
+* startup founders,
+* low-bandwidth internet,
+* alternative payments,
+* digital entrepreneurship,
+* and creator economies.
+
+⸻
+
+THE BIG IDEA
+
+Every global tool platform assumes:
+
+* fast internet,
+* USD cards,
+* expensive laptops,
+* Silicon Valley workflows,
+* Western users.
+
+Discova is different.
+
+Discova asks:
+
+* Does this app work on MTN?
+* Does it consume too much data?
+* Can Nigerians pay easily?
+* Does it work on Android?
+* Is it useful for startups?
+* Is it affordable for students?
+* Does it help Africans earn more?
+* Does it work without VPN?
+* Is it mobile-friendly?
+* Is it practical in African conditions?
+
+This becomes the company’s entire identity.
+
+⸻
+
+MISSION STATEMENT
+
+“Discova exists to help Africans and emerging markets discover the tools, workflows, systems, and digital opportunities that genuinely improve how they work, learn, create, collaborate, and earn.”
+
+⸻
+
+THE EMOTIONAL FEELING
+
+The platform should make users feel:
+
+* empowered,
+* ambitious,
+* intelligent,
+* curious,
+* productive,
+* inspired,
+* globally competitive.
+
+Users should feel:
+
+“This platform understands how I actually live and work.”
+
+⸻
+
+SECTION 2 — PLATFORM EVOLUTION
+
+Discova is no longer a tools directory.
+
+It is now made up of multiple ecosystems:
+
+1. Discover Ecosystem
+2. AI Recommendation Ecosystem
+3. Workflow Ecosystem
+4. Power Stack Ecosystem
+5. Community Ecosystem
+6. Learning Ecosystem
+7. Startup Ecosystem
+8. Creator Ecosystem
+9. Opportunity Ecosystem
+10. Comparison Ecosystem
+11. Deals Ecosystem
+12. Africa Intelligence Ecosystem
+13. Enterprise Ecosystem
+14. Research Ecosystem
+15. Marketplace Ecosystem
+
+⸻
+
+SECTION 3 — MAIN NAVIGATION
+
+Replace the old navigation completely.
+
+NEW GLOBAL NAVIGATION
+
+DISCOVA logo
+
+Navigation:
+
+* Discover
+* Categories
+* Stacks
+* Workflows
+* Compare
+* Deals
+* Learn
+* Community
+* Opportunities
+* Insights
+* Africa
+* Enterprise
+
+Right Side:
+
+* Search
+* Notifications
+* Saved Tools
+* Sign In
+* Join Free
+
+Mobile navigation:
+
+* full role-based category tree,
+* slide-out navigation,
+* quick discovery filters,
+* trending apps widget,
+* recently viewed tools.
+
+⸻
+
+SECTION 4 — DISCOVER ECOSYSTEM
+
+Main Route
+
+/discover
+
+This becomes the core of the platform.
+
+The discover page should feel:
+
+* intelligent,
+* alive,
+* premium,
+* interactive,
+* addictive.
+
+⸻
+
+DISCOVER PAGE FEATURES
+
+* Global search bar
+* AI-assisted search
+* Trending tools
+* Trending categories
+* “Apps Africans Love”
+* “Trending in Nigeria”
+* “Trending in Kenya”
+* “Best Free Tools”
+* “Top AI Apps”
+* “Most Saved Tools”
+* “Top Rated by Students”
+* “Best Tools for Creators”
+* “Best Tools for Businesses”
+* “New on Product Hunt”
+* “Recently Launched”
+* “Most Shared Stacks”
+* “Community Picks”
+* “Best Apps for Mobile”
+* “Works on Low-End Devices”
+* “Offline Friendly”
+* “No USD Card Needed”
+
+⸻
+
+TOOL CARD SYSTEM
+
+Every tool card must include:
+
+* logo,
+* screenshots,
+* app name,
+* tagline,
+* short description,
+* pricing badge,
+* category,
+* subcategory,
+* affiliate button,
+* community rating,
+* review count,
+* bookmarks,
+* save-to-stack button,
+* compare button,
+* AI summary,
+* “Used By” stats,
+* trending badge,
+* Product Hunt badge,
+* mobile compatibility badge,
+* startup-friendly badge,
+* free-plan quality indicator,
+* API availability badge,
+* integrations count,
+* platform support.
+
+⸻
+
+SECTION 5 — NAIJA SCORE™
+
+This is Discova’s core moat.
+
+Every app receives a:
+
+“Naija Score™”
+
+This becomes the most trusted app scoring system in Africa.
+
+⸻
+
+NAIJA SCORE COMPONENTS
+
+Score apps based on:
+
+* 3G performance
+* low bandwidth optimization
+* Android optimization
+* low RAM optimization
+* offline capabilities
+* data usage efficiency
+* local payment support
+* Paystack compatibility
+* Flutterwave compatibility
+* Opay support
+* Moniepoint compatibility
+* VPN-free access
+* African support availability
+* student affordability
+* startup affordability
+* creator friendliness
+* mobile optimization
+* loading speed
+* regional accessibility
+* free tier usefulness
+
+⸻
+
+NAIJA SCORE BADGES
+
+* Built for Africa
+* Africa Ready
+* Works on 3G
+* Naira Friendly
+* Offline Friendly
+* Startup Friendly
+* Student Friendly
+* Creator Approved
+* Business Approved
+* Low Data Usage
+* Mobile Optimized
+* AI Powered
+* Product Hunt Trending
+* Enterprise Ready
+
+⸻
+
+SECTION 6 — MASSIVE CATEGORY SYSTEM
+
+Expand categories massively.
+
+Each category must contain:
+
+* subcategories,
+* use-case filters,
+* role filters,
+* pricing filters,
+* AI filters,
+* beginner/professional filters,
+* device compatibility filters.
+
+⸻
+
+CATEGORY 1 — FOR CREATORS
+
+Subcategories:
+
+* Video Editing
+* AI Video Generation
+* Audio Recording
+* Podcasting
+* Music Production
+* Thumbnail Design
+* Motion Graphics
+* Animation
+* Livestreaming
+* Photography
+* Image Editing
+* Script Writing
+* YouTube SEO
+* Caption Generation
+* Influencer Tools
+* Content Planning
+* Creator Analytics
+* Brand Building
+* Social Scheduling
+* AI Voiceovers
+
+Apps:
+
+* CapCut
+* Runway
+* Descript
+* ElevenLabs
+* Canva
+* Midjourney
+* OpusClip
+* Riverside
+* StreamYard
+* Adobe Express
+* Suno
+* Udio
+* Buffer
+* Hootsuite
+* Publer
+* Metricool
+* Beehiiv
+* Kajabi
+* Gumroad
+* Patreon
+
+⸻
+
+CATEGORY 2 — FOR DEVELOPERS
+
+Subcategories:
+
+* AI Coding
+* Backend
+* Frontend
+* Deployment
+* DevOps
+* API Tools
+* Databases
+* Security
+* Testing
+* Documentation
+* Hosting
+* Low-Code
+* Mobile Development
+* AI Engineering
+* Open Source
+* Package Management
+* Version Control
+* Monitoring
+* Debugging
+* UI Builders
+
+Apps:
+
+* GitHub Copilot
+* Cursor
+* Vercel
+* Supabase
+* Railway
+* Render
+* Docker
+* Postman
+* Neon
+* Firebase
+* Clerk
+* Auth0
+* Playwright
+* Cypress
+* Sentry
+* Datadog
+* Netlify
+* Fly.io
+* Replit
+* Lovable
+* Bolt
+* Framer
+* v0
+* Builder.io
+* Coolify
+
+⸻
+
+CATEGORY 3 — FOR STUDENTS
+
+Subcategories:
+
+* WAEC Prep
+* JAMB Prep
+* Research
+* Flashcards
+* AI Tutors
+* Maths
+* Science
+* Writing
+* Language Learning
+* Study Planning
+* Presentations
+* Notes
+* Productivity
+* Scholarships
+* Career Preparation
+* Exam Simulations
+* Coding for Students
+* Learning Communities
+
+Apps:
+
+* Quizlet
+* Khan Academy
+* Grammarly
+* ChatGPT
+* Claude
+* Perplexity
+* Notion
+* Obsidian
+* Wolfram Alpha
+* Mathway
+* Coursera
+* Udemy
+* Skillshare
+* Duolingo
+* Brilliant
+* SciSpace
+* Mendeley
+* Zotero
+
+⸻
+
+CATEGORY 4 — FOR FOUNDERS
+
+Subcategories:
+
+* Startup Planning
+* Pitch Decks
+* CRM
+* Finance
+* Marketing
+* Automation
+* Hiring
+* Fundraising
+* Analytics
+* Product Management
+* Team Communication
+* Business Operations
+* Legal
+* Accounting
+* Customer Support
+* Ecommerce
+* Growth Tools
+
+Apps:
+
+* HubSpot
+* Notion
+* Linear
+* ClickUp
+* Stripe Atlas
+* Deel
+* Intercom
+* Zendesk
+* Zoho
+* Salesforce
+* Pipedrive
+* ActiveCampaign
+* Mailchimp
+* Beehiiv
+* Brevo
+* Zapier
+* Make
+* Airtable
+* Monday.com
+* Jira
+
+⸻
+
+CATEGORY 5 — FOR BUSINESSES
+
+Subcategories:
+
+* Ecommerce
+* Payments
+* Inventory
+* Accounting
+* HR
+* Analytics
+* CRM
+* Marketing
+* Operations
+* Customer Service
+* Team Collaboration
+* POS Systems
+* Logistics
+* Procurement
+* Retail Tools
+* Restaurant Tools
+* Real Estate Tools
+* WhatsApp Commerce
+
+Apps:
+
+* Shopify
+* WooCommerce
+* Paystack
+* Flutterwave
+* Moniepoint
+* Odoo
+* Zoho Books
+* FreshBooks
+* QuickBooks
+* Meta Business
+* Google Workspace
+* Slack
+* Asana
+* Trello
+* ClickUp
+* Monday.com
+
+⸻
+
+CATEGORY 6 — FOR DESIGNERS
+
+Subcategories:
+
+* UI Design
+* Graphic Design
+* Prototyping
+* Illustration
+* Typography
+* 3D Design
+* Animation
+* Mockups
+* AI Design
+* Wireframing
+* Collaboration
+
+Apps:
+
+* Figma
+* Canva
+* Adobe XD
+* Framer
+* Sketch
+* Blender
+* Spline
+* Midjourney
+* Ideogram
+* Leonardo AI
+* InVision
+* Zeplin
+
+⸻
+
+CATEGORY 7 — FOR MARKETERS
+
+Subcategories:
+
+* SEO
+* Email Marketing
+* Analytics
+* Ads
+* AI Copywriting
+* Funnels
+* Affiliate Marketing
+* Automation
+* Social Media
+* Influencer Marketing
+
+Apps:
+
+* Semrush
+* Ahrefs
+* Surfer SEO
+* Jasper
+* Copy.ai
+* ActiveCampaign
+* HubSpot
+* Mailchimp
+* ConvertKit
+* Taplio
+* Buffer
+
+⸻
+
+CATEGORY 8 — FOR LAWYERS
+
+Subcategories:
+
+* Legal Research
+* Contracts
+* Case Management
+* Compliance
+* Documentation
+* AI Legal Assistants
+* Due Diligence
+
+Apps:
+
+* Harvey AI
+* LexisNexis
+* Clio
+* MyCase
+* DocuSign
+* Ironclad
+* ContractPodAI
+
+⸻
+
+CATEGORY 9 — FOR DOCTORS
+
+Subcategories:
+
+* Telemedicine
+* Medical Research
+* Diagnostics
+* Patient Management
+* Prescriptions
+* Scheduling
+* Imaging AI
+* Clinical Notes
+
+Apps:
+
+* Helium Health
+* Zocdoc
+* Doxy.me
+* Medscape
+* UpToDate
+* PubMed
+* Epocrates
+
+⸻
+
+CATEGORY 10 — FOR TEACHERS
+
+Subcategories:
+
+* Lesson Planning
+* Classroom Management
+* Grading
+* Online Teaching
+* Educational AI
+* Student Engagement
+* Curriculum Design
+
+Apps:
+
+* Google Classroom
+* Moodle
+* Kahoot
+* Canva for Education
+* Nearpod
+* Teachable
+
+⸻
+
+ADD 15+ MORE CATEGORIES
+
+Add:
+
+* Journalists
+* Finance Professionals
+* Ecommerce Sellers
+* Recruiters
+* Researchers
+* Musicians
+* Podcasters
+* Agencies
+* Architects
+* Engineers
+* NGOs
+* Churches
+* Event Organizers
+* Real Estate
+* Hospitality
+* Logistics
+* Agriculture
+* Government
+* Manufacturing
+* Cybersecurity
+* AI Enthusiasts
+* Remote Workers
+* Freelancers
+* Consultants
+* Data Analysts
+
+Each category must have:
+
+* 10–20 subcategories,
+* 20–100 apps,
+* workflows,
+* comparisons,
+* stacks,
+* templates.
+
+⸻
+
+SECTION 7 — POWER STACKS™
+
+Route:
+
+/stacks
+
+Power Stacks are curated digital systems.
+
+Examples:
+
+* The Nigerian Creator Stack
+* The JAMB Survival Stack
+* The Lagos Startup Stack
+* The WhatsApp Vendor Stack
+* The AI Freelancer Stack
+* The Remote Dev Stack
+* The Medical Research Stack
+* The Church Media Stack
+* The Ecommerce Empire Stack
+* The TikTok Growth Stack
+* The Student Productivity Stack
+
+Users can:
+
+* clone stacks,
+* customize stacks,
+* save stacks,
+* share stacks,
+* rate stacks,
+* publish stacks publicly.
+
+⸻
+
+SECTION 8 — WORKFLOWS
+
+Route:
+
+/workflows
+
+This teaches HOW tools work together.
+
+Examples:
+
+* “How to Start YouTube with Free AI Tools”
+* “How to Run a WhatsApp Business”
+* “How Students Use AI to Study”
+* “How Nigerian Agencies Automate Client Work”
+* “How to Launch a Shopify Brand”
+* “How to Start Freelancing”
+* “How to Build SaaS with AI”
+* “How to Create Viral TikTok Videos”
+* “How to Run an Online School”
+* “How to Automate Ecommerce Operations”
+
+Each workflow includes:
+
+* apps used,
+* setup steps,
+* templates,
+* cost breakdown,
+* African compatibility,
+* tutorial videos,
+* downloadable resources.
+
+⸻
+
+SECTION 9 — COMMUNITY
+
+Route:
+
+/community
+
+Features:
+
+* user profiles,
+* reviews,
+* comments,
+* ratings,
+* discussions,
+* Q&A,
+* stack sharing,
+* creator pages,
+* followers,
+* achievements,
+* verified reviewers,
+* tool collections.
+
+⸻
+
+SECTION 10 — OPPORTUNITIES
+
+Route:
+
+/opportunities
+
+Include:
+
+* remote jobs,
+* internships,
+* startup grants,
+* scholarships,
+* creator opportunities,
+* accelerators,
+* no-code opportunities,
+* AI gigs,
+* freelance work,
+* startup competitions.
+
+⸻
+
+SECTION 11 — AI ASSISTANT
+
+Route:
+
+/ai
+
+Discova AI helps users discover:
+
+* tools,
+* stacks,
+* workflows,
+* opportunities,
+* alternatives,
+* tutorials,
+* digital careers.
+
+The AI assistant must feel:
+
+* intelligent,
+* conversational,
+* practical,
+* Africa-aware.
+
+⸻
+
+SECTION 12 — ENTERPRISE FEATURES
+
+Add:
+
+* enterprise dashboards,
+* team workspaces,
+* organization accounts,
+* multi-user collaboration,
+* internal stacks,
+* employee tool management,
+* procurement recommendations,
+* SaaS spending analytics,
+* role-based permissions,
+* enterprise onboarding.
+
+⸻
+
+SECTION 13 — MARKETPLACE FEATURES
+
+Future expansion:
+
+* template marketplace,
+* workflow marketplace,
+* digital products,
+* creator resources,
+* automation templates,
+* prompt packs,
+* startup kits.
+
+⸻
+
+SECTION 14 — MONETIZATION
+
+Revenue systems:
+
+* affiliate revenue,
+* premium memberships,
+* enterprise subscriptions,
+* sponsored tools,
+* promoted stacks,
+* marketplace commissions,
+* AI consultations,
+* startup partnerships,
+* creator partnerships,
+* educational licensing.
+
+⸻
+
+SECTION 15 — FINAL PRODUCT GOAL
+
+Discova should become:
+
+“The most trusted digital discovery and productivity platform in Africa.”
+
+Not just a directory.
+
+Not just an AI platform.
+
+But:
+
+* a discovery engine,
+* a productivity ecosystem,
+* a startup operating system,
+* a creator ecosystem,
+* a digital learning platform,
+* a business enablement platform,
+* and eventually:
+
+“Africa’s operating system for digital growth.”
+
+⸻
+
+FINAL COMMAND TO AI AGENT
+
+1. Read this entire document before generating code
+2. Replace every reference of FutureStack with Discova
+3. Preserve the existing color palette and styling direction
+4. Expand the platform into a global enterprise-grade ecosystem
+5. Add all categories, stacks, workflows, and discovery systems
+6. Build for scalability from day one
+7. Build mobile-first
+8. Optimize for African internet realities
+9. Make discovery addictive
+10. Make the platform feel alive, intelligent, and aspirational
+
+Every page should answer:
+
+“How does this help Africans grow digitally?”
+
+⸻
+
+DISCOVA
+
+“Built for African reality. Designed for global ambition.”

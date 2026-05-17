@@ -1,0 +1,56 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rkTy89OTF_hSen6vmg4PN"
+uri = "file://futurestack/supabase/complete_setup.tar.gz"
+type = "unspecified"
+title = "DISCOVA — Complete Supabase Setup (Schema + Data)"
+
+[[outputs]]
+id = "S8BB3vEh6B3QZSW6LSd4q"
+uri = "file://futurestack/supabase/missing_tables.tar.gz"
+type = "unspecified"
+title = "DISCOVA — missing_tables.sql (Gap-Fill Migration)"
+
+[[outputs]]
+id = "sszqaTTfc4b_Ch6eQI_Yd"
+uri = "file://futurestack/supabase/missing_tables.txt"
+type = "text"
+title = "DISCOVA — Copy & Run in Supabase SQL Editor"
+
+[[outputs]]
+id = "ffe5I7_YtYlWLhlAn4K84"
+uri = "file://futurestack/public/brand-logos/compass-mark.jpg"
+type = "image"
+title = "Option 1 — Compass Discovery Mark"
+
+[[outputs]]
+id = "1vUeOkJgJdvF3QesVXQ9N"
+uri = "file://futurestack/public/brand-logos/globe-africa.jpg"
+type = "image"
+title = "Option 2 — Africa Globe Mark"
+
+[[outputs]]
+id = "SKkHhJsRLAdJJQ3WiL-Ot"
+uri = "file://futurestack/public/brand-logos/constellation-d.jpg"
+type = "image"
+title = "Option 3 — Constellation Lettermark"
+
+[[outputs]]
+id = "sMagVbtA8uvb4w8CFWJhT"
+uri = "file://futurestack/public/brand-logos/diamond-discovery.jpg"
+type = "image"
+title = "Option 4 — Diamond Discovery Icon"
+
+[[outputs]]
+id = "2Qo6sSUieu8o-U1CZ5dc0"
+uri = "file://futurestack/public/brand-logos/wordmark-minimal.jpg"
+type = "image"
+title = "Option 5 — Minimal Wordmark"
+
+[[outputs]]
+id = "1Yq_2WcfGxeuX1irEzugW"
+uri = "file://futurestack/supabase/discova-supabase-setup.tar.gz"
+type = "unspecified"
+title = "DISCOVA — Supabase Setup Files (Schema + Data)"

@@ -15,13 +15,9 @@ import {
   Clock,
   Eye,
   ExternalLink,
-  Share2,
-  Bookmark,
-  Twitter,
-  Linkedin,
-  Link as LinkIcon,
   ArrowRight,
 } from "lucide-react";
+import { ArticleActions } from "./article-actions";
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -159,7 +155,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   // Normalize shape from DB vs static data
-  if (!article.author) article.author = { name: "FutureStack AI", role: "Staff Writer", avatar: "" };
+  if (!article.author) article.author = { name: "DISCOVA AI", role: "Staff Writer", avatar: "" };
   if (!article.author.role) article.author.role = "Staff Writer";
   if (article.readTime == null) article.readTime = article.reading_time || 5;
   if (!article.featuredImage) article.featuredImage = article.hero_image || article.cover_image_url || "";
@@ -255,24 +251,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 >
                   {article.source_name}
                 </a>
-                <span>· Expanded for FutureStack readers by AI</span>
+                <span>· Expanded for DISCOVA readers by AI</span>
               </div>
             )}
 
-            <div className="mt-5 flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Twitter className="mr-1.5 h-3.5 w-3.5" />Share
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Linkedin className="mr-1.5 h-3.5 w-3.5" />Share
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <LinkIcon className="mr-1.5 h-3.5 w-3.5" />Copy Link
-              </Button>
-              <Button variant="outline" size="sm" className="h-8 text-xs">
-                <Bookmark className="mr-1.5 h-3.5 w-3.5" />Save
-              </Button>
-            </div>
+            <ArticleActions title={article.title} slug={slug} />
           </div>
         </section>
 
@@ -330,14 +313,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <div className="sticky top-24 space-y-6">
                   <div className="rounded-xl border border-border/40 bg-card p-5">
                     <h4 className="font-semibold text-foreground mb-4 text-sm">Quick Actions</h4>
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
-                        <Share2 className="mr-2 h-3.5 w-3.5" />Share Article
-                      </Button>
-                      <Button variant="outline" className="w-full justify-start h-9 text-sm" size="sm">
-                        <Bookmark className="mr-2 h-3.5 w-3.5" />Save for Later
-                      </Button>
-                    </div>
+                    <ArticleActions title={article.title} slug={slug} variant="sidebar" />
                   </div>
 
                   <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-5">

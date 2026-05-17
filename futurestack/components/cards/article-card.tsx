@@ -50,7 +50,7 @@ function formatDate(dateString: string): string {
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function getArticleHref(article: AnyArticle): string {
@@ -66,7 +66,7 @@ function getCategoryColor(cat: string): string {
 }
 
 export function ArticleCard({ article, variant = "default", className }: ArticleCardProps) {
-  const authorName = article.author?.name || article.author_name || "FutureStack AI";
+  const authorName = article.author?.name || article.author_name || "DISCOVA AI";
   const sourceName: string | null = article.source_name || null;
   const featuredImage: string = article.featuredImage || article.hero_image || article.cover_image_url || "";
   const publishedAt: string = article.publishedAt || article.published_at || new Date().toISOString();

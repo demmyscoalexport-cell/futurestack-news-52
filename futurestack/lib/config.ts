@@ -37,8 +37,8 @@ export const config = {
   /** Email via Resend */
   email: {
     resendKey: optional("RESEND_API_KEY"),
-    from: optional("RESEND_FROM_EMAIL", "noreply@futurestack.live"),
-    fromName: optional("RESEND_FROM_NAME", "FutureStack News"),
+    from: optional("RESEND_FROM_EMAIL", "noreply@discova.africa"),
+    fromName: optional("RESEND_FROM_NAME", "DISCOVA"),
   },
 
   /** Stripe payments */
@@ -46,6 +46,13 @@ export const config = {
     publishableKey: optional("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"),
     secretKey: optional("STRIPE_SECRET_KEY"),
     webhookSecret: optional("STRIPE_WEBHOOK_SECRET"),
+  },
+
+  /** Paystack payments (Africa-first) */
+  paystack: {
+    secretKey: optional("PAYSTACK_SECRET_KEY"),
+    publicKey: optional("NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY"),
+    webhookSecret: optional("PAYSTACK_WEBHOOK_SECRET"),
   },
 
   /** Push notifications */
@@ -78,7 +85,7 @@ export const config = {
 
   /** Application */
   app: {
-    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://futurestack.live"),
+    siteUrl: optional("NEXT_PUBLIC_SITE_URL", "https://discova.africa"),
     env: (process.env.NODE_ENV ?? "development") as
       | "development"
       | "production"

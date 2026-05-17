@@ -20,14 +20,14 @@ export async function generateMetadata({
 
   if (!stack) return { title: "Stack Not Found" };
 
-  const author = (stack.profiles as any)?.full_name || "A FutureStack User";
+  const author = (stack.profiles as any)?.full_name || "A DISCOVA User";
   return {
-    title: `${stack.name} — AI Stack by ${author}`,
+    title: `${stack.name} — Power Stack by ${author}`,
     description:
       stack.description ||
-      `${author}'s curated AI tool stack on FutureStack News`,
+      `${author}'s curated digital tool stack on DISCOVA`,
     openGraph: {
-      title: `${stack.name} — AI Stack by ${author} | FutureStack News`,
+      title: `${stack.name} — Power Stack by ${author} | DISCOVA`,
       description: stack.description || `See ${author}'s full AI tool stack`,
       images: [{ url: `/api/og/stack?id=${id}`, width: 1200, height: 630 }],
     },

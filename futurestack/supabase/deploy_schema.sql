@@ -531,3 +531,98 @@ CREATE TABLE IF NOT EXISTS affiliate_clicks (
 
 CREATE INDEX IF NOT EXISTS affiliate_clicks_tool_idx ON affiliate_clicks(tool_id);
 CREATE INDEX IF NOT EXISTS affiliate_clicks_time_idx ON affiliate_clicks(clicked_at DESC);
+
+-- ──────────────────────────────────────────────────────────
+-- OPPORTUNITIES  (jobs, grants, scholarships, gigs, etc.)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS opportunities (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  type        text        NOT NULL CHECK (type IN ('jobs','grants','scholarships','gigs','fellowships','accelerators')),
+  title       text        NOT NULL,
+  company     text        NOT NULL,
+  location    text,
+  salary      text,
+  skills      text[]      DEFAULT '{}',
+  deadline    text,
+  url         text        NOT NULL,
+  featured    boolean     DEFAULT false,
+  africa      boolean     DEFAULT true,
+  status      text        DEFAULT 'active' CHECK (status IN ('active','inactive','expired')),
+  created_at  timestamptz DEFAULT now(),
+  updated_at  timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS opportunities_type_idx     ON opportunities(type);
+CREATE INDEX IF NOT EXISTS opportunities_status_idx   ON opportunities(status);
+CREATE INDEX IF NOT EXISTS opportunities_featured_idx ON opportunities(featured);
+CREATE INDEX IF NOT EXISTS opportunities_created_idx  ON opportunities(created_at DESC);
+
+ALTER TABLE opportunities ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "opportunities_public_read" ON opportunities;
+CREATE POLICY "opportunities_public_read" ON opportunities FOR SELECT USING (true);
+
+DROP TRIGGER IF EXISTS opportunities_updated_at ON opportunities;
+CREATE TRIGGER opportunities_updated_at
+  BEFORE UPDATE ON opportunities
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ──────────────────────────────────────────────────────────
+-- DEALS  (discounts, free tiers, student offers, etc.)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS deals (
+  id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  name           text        NOT NULL,
+  tagline        text,
+  discount       text        NOT NULL,
+  original_price text,
+  deal_price     text        NOT NULL,
+  category       text,
+  expiry         text        DEFAULT 'Ongoing',
+  badge          text,
+  badge_color    text,
+  hot            boolean     DEFAULT false,
+  africa         boolean     DEFAULT true,
+  type           text        DEFAULT 'free' CHECK (type IN ('free','student','discount','lifetime')),
+  url            text        NOT NULL,
+  status         text        DEFAULT 'active' CHECK (status IN ('active','inactive','expired')),
+  created_at     timestamptz DEFAULT now(),
+  updated_at     timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS deals_type_idx     ON deals(type);
+CREATE INDEX IF NOT EXISTS deals_status_idx   ON deals(status);
+CREATE INDEX IF NOT EXISTS deals_hot_idx      ON deals(hot);
+CREATE INDEX IF NOT EXISTS deals_created_idx  ON deals(created_at DESC);
+
+ALTER TABLE deals ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "deals_public_read" ON deals;
+CREATE POLICY "deals_public_read" ON deals FOR SELECT USING (true);
+
+DROP TRIGGER IF EXISTS deals_updated_at ON deals;
+CREATE TRIGGER deals_updated_at
+  BEFORE UPDATE ON deals
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ──────────────────────────────────────────────────────────
+-- ERROR LOGS  (app-wide error monitoring)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS error_logs (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  level      text        NOT NULL DEFAULT 'error' CHECK (level IN ('error','warn','info')),
+  message    text        NOT NULL,
+  stack      text,
+  url        text,
+  user_id    text,
+  user_email text,
+  context    jsonb       DEFAULT '{}',
+  resolved   boolean     DEFAULT false,
+  created_at timestamptz DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS error_logs_created_idx  ON error_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS error_logs_level_idx    ON error_logs(level);
+CREATE INDEX IF NOT EXISTS error_logs_resolved_idx ON error_logs(resolved);
+
+ALTER TABLE error_logs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "error_logs_admin_only" ON error_logs;
+CREATE POLICY "error_logs_admin_only" ON error_logs USING (false);

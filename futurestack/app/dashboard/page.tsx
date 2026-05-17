@@ -336,7 +336,7 @@ export default async function DashboardPage() {
               <div className="bg-gradient-to-tr from-indigo-700 to-indigo-500 rounded-3xl p-8 text-white shadow-[0_0_40px_rgba(79,70,229,0.15)] relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-12 -translate-y-12" />
                 <h3 className="text-2xl font-black mb-2 relative z-10">
-                  FutureStack Pro
+                  DISCOVA Pro
                 </h3>
                 <p className="text-indigo-100 text-sm mb-6 relative z-10 leading-relaxed font-medium">
                   Unlock unlimited comparisons, API access, and the full

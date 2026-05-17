@@ -3,9 +3,9 @@ import { ToolsContent } from "./tools-content";
 import { resolveToolLogo } from "@/lib/logo-resolver";
 
 export const metadata = {
-  title: "AI Tools Directory | FutureStack",
+  title: "Tools & Apps Directory | DISCOVA",
   description:
-    "Discover, compare and build with 50+ AI tools — by category, subcategory, pricing, and more. Built for freelancers, agencies, and founders.",
+    "Discover, compare and build with 400+ tools — by category, pricing, and African compatibility. Built for creators, founders, and businesses across Africa.",
 };
 
 export default async function ToolsPage() {

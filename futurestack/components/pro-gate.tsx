@@ -17,7 +17,7 @@ export function ProGate({
   children,
   feature,
   fallbackTitle = "Pro Feature",
-  fallbackDescription = "Upgrade to FutureStack Pro to unlock this feature.",
+  fallbackDescription = "Upgrade to DISCOVA Pro to unlock this feature.",
   requireTeam = false,
 }: ProGateProps) {
   const { plan, isPro, isTeam, loading } = useSubscription();

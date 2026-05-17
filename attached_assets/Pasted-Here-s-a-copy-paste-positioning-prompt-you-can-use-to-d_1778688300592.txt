@@ -1,0 +1,264 @@
+Here’s a copy-paste positioning prompt you can use to define Discova as a global “tools + apps ecosystem” platform.
+
+⸻
+
+🚀 DISCOVA — PLATFORM POSITIONING MASTER PROMPT
+
+Discova is a next-generation AI-powered tools and applications ecosystem designed to centralize, organize, and surface the best digital tools that make everyday work, business, creativity, and learning easier for individuals, teams, and enterprises across the world — with a strong focus on Africa as a rapidly growing digital hub.
+
+Discova is not just an app directory. It is a living intelligence layer for software tools — a unified system where users discover, access, compare, and use the best apps for any task in one place.
+
+It functions as a global “Tools OS” for productivity, automation, and modern digital life.
+
+⸻
+
+🌍 CORE VISION
+
+To become the world’s largest intelligent marketplace and discovery engine for digital tools, apps, APIs, and workflows, enabling anyone to:
+
+* Find the right tool instantly for any task
+* Replace fragmented software usage with unified discovery
+* Access global SaaS, AI tools, and APIs in one ecosystem
+* Automate work using connected tools and workflows
+* Empower African and global users equally with access to world-class software
+
+⸻
+
+🧠 PRODUCT POSITIONING
+
+Discova is positioned as:
+
+1. “Google for Tools”
+
+A search + recommendation engine for apps, SaaS, AI tools, and APIs.
+
+2. “Product Hunt on Steroids”
+
+A continuous, structured, categorized ecosystem of global tools (not just launches), including curated, trending, and niche tools.
+
+Reference inspiration:
+
+* Product Hunt
+
+3. “Notion for Software Discovery”
+
+Organized, structured, editable tool spaces where users build personal or team tool stacks.
+
+4. “App Store for Everything Digital Work”
+
+A universal marketplace of tools across web, mobile, APIs, automation, and AI agents.
+
+⸻
+
+⚙️ CORE PLATFORM MODULES
+
+Discova should be built around these interconnected systems:
+
+1. 🔎 Intelligent Tool Discovery Engine
+
+* AI-powered search (“What tool helps me design logos fast?”)
+* Intent-based results (not keyword-only)
+* Smart recommendations based on profession, industry, and behavior
+* Comparison engine (Tool A vs Tool B)
+
+⸻
+
+2. 📚 Global Categories System (EXPANDED)
+
+Discova must support deep category hierarchy (50+ categories minimum):
+
+💼 Business & Productivity
+
+* Project management
+* CRM systems
+* Email tools
+* Calendar & scheduling
+* Documentation tools
+* Virtual assistants
+
+🤖 AI & Automation
+
+* AI chatbots
+* AI writing tools
+* AI coding assistants
+* AI agents
+* Workflow automation
+* Prompt tools
+
+🎨 Design & Creativity
+
+* Graphic design
+* UI/UX tools
+* Video editing
+* Animation
+* Branding tools
+* Image generation
+
+💻 Development & Engineering
+
+* Code editors
+* DevOps tools
+* APIs
+* Backend frameworks
+* Frontend tools
+* Testing tools
+
+📈 Marketing & Growth
+
+* SEO tools
+* Ads platforms
+* Social media schedulers
+* Analytics tools
+* Email marketing
+
+💰 Finance & Business Ops
+
+* Accounting tools
+* Payment systems
+* Invoicing
+* Crypto tools
+* Payroll systems
+
+🛒 Ecommerce & Retail
+
+* Shopify tools
+* Dropshipping tools
+* Inventory systems
+* Customer support tools
+
+🎓 Education & Learning
+
+* Online course platforms
+* Study tools
+* Research tools
+* Note-taking apps
+
+🌍 Africa-Focused Digital Tools
+
+* Mobile money tools
+* Local fintech APIs
+* African logistics tools
+* SME business tools
+* Government service tools
+
+🔐 Security & Infrastructure
+
+* Password managers
+* Cybersecurity tools
+* Cloud hosting
+* VPNs
+
+📱 Communication & Collaboration
+
+* Chat tools
+* Video conferencing
+* Team collaboration platforms
+
+⸻
+
+3. 🧩 TOOL ECOSYSTEM LAYERS
+
+Each tool on Discova must include:
+
+* Overview
+* Use cases
+* Pricing
+* Alternatives
+* Integrations
+* AI summary
+* Reviews
+* “Best for” tags
+* Workflow compatibility
+
+⸻
+
+4. ⚡ WORKFLOW AUTOMATION LAYER
+
+Discova evolves into a system where users can:
+
+* Connect tools together (Zapier-style logic)
+* Build workflows like:
+    “Idea → Design → Marketing → Sales”
+* Save tool stacks as templates
+
+⸻
+
+5. 🌐 GLOBAL + AFRICA-FIRST STRATEGY
+
+Discova is globally competitive but uniquely positioned to:
+
+* Highlight African-built software and startups
+* Bridge global SaaS with African market needs
+* Support local payment systems + mobile-first tools
+* Enable startups from Africa to reach global users
+
+⸻
+
+6. 🧠 AI CORE INTELLIGENCE LAYER
+
+Discova includes AI that:
+
+* Understands user intent
+* Suggests tools automatically
+* Builds “tool stacks” for jobs (e.g. freelancer, student, founder)
+* Predicts tools needed for tasks
+* Replaces manual searching entirely
+
+⸻
+
+7. 🧱 PLATFORM STRUCTURE (UI/UX)
+
+Discova should feel like:
+
+* A clean, Apple-level premium interface
+* A search-first experience
+* A category + recommendation hybrid
+* A marketplace + knowledge graph combined
+
+⸻
+
+8. 🔥 TOOL SOURCES & ECOSYSTEM EXPANSION
+
+Discova continuously pulls tools from:
+
+* Global SaaS ecosystems
+* Indie hacker products
+* Startup directories
+* Open-source repositories
+* AI tool directories
+* Product launches and trending platforms
+
+⸻
+
+9. 💡 CORE USER PERSONAS
+
+Discova serves:
+
+* Founders & entrepreneurs
+* Developers
+* Designers
+* Students
+* Freelancers
+* Agencies
+* Enterprises
+* African SMEs
+* Remote workers globally
+
+⸻
+
+10. 🚀 FINAL PRODUCT GOAL
+
+Discova becomes:
+
+“The operating system for discovering and using software tools across the world — where every task has a recommended stack of apps instantly available.”
+
+⸻
+
+If you want next step, I can also help you:
+
+* ￼ turn this into a database schema (Supabase-ready)
+* ￼ design homepage UI wireframe
+* or ￼ write a single SQL script to build the full backend structure
+* or ￼ map exact APIs you should integrate for tools + AI + Africa fintech layer
+
+Just tell me.
