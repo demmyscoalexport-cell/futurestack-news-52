@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["*.picard.replit.dev", "*.replit.dev", "*.repl.co"],
@@ -18,6 +24,9 @@ const nextConfig = {
       // GNews article images — allow all external hostnames
       { hostname: "**" },
     ],
+  },
+  turbopack: {
+    root: resolve(__dirname),
   },
 };
 
