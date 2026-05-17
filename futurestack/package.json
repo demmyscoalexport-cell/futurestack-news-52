@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "setup": "node scripts/setup.mjs",
     "dev": "concurrently \"next dev\" \"npx --yes inngest-cli@latest dev\"",
     "build": "next build",
     "start": "next start",
