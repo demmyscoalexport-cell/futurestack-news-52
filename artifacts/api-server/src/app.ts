@@ -2,10 +2,14 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 app.use(
   pinoHttp({
