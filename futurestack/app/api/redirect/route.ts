@@ -7,7 +7,7 @@
  * 2. Records a click in affiliate_clicks (non-blocking)
  * 3. Redirects to the affiliate URL or tool website
  *
- * This is the internal handler for discova.com/redirect?tool=...&affid=...
+ * This is the internal handler for getdiscova.com/redirect?tool=...&affid=...
  * which points to this endpoint in production.
  *
  * Analytics tracked per click:

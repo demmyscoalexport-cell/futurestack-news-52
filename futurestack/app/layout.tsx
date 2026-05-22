@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const BASE_URL = "https://discova.africa";
+const BASE_URL = "https://getdiscova.com";
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const metadata: Metadata = {

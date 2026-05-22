@@ -5,9 +5,10 @@
 import crypto from "crypto";
 
 const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY;
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME ?? "dxizihlmo";
-const CLOUDINARY_API_KEY_VAL = process.env.CLOUDINARY_API_KEY ?? "654919554582831";
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET ?? "j4GLSAjjApKUgInR41eCUiQIqUo";
+const CLOUDINARY_CLOUD_NAME =
+  process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_API_KEY_VAL = process.env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 /** Submit a WaveSpeed flux-schnell job and return the polling URL */
 async function submitWaveSpeedJob(prompt: string): Promise<string | null> {
@@ -65,6 +66,9 @@ export async function uploadToCloudinary(
   imageUrl: string,
   publicId: string,
 ): Promise<string | null> {
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY_VAL || !CLOUDINARY_API_SECRET) {
+    return null;
+  }
   const timestamp = Math.floor(Date.now() / 1000);
   const paramsToSign: Record<string, string> = {
     public_id: publicId,

@@ -1,14 +1,29 @@
 import { db } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { resolveToolLogo } from "@/lib/logo-resolver";
+import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import {
+  isSupabaseConfigured,
+  supabaseGetCategoriesWithSubcategories,
+  supabaseGetFeaturedTools,
+  supabaseGetRecentTools,
+  supabaseGetToolBySlug,
+  supabaseGetToolCategories,
+  supabaseGetTools,
+  supabaseGetTrendingTools,
+} from "@/lib/queries/supabase-read";
+
+function useSupabaseRest(): boolean {
+  return !isPostgresConfigured() && isSupabaseConfigured();
+}
+
+type ToolRow = Record<string, unknown> & { name?: string; logo?: string | null; website?: string; website_url?: string };
 
 // Apply logo resolver to a raw DB row so callers always get a usable logo URL
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function withLogo<T extends Record<string, any>>(row: T): T {
+function withLogo<T extends ToolRow>(row: T): T {
   return { ...row, logo: resolveToolLogo(row.name ?? "", row.logo, row.website_url ?? row.website) };
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function withLogos<T extends Record<string, any>>(rows: T[]): T[] {
+function withLogos<T extends ToolRow>(rows: T[]): T[] {
   return rows.map(withLogo);
 }
 
@@ -20,6 +35,9 @@ function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getFeaturedTools(limit = 6) {
+  if (useSupabaseRest()) {
+    return safe(async () => withLogos(await supabaseGetFeaturedTools(limit)), []);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT t.*, ts.futurestack_score
@@ -34,6 +52,9 @@ export async function getFeaturedTools(limit = 6) {
 }
 
 export async function getTrendingTools(limit = 10) {
+  if (useSupabaseRest()) {
+    return safe(async () => withLogos(await supabaseGetTrendingTools(limit)), []);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT t.*, ts.futurestack_score
@@ -67,7 +88,26 @@ export async function getTools({
   isFeatured?: boolean;
   limit?: number;
   offset?: number;
-} = {}) {
+} = {}): Promise<ToolRow[]> {
+  if (useSupabaseRest()) {
+    return safe(
+      async () =>
+        withLogos(
+          await supabaseGetTools({
+            category,
+            subcategory,
+            search,
+            africaFriendly,
+            hasFree,
+            isNew,
+            isFeatured,
+            limit,
+            offset,
+          }),
+        ),
+      [],
+    );
+  }
   return safe(async () => {
     const where: string[] = ["t.status = 'active'"];
     const params: unknown[] = [];
@@ -117,7 +157,22 @@ export async function getToolSubcategories(categoryId?: string) {
   }, []);
 }
 
-export async function getCategoriesWithSubcategories() {
+export async function getCategoriesWithSubcategories(): Promise<
+  Array<{ id: string; name: string; icon?: string; count?: number; subcategories?: unknown[] }>
+> {
+  if (useSupabaseRest()) {
+    return safe(
+      async () =>
+        (await supabaseGetCategoriesWithSubcategories()) as Array<{
+          id: string;
+          name: string;
+          icon?: string;
+          count?: number;
+          subcategories?: unknown[];
+        }>,
+      [],
+    );
+  }
   return safe(async () => {
     const [categories, subcategories] = await Promise.all([
       getToolCategories(),
@@ -131,6 +186,19 @@ export async function getCategoriesWithSubcategories() {
 }
 
 export async function getToolBySlug(slug: string) {
+  if (useSupabaseRest()) {
+    return safe(async () => {
+      const tool = await supabaseGetToolBySlug(slug);
+      if (!tool) return null;
+      return {
+        ...withLogo(tool),
+        tool_pricing: [],
+        alternatives: [],
+        tool_changelogs: [],
+        reviews: [],
+      };
+    }, null);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT t.*, ts.ease_of_use, ts.value_for_money, ts.feature_depth,
@@ -161,6 +229,9 @@ export const getToolBySlugCached = unstable_cache(
 );
 
 export async function getRecentTools(limit = 6) {
+  if (useSupabaseRest()) {
+    return safe(async () => withLogos(await supabaseGetRecentTools(limit)), []);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT t.*, ts.futurestack_score
@@ -175,6 +246,9 @@ export async function getRecentTools(limit = 6) {
 }
 
 export async function getToolCategories() {
+  if (useSupabaseRest()) {
+    return safe(async () => supabaseGetToolCategories(), []);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT tc.id, tc.name, tc.icon,
@@ -189,6 +263,14 @@ export async function getToolCategories() {
 }
 
 export async function searchTools(query: string, filters?: { category?: string; hasFree?: boolean }) {
+  if (useSupabaseRest()) {
+    return getTools({
+      search: query,
+      category: filters?.category,
+      hasFree: filters?.hasFree,
+      limit: 20,
+    });
+  }
   return safe(async () => {
     const where = [`(t.name ILIKE $1 OR t.tagline ILIKE $1 OR t.description ILIKE $1)`, `t.status='active'`];
     const params: unknown[] = [`%${query}%`];

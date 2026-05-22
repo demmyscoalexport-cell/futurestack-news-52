@@ -179,7 +179,7 @@ export async function GET(request: Request) {
               <div
                 style={{ color: "#94a3b8", fontSize: "16px", fontWeight: 700 }}
               >
-                futurestack.live
+                getdiscova.com
               </div>
             </div>
           </div>

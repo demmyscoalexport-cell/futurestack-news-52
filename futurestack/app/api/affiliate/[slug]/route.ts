@@ -50,7 +50,7 @@ export async function GET(
   }
 
   // 3. If we still have nothing useful, send to the tools listing
-  if (!destination || destination === "https://discova.africa") {
+  if (!destination || destination === "https://getdiscova.com") {
     destination = "/tools";
   }
 
@@ -65,13 +65,13 @@ export async function GET(
 
     try {
       const supabase = createAdminClient();
-      supabase.from("affiliate_clicks").insert({
+      await supabase.from("affiliate_clicks").insert({
         tool_id: toolId,
         referrer,
         country,
         user_agent: userAgent?.slice(0, 255),
         ip_hash: ipHash,
-      }).then(() => {}).catch(() => {});
+      });
     } catch {
       // tracking failure is non-fatal
     }

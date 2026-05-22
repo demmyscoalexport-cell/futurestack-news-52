@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/dashboard", "/api/", "/account"],
       },
     ],
-    sitemap: "https://futurestack.live/sitemap.xml",
+    sitemap: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com"}/sitemap.xml`,
   };
 }

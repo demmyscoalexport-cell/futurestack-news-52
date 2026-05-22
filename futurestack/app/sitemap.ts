@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
 
-const BASE_URL = "https://futurestack.live";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       supabase
         .from("articles")
         .select("slug, updated_at")
-        .eq("status", "PUBLISHED")
+        .in("status", ["published", "PUBLISHED"])
         .order("published_at", { ascending: false })
         .limit(300),
       supabase

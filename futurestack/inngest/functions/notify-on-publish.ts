@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    "mailto:hello@discova.africa",
+    "mailto:hello@getdiscova.com",
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY,
   );
@@ -27,7 +27,7 @@ export const notifyOnPublish = inngest.createFunction(
       return { skipped: true };
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://discova.africa";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://getdiscova.com";
 
     // Step 1: Email subscribers (reads from Supabase)
     const emailResult = await step.run("send-email-notifications", async () => {
@@ -40,7 +40,7 @@ export const notifyOnPublish = inngest.createFunction(
         const batch = subscribers.slice(i, i + 100);
         await resend.batch.send(
           batch.map((sub) => ({
-            from: process.env.RESEND_FROM_EMAIL || "DISCOVA <digest@discova.africa>",
+            from: process.env.RESEND_FROM_EMAIL || "DISCOVA <digest@getdiscova.com>",
             to:   sub.email,
             subject: `New on DISCOVA: ${article.title}`,
             html: `

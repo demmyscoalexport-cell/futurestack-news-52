@@ -211,10 +211,17 @@ export const syncAfricaNews = inngest.createFunction(
     let failed = 0;
 
     for (let i = 0; i < newItems.length; i++) {
-      const { feed, item } = newItems[i];
+      const { feed, item } = newItems[i] as { feed: AfricaRssFeed; item: RssItem };
+      const articleFeed = { name: feed.name, country: feed.country, tags: feed.tags };
+      const articleItem = {
+        title: item.title,
+        link: item.link,
+        pubDate: item.pubDate,
+        contentSnippet: item.contentSnippet,
+      };
 
       const result = await step.run(`process-africa-article-${i + 1}`, async () => {
-        const rawText = `${item.title}\n\n${item.contentSnippet ?? ""}`;
+        const rawText = `${articleItem.title}\n\n${articleItem.contentSnippet ?? ""}`;
         let expanded: ExpandedArticle | null = null;
 
         if (anthropic) {
@@ -226,7 +233,7 @@ export const syncAfricaNews = inngest.createFunction(
               messages: [
                 {
                   role: "user",
-                  content: `Source: ${feed.name} (${feed.country})\n\nHeadline: ${item.title}\n\nSummary: ${item.contentSnippet ?? "(no summary)"}\n\nURL: ${item.link}`,
+                  content: `Source: ${articleFeed.name} (${articleFeed.country})\n\nHeadline: ${articleItem.title}\n\nSummary: ${articleItem.contentSnippet ?? "(no summary)"}\n\nURL: ${articleItem.link}`,
                 },
               ],
             });
@@ -234,24 +241,24 @@ export const syncAfricaNews = inngest.createFunction(
             const jsonMatch = raw.match(/\{[\s\S]*\}/);
             if (jsonMatch) expanded = JSON.parse(jsonMatch[0]) as ExpandedArticle;
           } catch (e) {
-            logger.warn(`Claude expansion failed for "${item.title}": ${(e as Error).message}`);
+            logger.warn(`Claude expansion failed for "${articleItem.title}": ${(e as Error).message}`);
           }
         }
 
         // Fallback if Claude unavailable or failed
         if (!expanded) {
           expanded = {
-            title: item.title,
-            excerpt: item.contentSnippet?.slice(0, 160) ?? item.title,
-            content: `## ${item.title}\n\n${item.contentSnippet ?? ""}\n\n*Source: [${feed.name}](${item.link})*`,
-            tags: feed.tags,
+            title: articleItem.title,
+            excerpt: articleItem.contentSnippet?.slice(0, 160) ?? articleItem.title,
+            content: `## ${articleItem.title}\n\n${articleItem.contentSnippet ?? ""}\n\n*Source: [${articleFeed.name}](${articleItem.link})*`,
+            tags: articleFeed.tags,
           };
         }
 
         const slug = slugify(expanded.title);
         const wordCount = expanded.content.split(/\s+/).length;
         const readingTime = Math.max(2, Math.ceil(wordCount / 200));
-        const publishedAt = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
+        const publishedAt = articleItem.pubDate ? new Date(articleItem.pubDate).toISOString() : new Date().toISOString();
 
         await db.query(
           `INSERT INTO articles
@@ -278,20 +285,20 @@ export const syncAfricaNews = inngest.createFunction(
             expanded.title,
             expanded.excerpt,
             expanded.content,
-            [...(expanded.tags ?? []), ...feed.tags],
+            [...(expanded.tags ?? []), ...articleFeed.tags],
             authorId,
             categoryId,
             readingTime,
             wordCount,
             publishedAt,
-            feed.name,
-            item.link,
+            articleFeed.name,
+            articleItem.link,
             expanded.title,
             expanded.excerpt,
           ],
         );
 
-        return { slug, title: expanded.title, source: feed.name };
+        return { slug, title: expanded.title, source: articleFeed.name };
       });
 
       if (result) {

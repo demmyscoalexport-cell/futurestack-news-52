@@ -108,7 +108,7 @@ export function WeeklyDigestEmail({
               {topArticle.excerpt}
             </Text>
             <Button
-              href={`https://futurestack.news/news/${topArticle.slug}`}
+              href={`https://getdiscova.com/news/${topArticle.slug}`}
               style={{
                 background: "#3b82f6",
                 color: "white",
@@ -147,7 +147,7 @@ export function WeeklyDigestEmail({
           {/* CTA */}
           <Section style={{ textAlign: "center", marginTop: "40px" }}>
             <Button
-              href="https://futurestack.news/radar"
+              href="https://getdiscova.com/radar"
               style={{
                 background: "#3b82f6",
                 color: "white",

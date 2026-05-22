@@ -1,3 +1,4 @@
+import type { Tool } from "@/lib/types";
 import { getTools, getCategoriesWithSubcategories } from "@/lib/queries/tools";
 import { ToolsContent } from "./tools-content";
 import { resolveToolLogo } from "@/lib/logo-resolver";
@@ -14,15 +15,19 @@ export default async function ToolsPage() {
     getCategoriesWithSubcategories(),
   ]);
 
-  const tools = rawTools.map((row: Record<string, unknown>) => ({
+  const tools = rawTools.map((row) => ({
     ...row,
-    logo: resolveToolLogo(String(row.name ?? ""), row.logo as string | null, row.website as string),
-  }));
+    logo: resolveToolLogo(
+      String(row.name ?? ""),
+      (row.logo as string | null) ?? null,
+      String(row.website_url ?? row.website ?? ""),
+    ),
+  })) as Tool[];
 
   return (
     <ToolsContent
       initialTools={tools}
-      initialCategories={categories}
+      initialCategories={categories as Parameters<typeof ToolsContent>[0]["initialCategories"]}
     />
   );
 }

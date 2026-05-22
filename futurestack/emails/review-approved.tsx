@@ -57,7 +57,7 @@ export function ReviewApprovedEmail({
               organic curation for over 15,000 developers.
             </Text>
             <Button
-              href="https://futurestack.news/dashboard"
+              href="https://getdiscova.com/dashboard"
               style={{
                 background: "#10b981",
                 color: "white",

@@ -32,7 +32,27 @@ const NGN_PRICES: Record<string, { monthly: number; annual: number }> = {
   team: { monthly: 58800, annual: 478800 },
 };
 
-const tiers = [
+interface PaidTier {
+  id: string;
+  name: string;
+  priceMonthly: number;
+  priceAnnual: number;
+  description: string;
+  cta: string;
+  highlight: boolean;
+  features: string[];
+  missing: string[];
+  priceIdMonthly?: string;
+  priceIdAnnual?: string;
+  paystackMonthly?: string;
+  paystackAnnual?: string;
+  ctaHref?: string;
+  badge?: string;
+}
+
+type UpgradeTier = PaidTier & { priceIdMonthly: string };
+
+const tiers: PaidTier[] = [
   {
     id: "free",
     name: "Free",
@@ -141,8 +161,7 @@ export default function PricingPage() {
   const [currency, setCurrency] = useState<Currency>("USD");
   const { plan: currentPlan, startUpgrade, startPaystackUpgrade } = useSubscription();
 
-  const handleUpgrade = async (tier: (typeof tiers)[0]) => {
-    if (!tier.priceIdMonthly) return;
+  const handleUpgrade = async (tier: UpgradeTier) => {
     setLoading(tier.id);
     try {
       if (paymentMethod === "paystack") {
@@ -303,7 +322,7 @@ export default function PricingPage() {
               </a>
             ) : (
               <button
-                onClick={() => handleUpgrade(tier)}
+                onClick={() => handleUpgrade(tier as UpgradeTier)}
                 disabled={loading === tier.id || currentPlan === tier.id}
                 className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:opacity-60 ${
                   tier.highlight

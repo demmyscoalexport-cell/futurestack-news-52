@@ -68,7 +68,7 @@ export function NewComparisonEmail({
 
             <Section style={{ textAlign: "center" }}>
               <Button
-                href={`https://futurestack.news/compare/${slugs}`}
+                href={`https://getdiscova.com/compare/${slugs}`}
                 style={{
                   background: "#fbbf24",
                   color: "#1e293b",

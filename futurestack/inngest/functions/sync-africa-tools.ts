@@ -74,16 +74,30 @@ Rules:
 - Set hasFree=true if there's any free tier
 - Return [] if no clear tool is mentioned`;
 
+interface InsertableTool {
+  name: string;
+  slug?: string;
+  tagline: string;
+  description: string;
+  websiteUrl?: string;
+  logoUrl?: string;
+  category: string;
+  pricingModel?: string;
+  hasFree?: boolean;
+  tags?: string[];
+  africaFriendly?: boolean;
+}
+
 async function insertTool(
-  tool: AfricaTool | DiscoveredTool,
+  tool: InsertableTool,
   status: "active" | "pending_review",
   logger: { info: (m: string) => void; error: (m: string) => void },
 ): Promise<boolean> {
   try {
-    const slug = "slug" in tool ? tool.slug : toSlug(tool.name);
-    const website = "websiteUrl" in tool ? tool.websiteUrl : "";
-    const logo = "logoUrl" in tool && (tool as AfricaTool).logoUrl
-      ? (tool as AfricaTool).logoUrl
+    const slug = tool.slug || toSlug(tool.name);
+    const website = tool.websiteUrl ?? "";
+    const logo = tool.logoUrl
+      ? tool.logoUrl
       : `https://logo.clearbit.com/${website.replace(/https?:\/\//, "").split("/")[0]}`;
 
     await db.query(

@@ -1,4 +1,15 @@
 import { db } from "@/lib/db";
+import type { Article } from "@/lib/types";
+import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import {
+  isSupabaseConfigured,
+  supabaseGetArticleBySlug,
+  supabaseGetPublishedArticles,
+} from "@/lib/queries/supabase-read";
+
+function useSupabaseRest(): boolean {
+  return !isPostgresConfigured() && isSupabaseConfigured();
+}
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch((e) => {
@@ -28,7 +39,7 @@ function mapArticle(row: any): any {
     // GNews source attribution fields
     source_name: row.source_name || null,
     source_url: row.source_url || null,
-  } as Article;
+  } as unknown as Article;
 }
 
 export async function getPublishedArticles({
@@ -42,6 +53,9 @@ export async function getPublishedArticles({
   limit?: number;
   offset?: number;
 } = {}) {
+  if (useSupabaseRest()) {
+    return safe(async () => supabaseGetPublishedArticles({ limit, offset }), []);
+  }
   return safe(async () => {
     const where = [`a.status = 'published'`];
     const params: unknown[] = [];
@@ -68,6 +82,9 @@ export async function getPublishedArticles({
 }
 
 export async function getFeaturedArticles(limit = 4) {
+  if (useSupabaseRest()) {
+    return safe(async () => supabaseGetPublishedArticles({ limit, featured: true }), []);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
@@ -84,6 +101,9 @@ export async function getFeaturedArticles(limit = 4) {
 }
 
 export async function getArticleBySlug(slug: string) {
+  if (useSupabaseRest()) {
+    return safe(async () => supabaseGetArticleBySlug(slug), null);
+  }
   return safe(async () => {
     const { rows } = await db.query(
       `SELECT a.*, c.slug AS category_slug, c.name AS category_name,

@@ -8,6 +8,7 @@
  */
 import { NextResponse } from "next/server";
 import { db, DB_SOURCE } from "@/lib/db";
+import { getProductHuntToken } from "@/lib/producthunt";
 import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export async function GET() {
   };
 
   checks.producthunt = {
-    configured: Boolean(process.env.PRODUCTHUNT_API_TOKEN),
+    configured: Boolean(getProductHuntToken()),
   };
 
   // ── AI / Image generation ───────────────────────────────────────────────────

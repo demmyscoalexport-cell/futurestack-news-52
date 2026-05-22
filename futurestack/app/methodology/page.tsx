@@ -105,7 +105,7 @@ const faqs = [
   },
   {
     q: "Can I dispute my tool's score?",
-    a: "Yes — email us at scores@futurestack.live with evidence of incorrect data. We audit all score disputes within 5 business days.",
+    a: "Yes — email us at scores@getdiscova.com with evidence of incorrect data. We audit all score disputes within 5 business days.",
   },
 ];
 

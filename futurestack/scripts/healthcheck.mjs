@@ -66,8 +66,8 @@ async function post(path, body) {
 // ── 1. Environment secrets ────────────────────────────────────────────────────
 section("Environment secrets");
 
+const dbUrl = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL;
 const required = [
-  "DATABASE_URL",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "WAVESPEED_API_KEY",
@@ -78,6 +78,7 @@ const optional = ["INNGEST_SIGNING_KEY", "STRIPE_SECRET_KEY"];
 for (const key of required) {
   process.env[key] ? pass(key) : fail(`${key} — MISSING (required)`);
 }
+dbUrl ? pass("SUPABASE_DB_URL or DATABASE_URL") : fail("SUPABASE_DB_URL / DATABASE_URL — MISSING (required for PG checks)");
 for (const key of optional) {
   process.env[key] ? pass(`${key} (optional)`) : console.log("  ⚠️ ", `${key} — not set (optional)`);
 }
@@ -85,11 +86,16 @@ for (const key of optional) {
 // ── 2. Database ───────────────────────────────────────────────────────────────
 section("PostgreSQL database");
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = dbUrl
+  ? new Pool({
+      connectionString: dbUrl,
+      ssl: dbUrl.includes("supabase") ? { rejectUnauthorized: false } : false,
+    })
+  : null;
 
 const DB_MINIMUMS = {
   "tools (active)":    { sql: "SELECT COUNT(*) FROM tools WHERE status='active'", min: 50 },
-  "tools with logos":  { sql: "SELECT COUNT(*) FROM tools WHERE logo IS NOT NULL AND logo != '' AND status='active'", min: 50 },
+  "tools with logos":  { sql: "SELECT COUNT(*) FROM tools WHERE logo_url IS NOT NULL AND logo_url != '' AND status='active'", min: 50 },
   "articles":          { sql: "SELECT COUNT(*) FROM articles", min: 5 },
   "stacks":            { sql: "SELECT COUNT(*) FROM stacks", min: 5 },
   "tool_pricing rows": { sql: "SELECT COUNT(*) FROM tool_pricing", min: 50 },
@@ -99,16 +105,20 @@ const DB_MINIMUMS = {
 };
 
 try {
-  for (const [label, { sql, min }] of Object.entries(DB_MINIMUMS)) {
-    const { rows } = await pool.query(sql);
-    const n = parseInt(rows[0].count);
-    n >= min ? pass(`${label}: ${n}`) : fail(`${label}: ${n} (expected ≥ ${min})`);
+  if (!pool) {
+    fail("PostgreSQL — skipped (set SUPABASE_DB_URL for direct PG checks)");
+  } else {
+    for (const [label, { sql, min }] of Object.entries(DB_MINIMUMS)) {
+      const { rows } = await pool.query(sql);
+      const n = parseInt(rows[0].count);
+      n >= min ? pass(`${label}: ${n}`) : fail(`${label}: ${n} (expected ≥ ${min})`);
+    }
+    await pool.end();
   }
 } catch (e) {
   fail(`Database connection failed: ${e.message}`);
+  if (pool) await pool.end().catch(() => {});
 }
-
-await pool.end();
 
 // ── 3. Pages (GET 200) ────────────────────────────────────────────────────────
 section("Pages");
@@ -157,18 +167,37 @@ for (const check of API_CHECKS) {
 // ── 5. Logo coverage ──────────────────────────────────────────────────────────
 section("Logo coverage");
 
-const logoPool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-try {
-  const { rows } = await logoPool.query(
-    `SELECT name, slug FROM tools WHERE (logo IS NULL OR logo = '') AND status = 'active' ORDER BY name`
-  );
-  rows.length === 0
-    ? pass("All active tools have logos")
-    : rows.forEach((t) => fail(`${t.name} (${t.slug}) has no logo`));
-} catch (e) {
-  fail(`Logo check failed: ${e.message}`);
+if (pool) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT name, slug FROM tools WHERE (logo_url IS NULL OR logo_url = '') AND status = 'active' ORDER BY name LIMIT 20`,
+    );
+    rows.length === 0
+      ? pass("All active tools have logos")
+      : rows.forEach((t) => fail(`${t.name} (${t.slug}) has no logo`));
+  } catch (e) {
+    fail(`Logo check failed: ${e.message}`);
+  }
+  await pool.end().catch(() => {});
+} else {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/tools?select=name,slug,logo_url&status=eq.active&or=(logo_url.is.null,logo_url.eq.)&limit=20`,
+      {
+        headers: {
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      },
+    );
+    const rows = await res.json();
+    if (!res.ok) fail(`Logo REST check failed: ${res.status}`);
+    else if (!Array.isArray(rows) || rows.length === 0) pass("All active tools have logos (REST sample)");
+    else rows.forEach((t) => fail(`${t.name} (${t.slug}) has no logo`));
+  } catch (e) {
+    fail(`Logo check failed: ${e.message}`);
+  }
 }
-await logoPool.end();
 
 // ── Summary ───────────────────────────────────────────────────────────────────
 console.log("\n" + "═".repeat(55));

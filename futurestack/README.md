@@ -2,7 +2,7 @@
 
 AI-powered SaaS & AI tool discovery platform. Find, compare, and build stacks of the best tools for your role — built Africa-first, used globally.
 
-**Live:** https://discova.africa &nbsp;|&nbsp; **Stack:** Next.js 16 · Supabase · Tailwind · Framer Motion · Inngest
+**Live:** https://getdiscova.com &nbsp;|&nbsp; **Stack:** Next.js 16 · Supabase · Tailwind · Framer Motion · Inngest
 
 ---
 

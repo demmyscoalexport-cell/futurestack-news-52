@@ -6,6 +6,15 @@
 
 const PH_API = "https://api.producthunt.com/v2/api/graphql";
 
+/** Resolve PH API token from env (supports legacy variable names). */
+export function getProductHuntToken(): string | undefined {
+  return (
+    process.env.PRODUCTHUNT_API_TOKEN ||
+    process.env.PRODUCTHUNT_DEVELOPER_TOKEN ||
+    process.env.PRODUCTHUNT_ACCESS_TOKEN
+  );
+}
+
 export interface PHPost {
   id: string;
   name: string;
@@ -52,8 +61,12 @@ async function phQuery<T>(
   query: string,
   variables: Record<string, unknown>,
 ): Promise<T> {
-  const token = process.env.PRODUCTHUNT_API_TOKEN;
-  if (!token) throw new Error("PRODUCTHUNT_API_TOKEN is not set");
+  const token = getProductHuntToken();
+  if (!token) {
+    throw new Error(
+      "Product Hunt token is not set (PRODUCTHUNT_API_TOKEN, PRODUCTHUNT_DEVELOPER_TOKEN, or PRODUCTHUNT_ACCESS_TOKEN)",
+    );
+  }
 
   const res = await fetch(PH_API, {
     method: "POST",
@@ -212,6 +225,17 @@ export function votesToRating(votes: number): number {
   if (votes >= 200) return 7.5;
   if (votes >= 100) return 7.0;
   return 6.5;
+}
+
+/** Live tools.rating column is 0–5 — map PH votes to that scale */
+export function votesToCatalogRating(votes: number): number {
+  if (votes >= 2000) return 5.0;
+  if (votes >= 1000) return 4.8;
+  if (votes >= 500) return 4.5;
+  if (votes >= 200) return 4.2;
+  if (votes >= 100) return 4.0;
+  if (votes >= 50) return 3.8;
+  return 3.5;
 }
 
 /** Build a slug from the tool name */

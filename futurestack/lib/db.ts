@@ -15,6 +15,21 @@ const connectionString =
   (process.env.SUPABASE_DB_URL?.startsWith("postgresql://") ? process.env.SUPABASE_DB_URL : undefined) ||
   process.env.DATABASE_URL;
 
+function resolveDbSource(url: string | undefined): "supabase" | "local" | "unconfigured" {
+  if (!url) return "unconfigured";
+  if (url.includes("supabase.com") || url.includes("supabase.co")) return "supabase";
+  if (url.includes("localhost") || url.includes("127.0.0.1")) return "local";
+  return "local";
+}
+
+const dbSource = resolveDbSource(connectionString);
+if (dbSource === "unconfigured") {
+  console.warn("[db] no SUPABASE_DB_URL or DATABASE_URL — Postgres pool unavailable");
+} else {
+  const host = connectionString?.match(/@([^:/]+)/)?.[1] ?? "unknown";
+  console.log(`[db] pool → ${dbSource} (${host})`);
+}
+
 function buildSsl(url: string | undefined): false | { rejectUnauthorized: boolean } {
   if (!url) return false;
   if (url.includes("supabase.com") || url.includes("supabase.co")) {
@@ -37,4 +52,4 @@ export const db =
 if (process.env.NODE_ENV !== "production") globalForPg._pgPool = db;
 
 /** Current DB source — useful for health checks and admin display */
-export const DB_SOURCE = connectionString?.includes("supabase") ? "supabase" : "replit-pg";
+export const DB_SOURCE = dbSource;

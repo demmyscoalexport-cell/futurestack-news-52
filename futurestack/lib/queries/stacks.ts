@@ -1,6 +1,17 @@
 import { db } from "@/lib/db";
 import { resolveToolLogo } from "@/lib/logo-resolver";
+import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import {
+  isSupabaseConfigured,
+  supabaseGetStackById,
+  supabaseGetStackBySlug,
+  supabaseGetStacks,
+} from "@/lib/queries/supabase-read";
 import type { Stack } from "@/lib/types";
+
+function useSupabaseRest(): boolean {
+  return !isPostgresConfigured() && isSupabaseConfigured();
+}
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch((e) => {
@@ -66,6 +77,12 @@ export async function getPublicStacks({
   limit?: number;
   offset?: number;
 } = {}) {
+  if (useSupabaseRest()) {
+    return safe(async () => {
+      const rows = await supabaseGetStacks({ featured, limit, offset });
+      return rows.map(mapStack);
+    }, []);
+  }
   return safe(async () => {
     const where: string[] = [];
     const params: unknown[] = [];
@@ -89,6 +106,12 @@ export async function getFeaturedStacks(limit = 3) {
 }
 
 export async function getStackBySlug(slug: string) {
+  if (useSupabaseRest()) {
+    return safe(async () => {
+      const row = await supabaseGetStackBySlug(slug);
+      return row ? mapStack(row) : null;
+    }, null);
+  }
   return safe(async () => {
     const { rows } = await db.query(`SELECT * FROM stacks WHERE slug = $1`, [slug]);
     if (!rows[0]) return null;
@@ -98,6 +121,12 @@ export async function getStackBySlug(slug: string) {
 }
 
 export async function getStackById(id: string) {
+  if (useSupabaseRest()) {
+    return safe(async () => {
+      const row = await supabaseGetStackById(id);
+      return row ? mapStack(row) : null;
+    }, null);
+  }
   return safe(async () => {
     const { rows } = await db.query(`SELECT * FROM stacks WHERE id = $1`, [id]);
     if (!rows[0]) return null;

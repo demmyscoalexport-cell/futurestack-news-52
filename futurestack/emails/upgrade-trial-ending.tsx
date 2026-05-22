@@ -53,7 +53,7 @@ export function UpgradeTrialEndingEmail() {
               radar analytics, and our advanced comparison matrices.
             </Text>
             <Button
-              href="https://futurestack.news/pricing"
+              href="https://getdiscova.com/pricing"
               style={{
                 background: "#4f46e5",
                 color: "white",

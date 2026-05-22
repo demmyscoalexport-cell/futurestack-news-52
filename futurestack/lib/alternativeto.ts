@@ -84,7 +84,7 @@ export interface ATTool {
   platforms: string[];
   category: ATCategory;
   sourceUrl: string;       // the AT detail page
-  affiliateLink: string;   // https://discova.com/redirect?tool=...&affid=discova
+  affiliateLink: string;   // https://getdiscova.com/redirect?tool=...&affid=discova
 }
 
 export interface ATNewsItem {
@@ -167,7 +167,7 @@ function slugify(text: string): string {
 /** Build the DISCOVA affiliate redirect link for a tool */
 export function buildAffiliateLink(toolName: string, affId = "discova"): string {
   const slug = slugify(toolName);
-  return `https://discova.com/redirect?tool=${encodeURIComponent(slug)}&affid=${encodeURIComponent(affId)}`;
+  return `https://getdiscova.com/redirect?tool=${encodeURIComponent(slug)}&affid=${encodeURIComponent(affId)}`;
 }
 
 /** Internal tracking URL used by the redirect API */

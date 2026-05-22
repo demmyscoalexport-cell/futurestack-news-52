@@ -48,13 +48,15 @@ export async function getExistingArticleSlugs(slugs: string[]): Promise<Set<stri
 export async function getExistingSourceUrls(urls: string[]): Promise<Set<string>> {
   if (!urls.length) return new Set();
   const supabase = client();
-  // source_url might not exist on all schemas — handle gracefully
-  const { data } = await supabase
-    .from("articles")
-    .select("slug")
-    .in("slug", urls.map(u => u.slice(-80)))
-    .catch(() => ({ data: null }));
-  return new Set((data ?? []).map((r: { slug: string }) => r.slug));
+  try {
+    const { data } = await supabase
+      .from("articles")
+      .select("slug")
+      .in("slug", urls.map((u) => u.slice(-80)));
+    return new Set((data ?? []).map((r: { slug: string }) => r.slug));
+  } catch {
+    return new Set();
+  }
 }
 
 /** Get recent article titles for deduplication */
@@ -119,19 +121,20 @@ export async function upsertArticle(input: ArticleInput): Promise<string | null>
 }
 
 interface ToolInput {
-  name:              string;
-  slug:              string;
-  short_description: string;
-  description:       string;
-  logo?:             string | null;
-  website?:          string | null;
-  category?:         string | null;
-  has_free?:         boolean;
-  africa_friendly?:  boolean;
-  rating?:           number;
-  review_count?:     number;
-  tags?:             string[];
-  featured?:         boolean;
+  name: string;
+  slug: string;
+  tagline?: string;
+  short_description?: string;
+  description: string;
+  logo?: string | null;
+  website?: string | null;
+  category?: string | null;
+  has_free?: boolean;
+  africa_friendly?: boolean;
+  rating?: number;
+  review_count?: number;
+  tags?: string[];
+  featured?: boolean;
 }
 
 /** Upsert a tool to Supabase (returns the saved tool id) */
@@ -139,21 +142,23 @@ export async function upsertTool(input: ToolInput): Promise<string | null> {
   const supabase = client();
 
   const payload: Record<string, unknown> = {
-    name:              input.name,
-    slug:              input.slug,
-    short_description: input.short_description,
-    description:       input.description,
-    logo:              input.logo ?? null,
-    website:           input.website ?? null,
-    category:          input.category ?? "other",
-    has_free:          input.has_free ?? false,
-    africa_friendly:   input.africa_friendly ?? false,
-    rating:            input.rating ?? 0,
-    review_count:      input.review_count ?? 0,
-    tags:              input.tags ?? [],
-    featured:          input.featured ?? false,
-    last_updated:      new Date().toISOString(),
-    created_at:        new Date().toISOString(),
+    name: input.name,
+    slug: input.slug,
+    tagline: input.tagline ?? input.short_description ?? "",
+    description: input.description,
+    logo_url: input.logo ?? null,
+    website_url: input.website ?? null,
+    category: input.category ?? "productivity",
+    pricing_model: input.has_free ? "freemium" : "paid",
+    pricing_details: [],
+    africa_friendly: input.africa_friendly ?? false,
+    rating: input.rating ?? 0,
+    review_count: input.review_count ?? 0,
+    tags: input.tags ?? [],
+    is_featured: input.featured ?? false,
+    status: "active",
+    last_updated: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
   const { data, error } = await supabase

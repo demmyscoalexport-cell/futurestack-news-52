@@ -1,4 +1,5 @@
 import { getTools, getToolCategories } from "@/lib/queries/tools";
+import type { Tool } from "@/lib/types";
 import {
   tools as fallbackTools,
   toolCategories as fallbackCategories,
@@ -19,7 +20,7 @@ export default async function StackBuilderPage() {
 
   return (
     <StackBuilderContent
-      initialTools={tools.length ? tools : fallbackTools}
+      initialTools={(tools.length ? tools : fallbackTools) as Tool[]}
       initialCategories={categories.length ? categories : fallbackCategories}
     />
   );

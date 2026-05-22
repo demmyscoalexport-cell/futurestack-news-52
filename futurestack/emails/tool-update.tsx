@@ -86,7 +86,7 @@ export function ToolUpdateEmail({
 
             <Section style={{ textAlign: "center" }}>
               <Button
-                href={`https://futurestack.news/tools/${slug}`}
+                href={`https://getdiscova.com/tools/${slug}`}
                 style={{
                   background: "#4f46e5",
                   color: "white",

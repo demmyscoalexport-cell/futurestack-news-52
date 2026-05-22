@@ -158,7 +158,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
     name: tool.name,
     operatingSystem: "Web, Platform",
     applicationCategory: "BusinessApplication",
-    url: `https://futurestack.news/tools/${tool.slug}`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com"}/tools/${tool.slug}`,
     aggregateRating: tool.reviews?.length
       ? {
           "@type": "AggregateRating",
