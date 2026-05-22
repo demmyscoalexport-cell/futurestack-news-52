@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getContentfulNews, getContentfulTools } from "@/lib/contentful/service";
-import { getContentfulContentTypeIds } from "@/lib/contentful/client";
+import { getResolvedContentTypes } from "@/lib/contentful/content-types";
 import { db } from "@/lib/db";
 
 /**
@@ -131,15 +131,14 @@ async function syncToolsToDb(
 
 export async function GET() {
   try {
-    const contentTypeIds = await getContentfulContentTypeIds();
-    const hasToolType = contentTypeIds.includes("tool");
-    const hasNewsType = contentTypeIds.includes("newsArticle");
+    const { available, tool: toolType, news: newsType } =
+      await getResolvedContentTypes();
 
     const [tools, news] = await Promise.all([
-      hasToolType
+      toolType
         ? getContentfulTools({ status: "published", limit: 10 })
         : Promise.resolve([]),
-      hasNewsType
+      newsType
         ? getContentfulNews({ status: "published", limit: 10 })
         : Promise.resolve([]),
     ]);
@@ -151,7 +150,8 @@ export async function GET() {
       newsCount: news.length,
       sampleToolSlugs: tools.slice(0, 3).map((t) => t.slug),
       sampleNewsSlugs: news.slice(0, 3).map((a) => a.slug),
-      availableContentTypes: contentTypeIds,
+      resolvedContentTypes: { tool: toolType, news: newsType },
+      availableContentTypes: available,
     });
   } catch (error) {
     return NextResponse.json(
@@ -182,30 +182,40 @@ export async function POST(req: Request) {
     const syncTools = body.syncTools !== false;
     const limit = body.limit ?? 50;
 
-    const contentTypeIds = await getContentfulContentTypeIds();
+    const { available, tool: toolType, news: newsType } =
+      await getResolvedContentTypes();
     const results: Record<string, unknown> = {};
 
-    if (syncNews && contentTypeIds.includes("newsArticle")) {
+    if (syncNews && newsType) {
       const articles = await getContentfulNews({ status: "published", limit });
       results.articles = await syncArticlesToDb(articles);
       (results.articles as Record<string, unknown>).total = articles.length;
+      (results.articles as Record<string, unknown>).contentType = newsType;
     } else if (syncNews) {
-      results.articles = { skipped: true, reason: "newsArticle content type not found in Contentful" };
+      results.articles = {
+        skipped: true,
+        reason: "newsArticle/newsArticle-2 content type not found in Contentful",
+      };
     }
 
-    if (syncTools && contentTypeIds.includes("tool")) {
+    if (syncTools && toolType) {
       const tools = await getContentfulTools({ status: "published", limit });
       results.tools = await syncToolsToDb(tools);
       (results.tools as Record<string, unknown>).total = tools.length;
+      (results.tools as Record<string, unknown>).contentType = toolType;
     } else if (syncTools) {
-      results.tools = { skipped: true, reason: "tool content type not found in Contentful" };
+      results.tools = {
+        skipped: true,
+        reason: "tool/tool-2 content type not found in Contentful",
+      };
     }
 
     return NextResponse.json({
       ok: true,
       message: "Contentful → Database sync complete",
       results,
-      availableContentTypes: contentTypeIds,
+      resolvedContentTypes: { tool: toolType, news: newsType },
+      availableContentTypes: available,
     });
   } catch (error) {
     return NextResponse.json(

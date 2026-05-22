@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fetchContentfulEntryById } from "@/lib/contentful/client";
+import {
+  isNewsContentType,
+  isToolContentType,
+} from "@/lib/contentful/content-types";
 
 function isAuthorized(req: Request) {
   const expected = process.env.CONTENTFUL_WEBHOOK_SECRET;
@@ -261,7 +265,7 @@ async function archiveOrDeleteBySlug(
     );
   }
 
-  if (contentType === "tool") {
+  if (isToolContentType(contentType)) {
     if (isDelete) {
       await db.query(`DELETE FROM tools WHERE slug = $1`, [slug]);
       return { table: "tools", slug, action: "deleted" };
@@ -270,7 +274,7 @@ async function archiveOrDeleteBySlug(
     return { table: "tools", slug, action: "archived" };
   }
 
-  if (contentType === "newsArticle") {
+  if (isNewsContentType(contentType)) {
     if (isDelete) {
       await db.query(`DELETE FROM articles WHERE slug = $1`, [slug]);
       return { table: "articles", slug, action: "deleted" };
@@ -315,9 +319,9 @@ export async function POST(req: Request) {
     } else if (action === "unpublish") {
       result = await archiveOrDeleteBySlug(contentType, slug, false);
     } else if (action === "publish") {
-      if (contentType === "tool") {
+      if (isToolContentType(contentType)) {
         result = await upsertTool(fields ?? {}, true);
-      } else if (contentType === "newsArticle") {
+      } else if (isNewsContentType(contentType)) {
         result = await upsertArticle(fields ?? {}, true);
       } else {
         result = {

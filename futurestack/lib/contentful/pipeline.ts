@@ -1,4 +1,5 @@
 import { upsertEntryBySlug } from "@/lib/contentful/management";
+import { getResolvedContentTypes } from "@/lib/contentful/content-types";
 
 type AnyObject = Record<string, unknown>;
 
@@ -111,7 +112,7 @@ function validateNews(item: ReturnType<typeof normalizeNews>) {
 }
 
 async function runUpserts(
-  contentType: "tool" | "newsArticle",
+  contentType: string,
   normalizedItems: AnyObject[],
   options: { dryRun: boolean; publish: boolean },
 ) {
@@ -176,6 +177,11 @@ export async function runToolPipeline(
 ): Promise<PipelineResult> {
   const dryRun = options.dryRun ?? true;
   const publish = options.publish ?? !dryRun;
+  const { tool: contentType } = await getResolvedContentTypes();
+  if (!contentType) {
+    throw new Error("tool/tool-2 content type not found in Contentful");
+  }
+
   const normalized = options.items.map(normalizeTool);
 
   const validItems: AnyObject[] = [];
@@ -185,7 +191,7 @@ export async function runToolPipeline(
     if (errors.length > 0) {
       results.push({
         ok: false,
-        contentType: "tool",
+        contentType,
         slug: item.slug,
         errors,
       });
@@ -194,12 +200,12 @@ export async function runToolPipeline(
     validItems.push(item);
   }
 
-  const upsertResults = await runUpserts("tool", validItems, {
+  const upsertResults = await runUpserts(contentType, validItems, {
     dryRun,
     publish,
   });
   return summarize(
-    "tool",
+    contentType,
     options.items.length,
     normalized.length,
     validItems.length,
@@ -214,6 +220,11 @@ export async function runNewsPipeline(
 ): Promise<PipelineResult> {
   const dryRun = options.dryRun ?? true;
   const publish = options.publish ?? !dryRun;
+  const { news: contentType } = await getResolvedContentTypes();
+  if (!contentType) {
+    throw new Error("newsArticle/newsArticle-2 content type not found in Contentful");
+  }
+
   const normalized = options.items.map(normalizeNews);
 
   const validItems: AnyObject[] = [];
@@ -223,7 +234,7 @@ export async function runNewsPipeline(
     if (errors.length > 0) {
       results.push({
         ok: false,
-        contentType: "newsArticle",
+        contentType,
         slug: item.slug,
         errors,
       });
@@ -232,12 +243,12 @@ export async function runNewsPipeline(
     validItems.push(item);
   }
 
-  const upsertResults = await runUpserts("newsArticle", validItems, {
+  const upsertResults = await runUpserts(contentType, validItems, {
     dryRun,
     publish,
   });
   return summarize(
-    "newsArticle",
+    contentType,
     options.items.length,
     normalized.length,
     validItems.length,
