@@ -8,6 +8,14 @@ import { getEnv } from "@/lib/env";
 const PROTECTED_ROUTES = ["/dashboard", "/admin", "/account"];
 
 export async function proxy(request: NextRequest) {
+  const host = request.headers.get("host") ?? "";
+  if (host === "www.getdiscova.com") {
+    const apex = new URL(request.url);
+    apex.host = "getdiscova.com";
+    apex.protocol = "https:";
+    return NextResponse.redirect(apex, 308);
+  }
+
   const supabaseUrl = getEnv("NEXT_PUBLIC_SUPABASE_URL");
   const supabaseKey = getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
