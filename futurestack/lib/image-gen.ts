@@ -3,12 +3,13 @@
  * Import this directly in API routes — do NOT call /api/generate-image via HTTP.
  */
 import crypto from "crypto";
+import { getEnv } from "@/lib/env";
 
-const WAVESPEED_API_KEY = process.env.WAVESPEED_API_KEY;
+const WAVESPEED_API_KEY = getEnv("WAVESPEED_API_KEY");
 const CLOUDINARY_CLOUD_NAME =
-  process.env.CLOUDINARY_CLOUD_NAME ?? process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_API_KEY_VAL = process.env.CLOUDINARY_API_KEY;
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+  getEnv("CLOUDINARY_CLOUD_NAME") ?? getEnv("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME");
+const CLOUDINARY_API_KEY_VAL = getEnv("CLOUDINARY_API_KEY");
+const CLOUDINARY_API_SECRET = getEnv("CLOUDINARY_API_SECRET");
 
 /** Submit a WaveSpeed flux-schnell job and return the polling URL */
 async function submitWaveSpeedJob(prompt: string): Promise<string | null> {

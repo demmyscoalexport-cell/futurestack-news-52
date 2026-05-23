@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { config } from "@/lib/config";
+import { cleanEnv } from "@/lib/env";
 
 export function createAdminClient() {
-  const url = config.supabase.url;
-  const key = config.supabase.serviceRoleKey;
+  const url = cleanEnv(config.supabase.url);
+  const key = cleanEnv(config.supabase.serviceRoleKey);
 
   if (!url) {
     throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");

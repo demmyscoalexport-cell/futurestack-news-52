@@ -1,8 +1,8 @@
 /**
  * Typed, validated environment configuration.
  * Import `config` instead of `process.env` throughout the app.
- * Required vars throw at module-load time so missing keys surface immediately.
  */
+import { cleanEnv } from "@/lib/env";
 
 function required(key: string): string {
   const value = process.env[key];
@@ -15,7 +15,7 @@ function required(key: string): string {
   return value;
 }
 
-const optional = (key: string, fallback = "") => process.env[key] ?? fallback;
+const optional = (key: string, fallback = "") => cleanEnv(process.env[key]) ?? fallback;
 
 export const config = {
   /** Supabase — optional; auth routes degrade gracefully without it */

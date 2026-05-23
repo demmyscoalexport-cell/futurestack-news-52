@@ -7,8 +7,8 @@ import {
   useState,
   useCallback,
 } from "react";
-import type { User, Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface AuthContextValue {
   user: User | null;
@@ -25,12 +25,23 @@ const AuthContext = createContext<AuthContextValue>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const [supabase] = useState<SupabaseClient | null>(() => {
+    if (!isSupabaseConfigured()) return null;
+    try {
+      return createClient();
+    } catch {
+      return null;
+    }
+  });
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) {
+      setIsLoading(false);
+      return;
+    }
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -51,9 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const signOut = useCallback(async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";
-  }, [supabase.auth]);
+  }, [supabase]);
 
   return (
     <AuthContext.Provider value={{ user, session, isLoading, signOut }}>

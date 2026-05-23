@@ -2,16 +2,19 @@ import { inngest } from "../client";
 import { Resend } from "resend";
 import { getActiveSubscribers } from "@/lib/supabase-writer";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getEnv } from "@/lib/env";
 import webpush from "web-push";
 
-const resend = new Resend(process.env.RESEND_API_KEY || "re_mock_key");
+function getResend() {
+  const key = getEnv("RESEND_API_KEY");
+  if (!key) return null;
+  return new Resend(key);
+}
 
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    "mailto:hello@getdiscova.com",
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY,
-  );
+const vapidPublic = getEnv("VAPID_PUBLIC_KEY");
+const vapidPrivate = getEnv("VAPID_PRIVATE_KEY");
+if (vapidPublic && vapidPrivate) {
+  webpush.setVapidDetails("mailto:hello@getdiscova.com", vapidPublic, vapidPrivate);
 }
 
 export const notifyOnPublish = inngest.createFunction(
@@ -31,16 +34,17 @@ export const notifyOnPublish = inngest.createFunction(
 
     // Step 1: Email subscribers (reads from Supabase)
     const emailResult = await step.run("send-email-notifications", async () => {
+      const resend = getResend();
       const subscribers = await getActiveSubscribers();
-      if (subscribers.length === 0 || !process.env.RESEND_API_KEY) {
-        return { notified: 0, skipped: !process.env.RESEND_API_KEY ? "no_resend_key" : "no_subscribers" };
+      if (subscribers.length === 0 || !resend) {
+        return { notified: 0, skipped: !resend ? "no_resend_key" : "no_subscribers" };
       }
 
       for (let i = 0; i < subscribers.length; i += 100) {
         const batch = subscribers.slice(i, i + 100);
         await resend.batch.send(
           batch.map((sub) => ({
-            from: process.env.RESEND_FROM_EMAIL || "DISCOVA <digest@getdiscova.com>",
+            from: getEnv("RESEND_FROM_EMAIL", "DISCOVA <digest@getdiscova.com>"),
             to:   sub.email,
             subject: `New on DISCOVA: ${article.title}`,
             html: `
@@ -62,7 +66,7 @@ export const notifyOnPublish = inngest.createFunction(
 
     // Step 2: Web push notifications
     const pushResult = await step.run("send-push-notifications", async () => {
-      if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      if (!vapidPublic || !vapidPrivate) {
         return { sent: 0, skipped: "no_vapid_keys" };
       }
 

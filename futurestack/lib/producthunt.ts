@@ -3,15 +3,16 @@
  * GraphQL endpoint: https://api.producthunt.com/v2/api/graphql
  * Auth: Bearer token (Developer Token from PH dashboard)
  */
+import { getEnv } from "@/lib/env";
 
 const PH_API = "https://api.producthunt.com/v2/api/graphql";
 
 /** Resolve PH API token from env (supports legacy variable names). */
 export function getProductHuntToken(): string | undefined {
   return (
-    process.env.PRODUCTHUNT_API_TOKEN ||
-    process.env.PRODUCTHUNT_DEVELOPER_TOKEN ||
-    process.env.PRODUCTHUNT_ACCESS_TOKEN
+    getEnv("PRODUCTHUNT_API_TOKEN") ||
+    getEnv("PRODUCTHUNT_DEVELOPER_TOKEN") ||
+    getEnv("PRODUCTHUNT_ACCESS_TOKEN")
   );
 }
 
