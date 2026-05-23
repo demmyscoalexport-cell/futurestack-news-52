@@ -146,7 +146,7 @@ export async function upsertTool(input: ToolInput): Promise<string | null> {
     slug: input.slug,
     tagline: input.tagline ?? input.short_description ?? "",
     description: input.description,
-    logo_url: input.logo ?? null,
+    logo: input.logo ?? null,
     website_url: input.website ?? null,
     category: input.category ?? "productivity",
     pricing_model: input.has_free ? "freemium" : "paid",

@@ -1,15 +1,10 @@
 import { db } from "@/lib/db";
 import type { Article } from "@/lib/types";
-import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import { useSupabaseRest } from "@/lib/static-db-fallback";
 import {
-  isSupabaseConfigured,
   supabaseGetArticleBySlug,
   supabaseGetPublishedArticles,
 } from "@/lib/queries/supabase-read";
-
-function useSupabaseRest(): boolean {
-  return !isPostgresConfigured() && isSupabaseConfigured();
-}
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch((e) => {

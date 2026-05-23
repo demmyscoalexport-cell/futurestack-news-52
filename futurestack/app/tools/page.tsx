@@ -2,6 +2,7 @@ import type { Tool } from "@/lib/types";
 import { getTools, getCategoriesWithSubcategories } from "@/lib/queries/tools";
 import { ToolsContent } from "./tools-content";
 import { resolveToolLogo } from "@/lib/logo-resolver";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Tools & Apps Directory | DISCOVA",
@@ -11,7 +12,7 @@ export const metadata = {
 
 export default async function ToolsPage() {
   const [rawTools, categories] = await Promise.all([
-    getTools({ limit: 500 }),
+    getTools({ limit: 1000 }),
     getCategoriesWithSubcategories(),
   ]);
 
@@ -25,9 +26,11 @@ export default async function ToolsPage() {
   })) as Tool[];
 
   return (
-    <ToolsContent
-      initialTools={tools}
-      initialCategories={categories as Parameters<typeof ToolsContent>[0]["initialCategories"]}
-    />
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <ToolsContent
+        initialTools={tools}
+        initialCategories={categories as Parameters<typeof ToolsContent>[0]["initialCategories"]}
+      />
+    </Suspense>
   );
 }

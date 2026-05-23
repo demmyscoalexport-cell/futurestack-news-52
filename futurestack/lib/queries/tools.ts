@@ -1,9 +1,8 @@
 import { db } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { resolveToolLogo } from "@/lib/logo-resolver";
-import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import { useSupabaseRest } from "@/lib/static-db-fallback";
 import {
-  isSupabaseConfigured,
   supabaseGetCategoriesWithSubcategories,
   supabaseGetFeaturedTools,
   supabaseGetRecentTools,
@@ -12,10 +11,6 @@ import {
   supabaseGetTools,
   supabaseGetTrendingTools,
 } from "@/lib/queries/supabase-read";
-
-function useSupabaseRest(): boolean {
-  return !isPostgresConfigured() && isSupabaseConfigured();
-}
 
 type ToolRow = Record<string, unknown> & { name?: string; logo?: string | null; website?: string; website_url?: string };
 
@@ -260,6 +255,41 @@ export async function getToolCategories() {
     );
     return rows;
   }, []);
+}
+
+export async function getCatalogStats() {
+  if (useSupabaseRest()) {
+    const { getSupabaseAdmin } = await import("@/lib/supabase/db");
+    const supa = getSupabaseAdmin();
+    const [toolsRes, africaRes, stacksRes, categories] = await Promise.all([
+      supa.from("tools").select("id", { count: "exact", head: true }).eq("status", "active"),
+      supa.from("tools").select("id", { count: "exact", head: true }).eq("status", "active").eq("africa_friendly", true),
+      supa.from("stacks").select("id", { count: "exact", head: true }),
+      getToolCategories(),
+    ]);
+    const toolCount = toolsRes.count ?? 0;
+    const africaCount = africaRes.count ?? 0;
+    return {
+      toolCount,
+      categoryCount: categories.length || 16,
+      stackCount: stacksRes.count ?? 0,
+      africaReadyPct: toolCount > 0 ? Math.round((africaCount / toolCount) * 100) : 0,
+    };
+  }
+  return safe(async () => {
+    const { rows: toolRows } = await db.query(`SELECT COUNT(*)::int AS c FROM tools WHERE status = 'active'`);
+    const { rows: africaRows } = await db.query(`SELECT COUNT(*)::int AS c FROM tools WHERE status = 'active' AND africa_friendly = true`);
+    const { rows: stackRows } = await db.query(`SELECT COUNT(*)::int AS c FROM stacks`);
+    const categories = await getToolCategories();
+    const toolCount = toolRows[0]?.c ?? 0;
+    const africaCount = africaRows[0]?.c ?? 0;
+    return {
+      toolCount,
+      categoryCount: categories.length || 16,
+      stackCount: stackRows[0]?.c ?? 0,
+      africaReadyPct: toolCount > 0 ? Math.round((africaCount / toolCount) * 100) : 0,
+    };
+  }, { toolCount: 0, categoryCount: 16, stackCount: 0, africaReadyPct: 0 });
 }
 
 export async function searchTools(query: string, filters?: { category?: string; hasFree?: boolean }) {

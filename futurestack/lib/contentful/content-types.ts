@@ -1,7 +1,7 @@
 import { getContentfulContentTypeIds } from "@/lib/contentful/client";
 
 const TOOL_CONTENT_TYPES = ["tool-2", "tool"] as const;
-const NEWS_CONTENT_TYPES = ["newsArticle-2", "newsArticle"] as const;
+const NEWS_CONTENT_TYPES = ["newsArticle-3", "newsArticle-2", "newsArticle"] as const;
 
 export type ToolContentTypeId = (typeof TOOL_CONTENT_TYPES)[number];
 export type NewsContentTypeId = (typeof NEWS_CONTENT_TYPES)[number];

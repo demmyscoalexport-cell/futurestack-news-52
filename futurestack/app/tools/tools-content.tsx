@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -93,6 +94,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 
 export function ToolsContent({ initialTools, initialCategories }: ToolsContentProps) {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
@@ -103,6 +105,16 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
   const [sortBy, setSortBy] = useState<"popular" | "rating" | "newest" | "name">("popular");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  useEffect(() => {
+    const search = searchParams.get("search");
+    const category = searchParams.get("category");
+    if (search) setSearchQuery(search);
+    if (category) {
+      setActiveCategory(category);
+      setExpandedCategories((prev) => new Set(prev).add(category));
+    }
+  }, [searchParams]);
 
   const toggleCategory = (catId: string) => {
     if (activeCategory === catId) {

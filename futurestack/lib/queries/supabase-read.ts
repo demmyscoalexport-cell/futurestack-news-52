@@ -220,7 +220,7 @@ export async function supabaseGetStacks(opts: {
   const { featured, limit = 12, offset = 0 } = opts;
   const supa = getSupabaseAdmin();
   let q = supa.from("stacks").select("*");
-  if (featured) q = q.eq("is_featured", true);
+  if (featured) q = q.eq("featured", true);
   const { data, error } = await q
     .order("clone_count", { ascending: false })
     .range(offset, offset + limit - 1);

@@ -81,11 +81,38 @@ interface HomeClientProps {
   featuredStacks: Stack[];
   toolCategories: { id: string; name: string; count?: number }[];
   recentTools: Tool[];
+  catalogStats?: {
+    toolCount: number;
+    categoryCount: number;
+    stackCount: number;
+    africaReadyPct: number;
+  };
 }
 
-export function HomeClient({ topTools, featuredStacks, toolCategories, recentTools }: HomeClientProps) {
+const HOME_QUICK_CATEGORIES = [
+  { label: "AI Writing", category: "writing" },
+  { label: "Dev Tools", category: "code" },
+  { label: "Automation", category: "automation" },
+  { label: "Design", category: "design" },
+  { label: "Africa Tech", category: "writing" },
+  { label: "Finance", category: "analytics" },
+] as const;
+
+export function HomeClient({ topTools, featuredStacks, toolCategories, recentTools, catalogStats }: HomeClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const stats = catalogStats ?? {
+    toolCount: topTools.length > 0 ? 409 : 400,
+    categoryCount: toolCategories.length || 16,
+    stackCount: featuredStacks.length || 9,
+    africaReadyPct: 95,
+  };
+
+  const goToToolsSearch = () => {
+    const q = searchQuery.trim();
+    window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
+  };
 
   const scrollLeft  = () => scrollRef.current?.scrollBy({ left: -360, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 360, behavior: "smooth" });
@@ -143,18 +170,15 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && searchQuery.trim())
-                        window.location.href = `/tools?search=${encodeURIComponent(searchQuery)}`;
+                      if (e.key === "Enter") goToToolsSearch();
                     }}
                     placeholder={`Try "${exampleSearches[exampleIdx]}"`}
                     className="w-full rounded-xl border border-border/60 bg-secondary/50 pl-11 pr-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 backdrop-blur-sm"
                   />
                 </div>
                 <button
-                  onClick={() => {
-                    if (searchQuery.trim())
-                      window.location.href = `/tools?search=${encodeURIComponent(searchQuery)}`;
-                  }}
+                  type="button"
+                  onClick={goToToolsSearch}
                   className="rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors whitespace-nowrap"
                 >
                   Search
@@ -164,13 +188,13 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
               {/* Quick links */}
               <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
                 <span className="text-xs text-muted-foreground">Explore:</span>
-                {["AI Writing", "Dev Tools", "Automation", "Design", "Africa Tech", "Finance"].map((tag) => (
+                {HOME_QUICK_CATEGORIES.map(({ label, category }) => (
                   <Link
-                    key={tag}
-                    href={`/tools?category=${tag.toLowerCase().replace(" ", "-")}`}
+                    key={label}
+                    href={`/tools?category=${category}`}
                     className="rounded-lg border border-border/40 bg-secondary/30 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-border/70 hover:bg-secondary/60 transition-all"
                   >
-                    {tag}
+                    {label}
                   </Link>
                 ))}
               </div>
@@ -200,10 +224,10 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
           <div className="container mx-auto px-4 lg:px-6 py-5">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-0 lg:divide-x divide-border/30">
               {[
-                { icon: Package,    label: "Tools & Apps",    value: 400,  suffix: "+" },
-                { icon: LayoutGrid, label: "Categories",      value: 16,   suffix: "+" },
-                { icon: Users,      label: "Curated Stacks",  value: featuredStacks.length > 5 ? featuredStacks.length : 20, suffix: "+" },
-                { icon: Globe,      label: "Africa-Ready",    value: 100,  suffix: "%" },
+                { icon: Package,    label: "Tools & Apps",    value: stats.toolCount,  suffix: "+" },
+                { icon: LayoutGrid, label: "Categories",      value: stats.categoryCount, suffix: "+" },
+                { icon: Users,      label: "Curated Stacks",  value: stats.stackCount, suffix: "+" },
+                { icon: Globe,      label: "Africa-Ready",    value: stats.africaReadyPct, suffix: "%" },
               ].map(({ icon: Icon, label, value, suffix }) => (
                 <div key={label} className="flex items-center gap-3 lg:px-8 first:lg:pl-0 last:lg:pr-0">
                   <div className="h-9 w-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">

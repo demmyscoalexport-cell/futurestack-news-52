@@ -1,17 +1,12 @@
 import { db } from "@/lib/db";
 import { resolveToolLogo } from "@/lib/logo-resolver";
-import { isPostgresConfigured } from "@/lib/static-db-fallback";
+import { useSupabaseRest } from "@/lib/static-db-fallback";
 import {
-  isSupabaseConfigured,
   supabaseGetStackById,
   supabaseGetStackBySlug,
   supabaseGetStacks,
 } from "@/lib/queries/supabase-read";
 import type { Stack } from "@/lib/types";
-
-function useSupabaseRest(): boolean {
-  return !isPostgresConfigured() && isSupabaseConfigured();
-}
 
 function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   return fn().catch((e) => {

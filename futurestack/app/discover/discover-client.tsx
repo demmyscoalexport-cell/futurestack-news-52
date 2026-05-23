@@ -212,11 +212,20 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const q = search.trim();
+                        window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
+                      }
+                    }}
                     placeholder="Search 400+ tools, apps, workflows..."
                     className="pl-10 h-11"
                   />
                 </div>
-                <Button className="h-11 px-6">Search</Button>
+                <Button type="button" className="h-11 px-6" onClick={() => {
+                  const q = search.trim();
+                  window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
+                }}>Search</Button>
               </div>
 
               {/* Stats */}

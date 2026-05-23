@@ -15,6 +15,8 @@
     "import:tools": "node scripts/import-tools-rest.mjs",
     "import:content": "node scripts/import-catalog-content.mjs",
     "import:scores": "node scripts/import-scores-rest.mjs",
+    "import:ph": "node scripts/import-producthunt.mjs --target 150 --limit 50",
+    "sync:contentful": "node scripts/sync-contentful-rest.mjs --limit 50",
     "health:check": "node scripts/health-check.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",

@@ -39,9 +39,11 @@ const getArg = (flag, def) => {
   return idx !== -1 && args[idx + 1] ? args[idx + 1] : def;
 };
 
-const LIMIT = parseInt(getArg("--limit", args.includes("--all") ? "30" : "20"), 10);
+const LIMIT = parseInt(getArg("--limit", "50"), 10);
+const TARGET = parseInt(getArg("--target", "150"), 10);
 const ORDER = getArg("--order", "NEWEST");
 const SINGLE_TOPIC = getArg("--topic", null);
+const WITH_NEWS = !args.includes("--no-news");
 
 const DEFAULT_TOPICS = [
   "artificial-intelligence",
@@ -54,6 +56,11 @@ const DEFAULT_TOPICS = [
   "audio",
   "analytics",
   "automation",
+  "saas",
+  "fintech",
+  "education",
+  "security",
+  "ecommerce",
 ];
 const TOPICS = SINGLE_TOPIC ? [SINGLE_TOPIC] : DEFAULT_TOPICS;
 
@@ -214,14 +221,19 @@ function buildRows(post) {
       name: post.name,
       slug,
       tagline: post.tagline,
+      short_description: post.tagline || description.slice(0, 160),
       description,
-      logo_url: getLogo(post) || null,
+      logo: getLogo(post) || null,
+      website: website,
       website_url: website,
+      producthunt_url: post.url,
+      source: "product-hunt",
       category,
       tags,
       pricing_model,
       pricing_details: [],
       africa_friendly: hasFree,
+      has_free: hasFree,
       rating,
       review_count: Math.max(1, Math.floor(post.votesCount / 10)),
       is_featured: false,
@@ -232,7 +244,7 @@ function buildRows(post) {
       upvote_count: post.votesCount,
       save_count: Math.floor(post.votesCount * 0.1),
       last_updated: now,
-      updated_at: now,
+      created_at: now,
     },
     scoreRow: {
       ease_of_use: baseScore,
@@ -247,10 +259,49 @@ function buildRows(post) {
   };
 }
 
+async function upsertLaunchArticle(post, slug, category) {
+  if (!WITH_NEWS) return true;
+  const articleSlug = `${slug}-product-hunt-launch`;
+  const title = `${post.name} launches on Product Hunt`;
+  const excerpt = post.tagline || `${post.name} is a new ${category} tool worth watching.`;
+  const content = [
+    `# ${post.name}`,
+    "",
+    post.description || post.tagline || "",
+    "",
+    `**Category:** ${category}`,
+    `**Product Hunt votes:** ${post.votesCount}`,
+    "",
+    `[View on Product Hunt](${post.url})`,
+  ].join("\n");
+  const wordCount = content.split(/\s+/).length;
+
+  const { error } = await sb.from("articles").upsert(
+    {
+      slug: articleSlug,
+      title,
+      excerpt,
+      content,
+      tags: ["product-hunt", "launch", category],
+      category: "ai-tools",
+      status: "published",
+      published_at: post.createdAt || new Date().toISOString(),
+      reading_time: Math.max(1, Math.ceil(wordCount / 200)),
+      word_count: wordCount,
+      is_ai_generated: false,
+      is_featured: false,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "slug" },
+  );
+  if (error) throw error;
+  return true;
+}
+
 async function main() {
   console.log(`\n🚀  DISCOVA ← Product Hunt (Supabase REST)`);
   console.log(`   Topics: ${TOPICS.join(", ")}`);
-  console.log(`   Limit : ${LIMIT}/topic  Order: ${ORDER}\n`);
+  console.log(`   Limit : ${LIMIT}/topic  Target: ${TARGET} new tools  Order: ${ORDER}\n`);
 
   const { count: beforeCount } = await sb
     .from("tools")
@@ -276,6 +327,7 @@ async function main() {
     } catch (e) {
       console.log(`❌  ${e.message}`);
     }
+    await sleep(1200);
   }
   console.log(`\n  Total unique posts: ${allPosts.length}`);
 
@@ -292,7 +344,7 @@ async function main() {
   });
 
   console.log(`  Already in DB: ${allPosts.length - toInsert.length}`);
-  console.log(`  New to insert: ${toInsert.length}\n`);
+  console.log(`  New to insert: ${Math.min(toInsert.length, TARGET)}\n`);
 
   if (toInsert.length === 0) {
     console.log("  ✅  Nothing new to add.\n");
@@ -300,9 +352,10 @@ async function main() {
   }
 
   let inserted = 0;
+  let newsInserted = 0;
   let failed = 0;
 
-  for (const post of toInsert) {
+  for (const post of toInsert.slice(0, TARGET)) {
     const { toolRow, scoreRow, slug } = buildRows(post);
     process.stdout.write(`  ${post.name.slice(0, 40).padEnd(41)} `);
     try {
@@ -319,6 +372,13 @@ async function main() {
       );
       if (scoreErr) throw scoreErr;
 
+      try {
+        await upsertLaunchArticle(post, slug, toolRow.category);
+        newsInserted++;
+      } catch (newsErr) {
+        console.log(`⚠️ news: ${newsErr.message.slice(0, 40)}`);
+      }
+
       console.log("✅");
       inserted++;
     } catch (e) {
@@ -332,7 +392,7 @@ async function main() {
     .select("id", { count: "exact", head: true })
     .eq("status", "active");
 
-  console.log(`\n✅  Done — inserted: ${inserted}, failed: ${failed}`);
+  console.log(`\n✅  Done — tools inserted: ${inserted}, news: ${newsInserted}, failed: ${failed}`);
   console.log(`   Tools after: ${afterCount ?? 0} (was ${beforeCount ?? 0})\n`);
 }
 
