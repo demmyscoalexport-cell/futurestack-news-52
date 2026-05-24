@@ -1,0 +1,23 @@
+{
+  "search-component": {
+    "container-bg":    { "value": "rgba(255, 255, 255, 0.03)", "type": "color" },
+    "border":          { "value": "1px solid {color.neutral.stroke-gray}", "type": "border" },
+    "border-radius":   { "value": "{radius.input}", "type": "borderRadius" },
+    "button-bg":       { "value": "{color.brand.primary-iris}", "type": "color" },
+    "placeholder":     { "value": "{color.neutral.dim-gray}", "type": "color" }
+  },
+  "category-chip": {
+    "background":      { "value": "{color.neutral.glass-dark}", "type": "color" },
+    "text-color":      { "value": "{color.neutral.white}", "type": "color" },
+    "border-radius":   { "value": "{radius.pill}", "type": "borderRadius" },
+    "padding":         { "value": "8px 16px", "type": "spacing" }
+  },
+  "hero-title": {
+    "gradient-start":  { "value": "{color.neutral.white}", "type": "color" },
+    "gradient-end":    { "value": "{color.brand.soft-lilac}", "type": "color" },
+    "font-weight":     { "value": "700", "type": "fontWeight" }
+  },
+  "status-icon": {
+    "africa-tech":     { "value": "{color.brand.gold-accent}", "type": "color" }
+  }
+}

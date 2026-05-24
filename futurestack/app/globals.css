@@ -1,33 +1,36 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../styles/tokens.css";
+
+@config "../tailwind.config.js";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0.002 240);
-  --foreground: oklch(0.13 0.028 265);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.028 265);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.028 265);
-  --primary: oklch(0.52 0.27 278);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.13 0.028 265);
-  --muted: oklch(0.94 0.01 240);
-  --muted-foreground: oklch(0.45 0.03 260);
-  --accent: oklch(0.65 0.2 35);
-  --accent-foreground: oklch(1 0 0);
+  --background: #f8f7fc;
+  --foreground: var(--color-neutral-deep-space);
+  --card: #ffffff;
+  --card-foreground: var(--color-neutral-deep-space);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-neutral-deep-space);
+  --primary: var(--color-brand-primary-iris);
+  --primary-foreground: var(--color-neutral-white);
+  --secondary: #ede9fe;
+  --secondary-foreground: var(--color-neutral-deep-space);
+  --muted: #f0eef8;
+  --muted-foreground: var(--color-neutral-dim-gray);
+  --accent: var(--color-brand-gold-accent);
+  --accent-foreground: var(--color-neutral-deep-space);
   --success: oklch(0.65 0.2 145);
   --success-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.01 240);
-  --input: oklch(0.9 0.01 240);
-  --ring: oklch(0.52 0.27 278);
-  --chart-1: oklch(0.52 0.27 278);
-  --chart-2: oklch(0.65 0.2 35);
-  --chart-3: oklch(0.65 0.2 145);
+  --border: #e4e0f0;
+  --input: #e4e0f0;
+  --ring: var(--color-brand-primary-iris);
+  --chart-1: var(--color-brand-primary-iris);
+  --chart-2: var(--color-brand-gold-accent);
+  --chart-3: var(--color-brand-soft-lilac);
   --chart-4: oklch(0.6 0.18 290);
   --chart-5: oklch(0.65 0.15 200);
   --radius: 0.625rem;
@@ -42,45 +45,57 @@
 }
 
 .dark {
-  --background: oklch(0.08 0.012 265);
-  --foreground: oklch(0.96 0.008 240);
-  --card: oklch(0.12 0.014 265);
-  --card-foreground: oklch(0.96 0.008 240);
-  --popover: oklch(0.12 0.014 265);
-  --popover-foreground: oklch(0.96 0.008 240);
-  --primary: oklch(0.60 0.26 278);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.16 0.014 265);
-  --secondary-foreground: oklch(0.96 0.008 240);
-  --muted: oklch(0.16 0.014 265);
-  --muted-foreground: oklch(0.58 0.018 260);
-  --accent: oklch(0.70 0.2 35);
-  --accent-foreground: oklch(1 0 0);
+  --background: var(--color-neutral-deep-space);
+  --foreground: var(--color-neutral-white);
+  --card: var(--color-neutral-glass-dark);
+  --card-foreground: var(--color-neutral-white);
+  --popover: var(--color-neutral-glass-dark);
+  --popover-foreground: var(--color-neutral-white);
+  --primary: var(--color-brand-primary-iris);
+  --primary-foreground: var(--color-neutral-white);
+  --secondary: #1a1824;
+  --secondary-foreground: var(--color-neutral-white);
+  --muted: #1a1824;
+  --muted-foreground: var(--color-neutral-dim-gray);
+  --accent: var(--color-brand-gold-accent);
+  --accent-foreground: var(--color-neutral-deep-space);
   --success: oklch(0.70 0.2 145);
-  --success-foreground: oklch(1 0 0);
+  --success-foreground: var(--color-neutral-white);
   --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.20 0.014 265);
-  --input: oklch(0.20 0.014 265);
-  --ring: oklch(0.60 0.26 278);
-  --chart-1: oklch(0.60 0.26 278);
-  --chart-2: oklch(0.70 0.2 35);
-  --chart-3: oklch(0.70 0.2 145);
+  --destructive-foreground: var(--color-neutral-white);
+  --border: var(--color-neutral-stroke-gray);
+  --input: var(--color-neutral-stroke-gray);
+  --ring: var(--color-brand-primary-iris);
+  --chart-1: var(--color-brand-primary-iris);
+  --chart-2: var(--color-brand-gold-accent);
+  --chart-3: var(--color-brand-soft-lilac);
   --chart-4: oklch(0.65 0.18 310);
   --chart-5: oklch(0.70 0.15 200);
-  --sidebar: oklch(0.10 0.012 265);
-  --sidebar-foreground: oklch(0.96 0.008 240);
-  --sidebar-primary: oklch(0.60 0.26 278);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.16 0.014 265);
-  --sidebar-accent-foreground: oklch(0.96 0.008 240);
-  --sidebar-border: oklch(0.20 0.014 265);
-  --sidebar-ring: oklch(0.60 0.26 278);
+  --sidebar: var(--color-neutral-glass-dark);
+  --sidebar-foreground: var(--color-neutral-white);
+  --sidebar-primary: var(--color-brand-primary-iris);
+  --sidebar-primary-foreground: var(--color-neutral-white);
+  --sidebar-accent: #1a1824;
+  --sidebar-accent-foreground: var(--color-neutral-white);
+  --sidebar-border: var(--color-neutral-stroke-gray);
+  --sidebar-ring: var(--color-brand-primary-iris);
 }
 
 @theme inline {
   --font-sans: "Inter", "Geist", "Geist Fallback", system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
+  --font-heading: var(--font-plus-jakarta), "Plus Jakarta Sans", Inter, sans-serif;
+  --color-brand-primary: var(--color-brand-primary-iris);
+  --color-brand-lilac: var(--color-brand-soft-lilac);
+  --color-brand-gold: var(--color-brand-gold-accent);
+  --color-neutral-deep: var(--color-neutral-deep-space);
+  --color-neutral-surface: var(--color-neutral-glass-dark);
+  --color-neutral-stroke: var(--color-neutral-stroke-gray);
+  --color-neutral-white: var(--color-neutral-white);
+  --color-neutral-dim: var(--color-neutral-dim-gray);
+  --radius-discova-lg: 16px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-background: var(--background);
@@ -128,11 +143,29 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }
 
-/* Purple gradient text utility */
+/* Night Orchid gradient text (hero-title token) */
 .gradient-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #c084fc 50%, #e879f9 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-primary-iris) 0%,
+    var(--color-brand-soft-lilac) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .gradient-text {
+  background: linear-gradient(
+    135deg,
+    var(--color-neutral-white) 0%,
+    var(--color-brand-soft-lilac) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -140,5 +173,77 @@
 
 /* Subtle radial glow for hero */
 .hero-glow {
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.15), transparent);
+  background: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    color-mix(in srgb, var(--color-brand-primary-iris) 18%, transparent),
+    transparent
+  );
+}
+
+/* Night Orchid — glass & motion utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.card-lift {
+  transform: translateY(0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.orb-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* Safe area padding for mobile bottom nav */
+.pb-mobile-nav {
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
+  }
 }

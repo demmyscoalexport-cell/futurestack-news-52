@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Star, Calendar, ArrowUpRight, BadgeCheck, Flame, Sparkles } from "lucide-react";
+import { ExternalLink, Star, Calendar, ArrowUpRight, Flame, Sparkles } from "lucide-react";
+import { VerifiedBadge } from "@/components/discovery/verified-badge";
+import { BookmarkButton } from "@/components/discovery/bookmark-button";
 import { cn } from "@/lib/utils";
 
 interface ToolProfileCardProps {
@@ -107,9 +109,8 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
 
   return (
     <div className={cn(
-      "group flex flex-col rounded-2xl border border-border bg-card overflow-hidden",
-      "hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5",
-      "transition-all duration-200",
+      "group flex flex-col rounded-discova-lg border border-neutral-stroke/60 bg-neutral-surface/80 overflow-hidden card-lift",
+      "hover:border-brand-primary/40 hover:shadow-[0_8px_32px_rgba(124,102,255,0.12)]",
       className,
     )}>
 
@@ -131,11 +132,11 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
             <div className="flex items-center gap-1.5 flex-wrap">
               <Link
                 href={`/tools/${tool.slug}`}
-                className="font-bold text-foreground hover:text-primary transition-colors text-base leading-tight"
+                className="font-bold text-foreground hover:text-brand-lilac transition-colors text-base leading-tight"
               >
                 {tool.name}
               </Link>
-              {tool.is_verified && <BadgeCheck className="h-4 w-4 text-blue-400 shrink-0" />}
+              {tool.is_verified && <VerifiedBadge size="sm" />}
               {tool.africa_friendly && (
                 <span title="Africa-Friendly" className="text-base leading-none">🌍</span>
               )}
@@ -146,6 +147,7 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
               </span>
             )}
           </div>
+          <BookmarkButton toolSlug={tool.slug} />
         </div>
 
         {/* Row 2 — Short description */}
@@ -196,7 +198,7 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
       <div className="px-5 pb-5 flex items-center gap-2 border-t border-border/50 pt-4">
         <Link
           href={`/tools/${tool.slug}`}
-          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-xl border border-border bg-secondary/50 hover:bg-secondary hover:border-primary/30 text-foreground transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-medium px-3 py-2 rounded-input border border-neutral-stroke bg-white/[0.03] hover:border-brand-primary/30 text-foreground transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           View Details
@@ -206,7 +208,7 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
             href={`/api/affiliate/${tool.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-input bg-brand-primary text-neutral-white hover:bg-brand-primary/90 transition-colors"
           >
             Visit <ArrowUpRight className="h-3.5 w-3.5" />
           </a>

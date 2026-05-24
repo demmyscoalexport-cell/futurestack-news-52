@@ -76,7 +76,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
 
   if (variant === "featured") {
     return (
-      <Card className={cn("group relative overflow-hidden border-border/40", className)}>
+      <Card className={cn("group relative overflow-hidden glass-panel border border-neutral-stroke/60 rounded-discova-lg", className)}>
         <Link href={getArticleHref(article)} className="block">
           <div className="relative aspect-[16/9] overflow-hidden bg-secondary/40">
             <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent z-10" />
@@ -97,11 +97,11 @@ export function ArticleCard({ article, variant = "default", className }: Article
                 </Badge>
               )}
             </div>
-            <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-brand-lilac transition-colors">
               {article.title}
             </h3>
-            <p className="mt-1.5 text-xs text-white/70 line-clamp-2">{article.excerpt}</p>
-            <div className="mt-3 flex items-center gap-3 text-xs text-white/60">
+            <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">{article.excerpt}</p>
+            <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
               <span>{sourceName || authorName}</span>
               <span>·</span>
               <span>{formatDate(publishedAt)}</span>
@@ -116,7 +116,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
 
   if (variant === "horizontal") {
     return (
-      <Card className={cn("group flex overflow-hidden border-border/40 hover:border-primary/30 transition-all", className)}>
+      <Card className={cn("group flex overflow-hidden glass-panel border border-neutral-stroke/60 rounded-discova-lg hover:border-brand-primary/40 card-lift transition-all", className)}>
         <Link href={getArticleHref(article)} className="flex flex-1">
           <div className="relative w-36 shrink-0 overflow-hidden bg-secondary/40">
             {featuredImage ? (
@@ -129,7 +129,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
             <Badge variant="outline" className={cn("text-xs w-fit mb-1.5", getCategoryColor(category))}>
               {getCategoryLabel(category)}
             </Badge>
-            <h3 className="font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors text-sm">
+            <h3 className="font-medium text-foreground line-clamp-2 group-hover:text-brand-lilac transition-colors text-sm">
               {article.title}
             </h3>
             <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
@@ -155,7 +155,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-brand-lilac transition-colors">
               {article.title}
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(publishedAt)}</p>
@@ -167,7 +167,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
 
   /* ── Default card ── */
   return (
-    <Card className={cn("group overflow-hidden border-border/40 hover:border-primary/30 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 transition-all", className)}>
+    <Card className={cn("group overflow-hidden glass-panel border border-neutral-stroke/60 rounded-discova-lg hover:border-brand-primary/40 card-lift transition-all", className)}>
       <Link href={getArticleHref(article)}>
         {/* Image */}
         <div className="relative aspect-[16/9] overflow-hidden bg-secondary/40">
@@ -200,7 +200,7 @@ export function ArticleCard({ article, variant = "default", className }: Article
           </div>
 
           {/* Title */}
-          <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+          <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-brand-lilac transition-colors leading-snug">
             {article.title}
           </h3>
 

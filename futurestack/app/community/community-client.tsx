@@ -67,7 +67,7 @@ const DISCUSSIONS = [
     tags: ["Students", "AI", "Budget"],
     timeAgo: "2d ago",
     hot: false,
-    href: "/deals",
+    href: "/best/chatgpt-alternatives",
   },
   {
     id: 6,
@@ -106,17 +106,15 @@ export function CommunityClient() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border/30">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute top-0 left-1/3 h-[300px] w-[300px] rounded-full bg-violet-600/8 blur-[80px]" />
-          </div>
+        <section className="relative overflow-hidden hero-glow border-b border-neutral-stroke/40">
+          <div className="orb-glow top-0 left-1/3 h-[300px] w-[400px] bg-brand-primary/10" />
           <div className="container relative mx-auto px-4 lg:px-6 py-12 lg:py-16">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/25 bg-violet-500/8 px-3.5 py-1.5 text-xs text-violet-300 mb-5">
+              <div className="inline-flex items-center gap-2 rounded-pill border border-brand-primary/30 bg-brand-primary/10 px-3.5 py-1.5 text-xs text-brand-lilac mb-5">
                 <Users className="h-3 w-3" />
                 15,000+ African builders
               </div>
-              <h1 className="text-3xl font-bold text-white lg:text-5xl mb-4">
+              <h1 className="text-3xl font-black text-foreground lg:text-5xl mb-4">
                 Africa&apos;s digital<br />
                 <span className="gradient-text">builder network</span>
               </h1>

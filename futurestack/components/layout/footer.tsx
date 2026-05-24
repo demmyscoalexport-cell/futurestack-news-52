@@ -6,6 +6,8 @@ import { Compass, Twitter, Linkedin, Youtube, Github, Instagram } from "lucide-r
 const footerLinks = {
   discover: [
     { name: "Tools Directory", href: "/tools" },
+    { name: "Compare Tools", href: "/compare" },
+    { name: "My Collections", href: "/collections" },
     { name: "Power Stacks", href: "/stacks" },
     { name: "Workflows", href: "/workflows" },
     { name: "Opportunities", href: "/opportunities" },

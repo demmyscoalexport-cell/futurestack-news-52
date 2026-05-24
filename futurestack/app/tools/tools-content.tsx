@@ -5,14 +5,18 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { CommandBar } from "@/components/discovery/command-bar";
+import { PageHero } from "@/components/discovery/page-hero";
+import { FilterChips } from "@/components/discovery/filter-chips";
+import { FilterSheet } from "@/components/discovery/filter-sheet";
+import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
+import { SectionHeader } from "@/components/discovery/section-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ToolProfileCard } from "@/components/cards/tool-profile-card";
 import {
   Search,
   ChevronDown,
   ChevronRight,
-  Flame,
   Globe2,
   SlidersHorizontal,
   X,
@@ -114,6 +118,8 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
       setActiveCategory(category);
       setExpandedCategories((prev) => new Set(prev).add(category));
     }
+    if (searchParams.get("free") === "1") setHasFreeOnly(true);
+    if (searchParams.get("africa") === "1") setAfricaFriendlyOnly(true);
   }, [searchParams]);
 
   const toggleCategory = (catId: string) => {
@@ -284,71 +290,81 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
     ? activeCategoryData?.subcategories?.find((s) => s.slug === activeSubcategory)?.name ?? "AI Tools"
     : activeCategory ? activeCategoryData?.name ?? "AI Tools" : "All AI Tools";
 
+  const filterChips: { id: string; label: string; onRemove: () => void; variant?: "default" | "gold" | "success" }[] = [];
+  if (activeCategory) {
+    filterChips.push({
+      id: "cat",
+      label: `${CATEGORY_ICONS[activeCategory] ?? ""} ${activeCategoryData?.name ?? activeCategory}`,
+      onRemove: () => { setActiveCategory(null); setActiveSubcategory(null); },
+    });
+  }
+  if (activeSubcategory) {
+    filterChips.push({
+      id: "sub",
+      label: activeCategoryData?.subcategories?.find((s) => s.slug === activeSubcategory)?.name ?? activeSubcategory,
+      onRemove: () => setActiveSubcategory(null),
+    });
+  }
+  if (hasFreeOnly) filterChips.push({ id: "free", label: "Free/Freemium", onRemove: () => setHasFreeOnly(false), variant: "success" });
+  if (africaFriendlyOnly) filterChips.push({ id: "africa", label: "🌍 Africa-Friendly", onRemove: () => setAfricaFriendlyOnly(false), variant: "gold" });
+  if (newOnly) filterChips.push({ id: "new", label: "✨ New", onRemove: () => setNewOnly(false) });
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <div className="border-b border-border bg-card/50">
-          <div className="container mx-auto px-4 lg:px-8 py-6 lg:py-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl lg:text-3xl font-bold capitalize">{pageTitle}</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {filtered.length} tool{filtered.length !== 1 ? "s" : ""} found
-                  {activeCategory ? ` in ${activeCategoryData?.name ?? activeCategory}` : ""}
-                </p>
-              </div>
-              <div className="relative w-full sm:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search AI tools..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-background"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
+        <PageHero
+          compact
+          title={<span className="capitalize">{pageTitle}</span>}
+          subtitle={`${filtered.length} AI tools — search, filter, and compare the best tools for work, creativity & business.`}
+        >
+          <CommandBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSubmit={() => {
+              const q = searchQuery.trim();
+              if (!q) return;
+              window.location.href = buildToolsSearchUrl(parseSmartSearch(q));
+            }}
+            placeholder="Search AI tools, categories, use cases..."
+          />
+          {filterChips.length > 0 && (
+            <div className="mt-4 flex justify-center">
+              <FilterChips chips={filterChips} onClearAll={clearAll} />
             </div>
+          )}
+        </PageHero>
 
-            {hasFilters && (
-              <div className="flex flex-wrap gap-2 mt-4">
-                {activeCategory && (
-                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
-                    {CATEGORY_ICONS[activeCategory]} {activeCategoryData?.name ?? activeCategory}
-                    <button onClick={() => { setActiveCategory(null); setActiveSubcategory(null); }}><X className="h-3 w-3" /></button>
-                  </span>
+        {/* Mobile category scroll */}
+        <div className="lg:hidden border-b border-neutral-stroke/40 bg-neutral-surface/50 sticky top-14 z-20">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-3">
+            <button
+              onClick={() => { setActiveCategory(null); setActiveSubcategory(null); }}
+              className={cn(
+                "shrink-0 rounded-pill px-3 py-1.5 text-xs font-medium transition-colors",
+                !activeCategory ? "bg-brand-primary text-neutral-white" : "bg-white/[0.05] text-muted-foreground border border-neutral-stroke/50",
+              )}
+            >
+              All ({initialTools.length})
+            </button>
+            {initialCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => toggleCategory(cat.id)}
+                className={cn(
+                  "shrink-0 rounded-pill px-3 py-1.5 text-xs font-medium capitalize transition-colors whitespace-nowrap",
+                  activeCategory === cat.id
+                    ? "bg-brand-primary text-neutral-white"
+                    : "bg-white/[0.05] text-muted-foreground border border-neutral-stroke/50",
                 )}
-                {activeSubcategory && (
-                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-secondary text-foreground border border-border font-medium">
-                    {activeCategoryData?.subcategories?.find(s => s.slug === activeSubcategory)?.name ?? activeSubcategory}
-                    <button onClick={() => setActiveSubcategory(null)}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-                {hasFreeOnly && (
-                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 font-medium">
-                    Free/Freemium <button onClick={() => setHasFreeOnly(false)}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-                {africaFriendlyOnly && (
-                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/20 font-medium">
-                    🌍 Africa-Friendly <button onClick={() => setAfricaFriendlyOnly(false)}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-                {newOnly && (
-                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20 font-medium">
-                    ✨ New <button onClick={() => setNewOnly(false)}><X className="h-3 w-3" /></button>
-                  </span>
-                )}
-              </div>
-            )}
+              >
+                {cat.name} ({cat.count ?? 0})
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-8 py-6 lg:py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <div className="flex gap-8">
             <aside className="hidden lg:block w-56 xl:w-64 shrink-0">
               <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
@@ -357,54 +373,48 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
             </aside>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-4 mb-5">
+              <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setShowMobileFilters(!showMobileFilters)} className="lg:hidden">
+                  <Button variant="outline" size="sm" onClick={() => setShowMobileFilters(true)} className="lg:hidden border-neutral-stroke">
                     <SlidersHorizontal className="h-4 w-4 mr-2" />Filters
                     {hasFilters && (
-                      <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground font-bold">
-                        {[activeCategory, activeSubcategory, hasFreeOnly, africaFriendlyOnly, newOnly].filter(Boolean).length}
+                      <span className="ml-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[10px] text-neutral-white font-bold">
+                        {filterChips.length}
                       </span>
                     )}
                   </Button>
-                  <span className="hidden sm:inline text-sm text-muted-foreground">{filtered.length} tools</span>
+                  <span className="text-sm text-muted-foreground">{filtered.length} tools</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-auto">
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                    className="text-sm bg-card border border-border rounded-lg px-2.5 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="text-sm bg-neutral-surface border border-neutral-stroke rounded-input px-2.5 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-brand-primary min-w-0 max-w-[140px] sm:max-w-none"
                   >
                     <option value="popular">Most Popular</option>
                     <option value="rating">Top Rated</option>
                     <option value="newest">Newest</option>
                     <option value="name">Name A-Z</option>
                   </select>
-                  <div className="hidden sm:flex items-center border border-border rounded-lg overflow-hidden">
-                    <button onClick={() => setViewMode("grid")} className={cn("p-1.5", viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary")}>
+                  <div className="hidden sm:flex items-center border border-neutral-stroke rounded-input overflow-hidden">
+                    <button onClick={() => setViewMode("grid")} className={cn("p-1.5", viewMode === "grid" ? "bg-brand-primary text-neutral-white" : "text-muted-foreground hover:bg-white/5")}>
                       <LayoutGrid className="h-4 w-4" />
                     </button>
-                    <button onClick={() => setViewMode("list")} className={cn("p-1.5", viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary")}>
+                    <button onClick={() => setViewMode("list")} className={cn("p-1.5", viewMode === "list" ? "bg-brand-primary text-neutral-white" : "text-muted-foreground hover:bg-white/5")}>
                       <List className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {showMobileFilters && (
-                <div className="lg:hidden mb-5 rounded-xl border border-border bg-card p-4">
-                  <Sidebar />
-                </div>
-              )}
+              <FilterSheet open={showMobileFilters} onClose={() => setShowMobileFilters(false)}>
+                <Sidebar />
+              </FilterSheet>
 
               {featured.length > 0 && !searchQuery && (
                 <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Flame className="h-4 w-4 text-amber-400" />
-                    <h2 className="text-sm font-semibold">Featured</h2>
-                    <span className="text-xs text-muted-foreground">({featured.length})</span>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <SectionHeader title="Featured Tools" subtitle={`${featured.length} editor-picked tools`} badge="Hot" />
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                     {featured.map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                   </div>
                   {rest.length > 0 && (
@@ -431,7 +441,7 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
                   {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                   {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               )}

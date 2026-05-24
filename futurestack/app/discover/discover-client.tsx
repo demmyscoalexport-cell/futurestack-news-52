@@ -4,14 +4,18 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { CommandBar } from "@/components/discovery/command-bar";
+import { PageHero } from "@/components/discovery/page-hero";
+import { SectionHeader } from "@/components/discovery/section-header";
+import { TrendingTags } from "@/components/discovery/trending-tags";
 import {
-  Search, TrendingUp, Wifi, Smartphone, DollarSign,
+  TrendingUp, Wifi, Smartphone, DollarSign,
   Star, ArrowRight, Zap, Globe, Users, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import type { Tool } from "@/lib/types";
+import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
 
 interface DiscoverClientProps {
   tools: Tool[];
@@ -131,7 +135,7 @@ function ToolCard({ tool }: { tool: Tool }) {
   return (
     <Link
       href={`/tools/${tool.slug}`}
-      className="group flex gap-3 rounded-xl border border-border/50 bg-card p-3.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+      className="group flex gap-3 rounded-discova-lg border border-neutral-stroke/60 bg-neutral-surface/80 p-3.5 hover:border-brand-primary/40 hover:shadow-[0_8px_32px_rgba(124,102,255,0.12)] card-lift transition-all"
     >
       <div className="shrink-0">
         {tool.logo ? (
@@ -184,72 +188,46 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
       <main className="flex-1">
 
         {/* Hero */}
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute top-0 left-1/4 h-[400px] w-[400px] rounded-full bg-violet-600/8 blur-[100px]" />
-            <div className="absolute top-20 right-1/4 h-[300px] w-[300px] rounded-full bg-emerald-600/6 blur-[80px]" />
+        <PageHero
+          compact
+          title={
+            <>
+              Discover tools that actually{" "}
+              <span className="gradient-text">work in Africa</span>
+            </>
+          }
+          subtitle={`Rated for real life — 3G speed, Android devices, local budgets, and startup realities. ${tools.length}+ tools indexed.`}
+        >
+          <CommandBar
+            value={search}
+            onChange={setSearch}
+            onSubmit={() => {
+              const q = search.trim();
+              if (!q) {
+                window.location.href = "/tools";
+                return;
+              }
+              window.location.href = buildToolsSearchUrl(parseSmartSearch(q));
+            }}
+            placeholder="Search tools, workflows, stacks..."
+          />
+          <div className="mt-6">
+            <TrendingTags />
           </div>
-
-          <div className="container relative mx-auto px-4 lg:px-6 pt-12 pb-10">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-3.5 py-1.5 text-xs text-emerald-300 mb-5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                🌍 Africa&apos;s Discovery Engine — Live Now
-              </div>
-
-              <h1 className="text-3xl font-bold leading-tight tracking-tight text-white lg:text-5xl mb-4">
-                Discover tools that actually<br />
-                <span className="gradient-text">work in Africa</span>
-              </h1>
-              <p className="text-muted-foreground text-base lg:text-lg max-w-xl mx-auto mb-8">
-                Rated for real life — 3G speed, Android devices, Naira budgets, and startup realities.
-              </p>
-
-              {/* Search */}
-              <div className="flex gap-2 max-w-lg mx-auto mb-8">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const q = search.trim();
-                        window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
-                      }
-                    }}
-                    placeholder="Search 400+ tools, apps, workflows..."
-                    className="pl-10 h-11"
-                  />
-                </div>
-                <Button type="button" className="h-11 px-6" onClick={() => {
-                  const q = search.trim();
-                  window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
-                }}>Search</Button>
-              </div>
-
-              {/* Stats */}
-              <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-                <span>✅ {tools.length}+ tools indexed</span>
-                <span>🌍 Africa-rated &amp; tested</span>
-                <span>⚡ Updated daily</span>
-              </div>
-            </div>
-          </div>
-        </section>
+        </PageHero>
 
         {/* Discovery sections nav */}
-        <section className="border-t border-border/30 bg-card/40 sticky top-0 z-10 backdrop-blur-sm">
-          <div className="container mx-auto px-4 lg:px-6 py-3">
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1">
+        <section className="border-b border-neutral-stroke/40 bg-neutral-surface/50 sticky top-14 z-20 backdrop-blur-xl">
+          <div className="container mx-auto px-4 sm:px-6 py-3">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
               {DISCOVERY_SECTIONS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => setActiveSection(s.id)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-1.5 text-xs font-medium transition-all shrink-0 ${
                     activeSection === s.id
-                      ? "bg-primary text-white shadow-md"
-                      : "bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      ? "bg-brand-primary text-neutral-white shadow-[0_0_16px_rgba(124,102,255,0.3)]"
+                      : "bg-white/[0.05] text-muted-foreground border border-neutral-stroke/50 hover:text-foreground"
                   }`}
                 >
                   {s.label}
@@ -259,26 +237,22 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
           </div>
         </section>
 
-        {/* Main content */}
-        <div className="container mx-auto px-4 lg:px-6 py-10">
-          <div className="grid lg:grid-cols-4 gap-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
 
             {/* Left: Tool feed */}
             <div className="lg:col-span-3">
-              {/* Active section header */}
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h2 className="text-lg font-bold text-foreground">{activeLabel}</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {sectionTools.length > 0
-                      ? `${sectionTools.length} tools in this category`
-                      : "No tools found — try a different filter"}
-                  </p>
-                </div>
-              </div>
+              <SectionHeader
+                title={activeLabel}
+                subtitle={
+                  sectionTools.length > 0
+                    ? `${sectionTools.length} tools in this category`
+                    : "No tools found — try a different filter"
+                }
+              />
 
               {sectionTools.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-3 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
                   {sectionTools.map((tool) => (
                     <ToolCard key={tool.id} tool={tool} />
                   ))}

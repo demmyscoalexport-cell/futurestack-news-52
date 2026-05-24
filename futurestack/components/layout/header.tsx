@@ -29,7 +29,7 @@ const navigation = [
   { name: "Categories", href: "/tools" },
   { name: "Stacks", href: "/stacks" },
   { name: "Workflows", href: "/workflows" },
-  { name: "Compare", href: "/tools" },
+  { name: "Compare", href: "/compare" },
   { name: "Deals", href: "/deals" },
   { name: "News", href: "/news" },
   { name: "Learn", href: "/learn" },
@@ -67,7 +67,7 @@ export function Header() {
   const moreNav = navigation.slice(7);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-neutral-stroke/40 bg-neutral-deep/80 backdrop-blur-xl">
       <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
 
         {/* Logo */}
@@ -127,7 +127,7 @@ export function Header() {
           {/* Submit CTA — desktop only */}
           <Button
             size="sm"
-            className="hidden lg:flex h-8 text-xs bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5 mr-1"
+            className="hidden lg:flex h-8 text-xs bg-brand-primary hover:bg-brand-primary/90 text-white gap-1.5 mr-1"
             asChild
           >
             <Link href="/submit-tool">

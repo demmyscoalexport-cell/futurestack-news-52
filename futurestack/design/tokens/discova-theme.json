@@ -1,0 +1,24 @@
+{
+  "color": {
+    "brand": {
+      "primary-iris": { "value": "#7c66ff", "type": "color" },
+      "soft-lilac":   { "value": "#c0b3ff", "type": "color" },
+      "gold-accent":  { "value": "#f3c344", "type": "color" }
+    },
+    "neutral": {
+      "deep-space":  { "value": "#06030e", "type": "color" },
+      "glass-dark":  { "value": "#12111a", "type": "color" },
+      "stroke-gray": { "value": "#23212d", "type": "color" },
+      "white":       { "value": "#ffffff", "type": "color" },
+      "dim-gray":    { "value": "#8b8a91", "type": "color" }
+    }
+  },
+  "font-family": {
+    "heading": { "value": "Plus Jakarta Sans, Inter, sans-serif", "type": "fontFamilies" }
+  },
+  "radius": {
+    "lg":     { "value": "16px", "type": "borderRadius" },
+    "input":  { "value": "12px", "type": "borderRadius" },
+    "pill":   { "value": "999px", "type": "borderRadius" }
+  }
+}

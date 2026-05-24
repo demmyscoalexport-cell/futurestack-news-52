@@ -45,7 +45,7 @@ export function StackCard({
     return (
       <Card
         className={cn(
-          "relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent",
+          "relative overflow-hidden glass-panel border-2 border-brand-primary/25 rounded-discova-lg bg-gradient-to-br from-brand-primary/8 to-transparent card-lift",
           className,
         )}
       >
@@ -71,7 +71,7 @@ export function StackCard({
           <div className="mt-4">
             <Link
               href={`/stacks/${stack.slug}`}
-              className="text-lg font-semibold text-foreground hover:text-primary transition-colors"
+              className="text-lg font-semibold text-foreground hover:text-brand-lilac transition-colors"
             >
               {stack.name}
             </Link>
@@ -136,7 +136,7 @@ export function StackCard({
     return (
       <Card
         className={cn(
-          "p-4 transition-all hover:shadow-md hover:border-primary/30",
+          "p-4 glass-panel border border-neutral-stroke/60 rounded-discova-lg transition-all hover:border-brand-primary/40 card-lift",
           className,
         )}
       >
@@ -156,7 +156,7 @@ export function StackCard({
           <div className="flex-1 min-w-0">
             <Link
               href={`/stacks/${stack.slug}`}
-              className="font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
+              className="font-medium text-foreground hover:text-brand-lilac transition-colors line-clamp-1"
             >
               {stack.name}
             </Link>
@@ -177,7 +177,7 @@ export function StackCard({
   return (
     <Card
       className={cn(
-        "group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
+        "group overflow-hidden glass-panel border border-neutral-stroke/60 rounded-discova-lg transition-all hover:border-brand-primary/40 card-lift",
         className,
       )}
     >
@@ -203,7 +203,7 @@ export function StackCard({
         <div className="mt-4">
           <Link
             href={`/stacks/${stack.slug}`}
-            className="font-semibold text-foreground group-hover:text-primary transition-colors"
+            className="font-semibold text-foreground group-hover:text-brand-lilac transition-colors"
           >
             {stack.name}
           </Link>
@@ -261,7 +261,7 @@ export function StackLeaderboardRow({
   onClone?: (stack: Stack) => void;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:bg-secondary/50 hover:border-primary/30">
+    <div className="flex items-center gap-4 rounded-discova-lg glass-panel border border-neutral-stroke/60 p-4 transition-all hover:border-brand-primary/40 card-lift">
       {/* Rank */}
       <div
         className={cn(
@@ -291,7 +291,7 @@ export function StackLeaderboardRow({
       <div className="flex-1 min-w-0">
         <Link
           href={`/stacks/${stack.slug}`}
-          className="font-medium text-foreground hover:text-primary transition-colors"
+          className="font-medium text-foreground hover:text-brand-lilac transition-colors"
         >
           {stack.name}
         </Link>

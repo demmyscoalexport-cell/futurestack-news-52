@@ -174,13 +174,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1">
-        {/* Article Header */}
-        <section className="border-b border-border/30 bg-gradient-to-b from-background to-secondary/10 py-10 lg:py-14">
-          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+      <main className="flex-1 pb-mobile-nav">
+        <section className="relative overflow-hidden hero-glow border-b border-neutral-stroke/40 py-10 sm:py-12 lg:py-14">
+          <div className="orb-glow top-0 right-0 h-[300px] w-[400px] bg-brand-primary/10" />
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl relative">
             <Link
               href="/news"
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -198,7 +198,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               )}
             </div>
 
-            <h1 className="text-3xl font-bold text-foreground lg:text-4xl xl:text-5xl leading-tight max-w-4xl">
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground lg:text-4xl xl:text-5xl leading-tight max-w-4xl">
               {article.title}
             </h1>
 
@@ -267,7 +267,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <article className="flex-1 min-w-0">
                 {/* Featured Image */}
                 {article.featuredImage && (
-                  <div className="relative aspect-[21/9] rounded-xl overflow-hidden mb-10 bg-secondary/30">
+                  <div className="relative aspect-[21/9] rounded-discova-lg overflow-hidden mb-10 bg-neutral-surface border border-neutral-stroke/40">
                     <Image
                       src={article.featuredImage}
                       alt={article.title}
@@ -278,7 +278,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   </div>
                 )}
                 {!article.featuredImage && (
-                  <div className="aspect-[21/9] rounded-xl bg-gradient-to-br from-primary/15 to-violet-900/20 mb-10" />
+                  <div className="aspect-[21/9] rounded-discova-lg bg-gradient-to-br from-brand-primary/15 to-brand-lilac/20 mb-10 border border-neutral-stroke/40" />
                 )}
 
                 {/* Article Body — rendered from DB markdown */}
@@ -292,8 +292,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 )}
 
                 {/* CTA */}
-                <div className="mt-10 rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-900/20 via-purple-900/10 to-violet-900/20 p-6">
-                  <h3 className="text-lg font-semibold text-foreground">
+                <div className="mt-10 glass-panel border border-brand-primary/20 rounded-discova-lg p-6 sm:p-8">
+                  <h3 className="text-lg font-black text-foreground">
                     Find the right tools for your stack
                   </h3>
                   <p className="mt-2 text-sm text-muted-foreground">
@@ -301,7 +301,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   </p>
                   <Link
                     href="/tools"
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
+                    className="mt-4 inline-flex items-center gap-2 rounded-input bg-brand-primary px-4 py-2.5 text-sm font-bold text-neutral-white hover:bg-brand-primary/90 transition-colors"
                   >
                     Explore Tools <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -311,12 +311,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {/* Sidebar */}
               <aside className="hidden xl:block w-72 shrink-0">
                 <div className="sticky top-24 space-y-6">
-                  <div className="rounded-xl border border-border/40 bg-card p-5">
+                  <div className="glass-panel border border-neutral-stroke/60 rounded-discova-lg p-5">
                     <h4 className="font-semibold text-foreground mb-4 text-sm">Quick Actions</h4>
                     <ArticleActions title={article.title} slug={slug} variant="sidebar" />
                   </div>
 
-                  <div className="rounded-xl border border-violet-500/20 bg-violet-900/10 p-5">
+                  <div className="glass-panel border border-brand-primary/20 rounded-discova-lg p-5">
                     <h4 className="font-semibold text-foreground mb-2 text-sm">Get more insights</h4>
                     <p className="text-xs text-muted-foreground mb-4">
                       Join 12,000+ readers getting weekly AI tool recommendations.
@@ -331,7 +331,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         {/* Related Articles */}
         {filteredRelated.length > 0 && (
-          <section className="border-t border-border/30 bg-secondary/10 py-10 lg:py-14">
+          <section className="border-t border-neutral-stroke/40 bg-neutral-surface/30 py-10 lg:py-14">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-bold text-foreground">Related Articles</h2>

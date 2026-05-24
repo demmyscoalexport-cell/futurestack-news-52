@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { Inter, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ErrorBoundary } from "@/components/providers/error-boundary";
 import { Toaster } from "@/components/ui/sonner";
+import { MobileBottomNav } from "@/components/discovery/mobile-bottom-nav";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,6 +18,12 @@ const inter = Inter({
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
   display: "swap",
 });
 
@@ -86,8 +93,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0f1a" },
+    { media: "(prefers-color-scheme: light)", color: "#f8f7fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#06030e" },
   ],
 };
 
@@ -97,7 +104,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable}`}
+      className={`${inter.variable} ${geistMono.variable} ${plusJakarta.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -113,7 +120,7 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body className="font-sans antialiased bg-background text-foreground">
+      <body className="font-sans antialiased bg-background text-foreground pb-mobile-nav">
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -127,6 +134,7 @@ export default function RootLayout({
             <Toaster richColors closeButton position="top-right" />
           </AuthProvider>
         </ThemeProvider>
+        <MobileBottomNav />
         <Analytics />
       </body>
     </html>

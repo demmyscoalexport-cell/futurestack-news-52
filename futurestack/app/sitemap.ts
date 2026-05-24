@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { SEO_LANDING_PAGES } from "@/lib/seo-pages";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com";
 
@@ -50,9 +51,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  const seoUrls: MetadataRoute.Sitemap = SEO_LANDING_PAGES.map((p) => ({
+    url: `${BASE_URL}/best/${p.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  }));
+
   return [
     { url: BASE_URL, priority: 1.0, changeFrequency: "daily" },
     { url: `${BASE_URL}/tools`, priority: 0.9, changeFrequency: "daily" },
+    { url: `${BASE_URL}/discover`, priority: 0.9, changeFrequency: "daily" },
+    { url: `${BASE_URL}/compare`, priority: 0.85, changeFrequency: "weekly" },
+    { url: `${BASE_URL}/collections`, priority: 0.7, changeFrequency: "weekly" },
+    { url: `${BASE_URL}/onboarding`, priority: 0.75, changeFrequency: "monthly" },
     { url: `${BASE_URL}/news`, priority: 0.9, changeFrequency: "daily" },
     { url: `${BASE_URL}/radar`, priority: 0.8, changeFrequency: "weekly" },
     {
@@ -70,5 +81,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...toolUrls,
     ...articleUrls,
     ...comparisonUrls,
+    ...seoUrls,
   ];
 }

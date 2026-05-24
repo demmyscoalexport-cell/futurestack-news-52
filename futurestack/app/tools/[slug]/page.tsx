@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
+import Link from "next/link";
 import { Metadata, ResolvingMetadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
@@ -13,6 +13,9 @@ import { AskAIWidget } from "@/components/tool/ask-ai-widget";
 import { FreelancerTrustSignals } from "@/components/tool/freelancer-trust-signals";
 import { ReviewsSection } from "@/components/tool/reviews-section";
 import { SaveToolButton } from "@/components/tool/save-tool-button";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { VerifiedBadge, AfricaVerifiedBadge } from "@/components/discovery/verified-badge";
 import { getToolBySlugCached } from "@/lib/queries/tools";
 import { tools as fallbackTools } from "@/lib/data";
 import { resolveToolLogo } from "@/lib/logo-resolver";
@@ -174,256 +177,191 @@ export default async function ToolDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Inject Structured Data */}
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12">
-        {/* 4. Layout: 2-column (content left 2/3, sidebar right 1/3) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT CONTENT COLUMN */}
-          <div className="lg:col-span-2 space-y-12">
-            {/* Tool Hero Section */}
-            <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-800">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                  {tool.logo ? (
-                    <div className="w-20 h-20 rounded-2xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center p-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={tool.logo as string}
-                        alt={tool.name as string}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-20 h-20 rounded-2xl bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-2xl font-bold text-indigo-500 shrink-0">
-                      {tool.name.charAt(0)}
-                    </div>
-                  )}
-                  <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      {tool.name}
-                      {tool.is_featured && (
-                        <ShieldCheck className="w-6 h-6 text-indigo-500" />
-                      )}
-                    </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 mt-1">
-                      {tool.short_description || tool.tagline}
-                    </p>
-                    <div className="flex items-center gap-3 mt-3">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
-                        {tool.tool_categories?.name || "Category"}
-                      </span>
-                      {tool.has_free && (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                          Free Tier Available
+      <main className="flex-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+              {/* Tool Hero */}
+              <section className="glass-panel rounded-discova-lg p-5 sm:p-6 lg:p-8 border border-neutral-stroke/60">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                  <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0">
+                    {tool.logo ? (
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-discova-lg bg-neutral-surface overflow-hidden shrink-0 flex items-center justify-center p-2 border border-neutral-stroke/50">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={tool.logo as string} alt={tool.name as string} className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-discova-lg bg-brand-primary/15 flex items-center justify-center text-xl sm:text-2xl font-bold text-brand-primary shrink-0">
+                        {tool.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex flex-wrap items-center gap-2">
+                        {tool.name}
+                        {tool.is_featured && <VerifiedBadge />}
+                      </h1>
+                      <p className="text-sm sm:text-base text-muted-foreground mt-1 line-clamp-2">
+                        {tool.short_description || tool.tagline}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium bg-neutral-surface border border-neutral-stroke text-muted-foreground capitalize">
+                          {tool.tool_categories?.name || "Category"}
                         </span>
-                      )}
+                        {tool.has_free && (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                            Free Tier Available
+                          </span>
+                        )}
+                        {tool.africa_friendly && <AfricaVerifiedBadge />}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-row md:flex-col w-full md:w-auto gap-3 shrink-0">
-                  <a
-                    href={`/api/affiliate/${tool.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Visit Website
-                  </a>
-                  <SaveToolButton toolId={tool.id} toolSlug={tool.slug} />
-                </div>
-              </div>
-            </section>
-
-            {/* AI Summary Section */}
-            <section className="bg-indigo-50/50 dark:bg-indigo-950/20 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/50">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500" />
-                <h3 className="font-semibold text-indigo-900 dark:text-indigo-300">
-                  AI Summary
-                </h3>
-              </div>
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                {aiSummary}
-              </p>
-            </section>
-
-            {/* General Description */}
-            <section className="prose prose-slate dark:prose-invert max-w-none">
-              <h2 className="text-xl font-bold mb-4">About {tool.name}</h2>
-              <p>{tool.description}</p>
-            </section>
-
-            {/* DISCOVA Scorecard */}
-            <section>
-              <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">
-                DISCOVA Scorecard
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {tool.tool_scores &&
-                  Object.entries({
-                    "Ease of Use": tool.tool_scores.ease_of_use,
-                    Value: tool.tool_scores.value_for_money,
-                    Features: tool.tool_scores.feature_depth,
-                    Support: tool.tool_scores.support_quality,
-                    Integrations: tool.tool_scores.integration_richness,
-                    "AI Power": tool.tool_scores.ai_capability,
-                  }).map(([label, score]) => (
-                    <div
-                      key={label}
-                      className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800"
+                  <div className="flex flex-row sm:flex-col w-full sm:w-auto gap-2 sm:gap-3 shrink-0">
+                    <a
+                      href={`/api/affiliate/${tool.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-neutral-white font-medium rounded-input transition-colors text-sm"
                     >
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
-                        {label}
-                      </p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {Number(score).toFixed(1)}
-                        </span>
-                        <span className="text-xs text-slate-400 mb-1">/10</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-500 rounded-full"
-                          style={{ width: `${(Number(score) / 10) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </section>
+                      <ExternalLink className="w-4 h-4" />
+                      Visit Website
+                    </a>
+                    <SaveToolButton toolId={tool.id} toolSlug={tool.slug} />
+                  </div>
+                </div>
+              </section>
 
-            {/* User Reviews */}
-            <ReviewsSection
-              toolId={tool.id}
-              toolName={tool.name}
-              initialReviews={tool.reviews ?? []}
-            />
+              {/* AI Summary */}
+              <section className="rounded-discova-lg p-5 sm:p-6 border border-brand-primary/20 bg-brand-primary/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-5 h-5 text-brand-primary fill-brand-primary" />
+                  <h3 className="font-semibold text-brand-lilac">AI Summary</h3>
+                </div>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{aiSummary}</p>
+              </section>
 
-            {/* Changelog Timeline */}
-            <section>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
-                Recent Updates
-              </h2>
-              <div className="space-y-6 border-l-2 border-slate-100 dark:border-slate-800 ml-3 pl-5 relative">
-                {tool.tool_changelogs?.length > 0 ? (
-                  tool.tool_changelogs.map((log: any) => (
-                    <div key={log.id} className="relative">
-                      <div className="absolute -left-[27px] mt-1 w-3 h-3 rounded-full bg-indigo-500 ring-4 ring-white dark:ring-slate-950" />
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                          {log.title}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                          {log.version || log.type}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {new Date(log.published_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        {log.description}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-slate-500">
-                    No recent updates tracked.
-                  </p>
-                )}
-              </div>
-            </section>
-          </div>
+              {/* Description */}
+              <section className="prose prose-sm sm:prose-base prose-invert max-w-none">
+                <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">About {tool.name}</h2>
+                <p className="text-muted-foreground">{tool.description}</p>
+              </section>
 
-          {/* RIGHT SIDEBAR */}
-          <div className="space-y-6">
-            {/* Pricing Table Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
-              <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                <h3 className="font-bold text-slate-900 dark:text-white">
-                  Pricing Plans
-                </h3>
-              </div>
-              <div className="p-1">
-                {tool.tool_pricing?.length > 0 ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {tool.tool_pricing.map((tier: any) => (
-                      <div key={tier.id} className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-medium text-slate-700 dark:text-slate-200">
-                            {tier.tier_name}
-                          </span>
-                          <span className="font-bold text-slate-900 dark:text-white">
-                            {tier.price_monthly
-                              ? `$${tier.price_monthly}/mo`
-                              : "Free"}
-                          </span>
+              {/* Scorecard */}
+              <section>
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground">DISCOVA Scorecard</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                  {tool.tool_scores &&
+                    Object.entries({
+                      "Ease of Use": tool.tool_scores.ease_of_use,
+                      Value: tool.tool_scores.value_for_money,
+                      Features: tool.tool_scores.feature_depth,
+                      Support: tool.tool_scores.support_quality,
+                      Integrations: tool.tool_scores.integration_richness,
+                      "AI Power": tool.tool_scores.ai_capability,
+                    }).map(([label, score]) => (
+                      <div key={label} className="glass-panel p-3 sm:p-4 rounded-discova-lg border border-neutral-stroke/60">
+                        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">{label}</p>
+                        <div className="flex items-end gap-2">
+                          <span className="text-xl sm:text-2xl font-bold text-foreground">{Number(score).toFixed(1)}</span>
+                          <span className="text-xs text-muted-foreground mb-1">/10</span>
                         </div>
-                        {tier.features && tier.features.length > 0 && (
-                          <ul className="mt-3 space-y-1.5">
-                            {tier.features
-                              .slice(0, 3)
-                              .map((feat: string, idx: number) => (
-                                <li
-                                  key={idx}
-                                  className="text-xs text-slate-500 flex items-start gap-2"
-                                >
-                                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+                        <div className="h-1.5 w-full bg-neutral-stroke/50 rounded-full mt-3 overflow-hidden">
+                          <div className="h-full bg-brand-primary rounded-full" style={{ width: `${(Number(score) / 10) * 100}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </section>
+
+              <ReviewsSection toolId={tool.id} toolName={tool.name} initialReviews={tool.reviews ?? []} />
+
+              {/* Changelog */}
+              <section>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">Recent Updates</h2>
+                <div className="space-y-6 border-l-2 border-neutral-stroke ml-3 pl-5 relative">
+                  {tool.tool_changelogs?.length > 0 ? (
+                    tool.tool_changelogs.map((log: { id: string; title: string; version?: string; type?: string; published_at: string; description: string }) => (
+                      <div key={log.id} className="relative">
+                        <div className="absolute -left-[27px] mt-1 w-3 h-3 rounded-full bg-brand-primary ring-4 ring-background" />
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+                          <span className="text-sm font-semibold text-foreground">{log.title}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-md bg-neutral-surface border border-neutral-stroke text-muted-foreground">
+                            {log.version || log.type}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{new Date(log.published_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{log.description}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No recent updates tracked.</p>
+                  )}
+                </div>
+              </section>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-20 lg:self-start">
+              <div className="glass-panel rounded-discova-lg border border-neutral-stroke/60 flex flex-col overflow-hidden">
+                <div className="p-4 sm:p-5 border-b border-neutral-stroke/40">
+                  <h3 className="font-bold text-foreground">Pricing Plans</h3>
+                </div>
+                <div className="p-1">
+                  {tool.tool_pricing?.length > 0 ? (
+                    <div className="divide-y divide-neutral-stroke/40">
+                      {tool.tool_pricing.map((tier: { id: string; tier_name: string; price_monthly?: number | null; features?: string[] }) => (
+                        <div key={tier.id} className="p-4">
+                          <div className="flex justify-between items-start mb-2 gap-2">
+                            <span className="font-medium text-foreground text-sm">{tier.tier_name}</span>
+                            <span className="font-bold text-foreground text-sm shrink-0">
+                              {tier.price_monthly ? `$${tier.price_monthly}/mo` : "Free"}
+                            </span>
+                          </div>
+                          {tier.features && tier.features.length > 0 && (
+                            <ul className="mt-3 space-y-1.5">
+                              {tier.features.slice(0, 3).map((feat: string, idx: number) => (
+                                <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
                                   {feat}
                                 </li>
                               ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-6 text-center text-sm text-slate-500">
-                    Pricing details not currently available.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* In These Stacks */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
-              <h3 className="font-bold text-slate-900 dark:text-white mb-4">
-                Featured In Stacks
-              </h3>
-              <div className="space-y-3">
-                <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 hover:border-indigo-200 transition-colors cursor-pointer group">
-                  <p className="font-medium text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                    The Ultimate Founder Stack
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    by DISCOVA <ChevronRight className="w-3 h-3" />
-                  </p>
-                </div>
-                <div className="p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 hover:border-indigo-200 transition-colors cursor-pointer group">
-                  <p className="font-medium text-sm text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
-                    Growth Hacker Toolkit
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    by @marketer <ChevronRight className="w-3 h-3" />
-                  </p>
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 text-center text-sm text-muted-foreground">Pricing details not currently available.</div>
+                  )}
                 </div>
               </div>
+
+              <div className="glass-panel rounded-discova-lg border border-neutral-stroke/60 p-4 sm:p-5">
+                <h3 className="font-bold text-foreground mb-4">Featured In Stacks</h3>
+                <div className="space-y-3">
+                  {["The Ultimate Founder Stack", "Growth Hacker Toolkit"].map((name) => (
+                    <Link key={name} href="/stacks" className="block p-3 border border-neutral-stroke/50 rounded-input bg-white/[0.02] hover:border-brand-primary/30 transition-colors group">
+                      <p className="font-medium text-sm text-foreground group-hover:text-brand-lilac transition-colors">{name}</p>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">by DISCOVA <ChevronRight className="w-3 h-3" /></p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <FreelancerTrustSignals tool={tool} />
+              <AskAIWidget tool={tool} />
             </div>
-
-            {/* Freelancer Trust Signals */}
-            <FreelancerTrustSignals tool={tool} />
-
-            {/* Ask AI Widget */}
-            <AskAIWidget tool={tool} />
           </div>
         </div>
-      </div>
+      </main>
+      <Footer />
     </div>
   );
 }

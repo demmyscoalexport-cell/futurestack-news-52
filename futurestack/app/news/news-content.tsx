@@ -3,20 +3,16 @@
 import { useState } from "react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PageHero } from "@/components/discovery/page-hero";
+import { CommandBar } from "@/components/discovery/command-bar";
+import { FilterSheet } from "@/components/discovery/filter-sheet";
+import { SectionHeader } from "@/components/discovery/section-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArticleCard } from "@/components/cards/article-card";
 import type { ArticleCategory, UserRole, Article } from "@/lib/types";
-import { Search, Filter, X, SlidersHorizontal } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Search, X } from "lucide-react";
 
 const categories: { id: ArticleCategory; label: string }[] = [
   { id: "ai-tools", label: "AI Tools" },
@@ -136,81 +132,63 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <section className="border-b border-border bg-card py-12 lg:py-16">
-          <div className="container mx-auto px-4 lg:px-8">
-            <h1 className="text-3xl font-bold text-foreground lg:text-4xl">
-              News &amp; Insights
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              Stay ahead with AI tools, SaaS trends, and automation strategies.
-            </p>
-            <div className="mt-6 max-w-xl">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </div>
-        </section>
+        <PageHero
+          compact
+          title={
+            <>
+              News &amp; <span className="gradient-text">Insights</span>
+            </>
+          }
+          subtitle="Stay ahead with AI tools, SaaS trends, tutorials, and automation strategies for creators and builders."
+        >
+          <CommandBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSubmit={() => {}}
+            placeholder="Search articles, guides, comparisons..."
+          />
+        </PageHero>
 
-        <section className="py-8 lg:py-12">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex gap-8">
-              <aside className="hidden lg:block w-64 shrink-0">
-                <div className="sticky top-24">
-                  <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground">
-                    <Filter className="h-5 w-5" /> Filters
-                  </h2>
-                  {filterSidebarContent}
+        <section className="py-6 sm:py-10 lg:py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex gap-6 lg:gap-8">
+              <aside className="hidden lg:block w-56 xl:w-64 shrink-0">
+                <div className="sticky top-24 glass-panel rounded-discova-lg border border-neutral-stroke/60 p-5">
+                  <SectionHeader title="Filters" className="mb-0" />
+                  <div className="mt-4">{filterSidebarContent}</div>
                 </div>
               </aside>
 
-              <div className="flex-1">
-                <div className="lg:hidden mb-6 flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6 flex-wrap">
                   <p className="text-sm text-muted-foreground">
-                    Showing {filteredArticles.length} articles
-                  </p>
-                  <Sheet
-                    open={isMobileFilterOpen}
-                    onOpenChange={setIsMobileFilterOpen}
-                  >
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <SlidersHorizontal className="mr-2 h-4 w-4" /> Filters
-                        {hasActiveFilters && (
-                          <span className="ml-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                            {selectedCategories.length +
-                              selectedAudiences.length}
-                          </span>
-                        )}
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-80">
-                      <SheetHeader>
-                        <SheetTitle>Filter Articles</SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-6">{filterSidebarContent}</div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-
-                <div className="hidden lg:flex items-center justify-between mb-6">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {Math.min(visibleCount, filteredArticles.length)} of {filteredArticles.length}{" "}
+                    {Math.min(visibleCount, filteredArticles.length)} of {filteredArticles.length}{" "}
                     {filteredArticles.length === 1 ? "article" : "articles"}
                   </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsMobileFilterOpen(true)}
+                    className="lg:hidden border-neutral-stroke"
+                  >
+                    Filters
+                    {hasActiveFilters && (
+                      <span className="ml-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[10px] text-neutral-white font-bold">
+                        {selectedCategories.length + selectedAudiences.length}
+                      </span>
+                    )}
+                  </Button>
                 </div>
 
+                <FilterSheet open={isMobileFilterOpen} onClose={() => setIsMobileFilterOpen(false)} title="Filter Articles">
+                  {filterSidebarContent}
+                </FilterSheet>
+
                 {filteredArticles.length > 0 ? (
-                  <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredArticles.slice(0, visibleCount).map((a) => (
                       <ArticleCard key={a.id} article={a} />
                     ))}

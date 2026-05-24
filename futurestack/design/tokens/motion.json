@@ -1,0 +1,17 @@
+{
+  "motion": {
+    "duration-fast": { "value": "150ms", "type": "duration" },
+    "duration-normal": { "value": "250ms", "type": "duration" },
+    "duration-slow": { "value": "400ms", "type": "duration" },
+    "ease-out": { "value": "cubic-bezier(0.16, 1, 0.3, 1)", "type": "cubicBezier" }
+  },
+  "elevation": {
+    "glass": { "value": "0 0 40px rgba(124, 102, 255, 0.12)", "type": "boxShadow" },
+    "card-hover": { "value": "0 8px 32px rgba(124, 102, 255, 0.12)", "type": "boxShadow" },
+    "glow-primary": { "value": "0 0 20px rgba(124, 102, 255, 0.35)", "type": "boxShadow" }
+  },
+  "spacing": {
+    "section-y": { "value": "3rem", "type": "spacing" },
+    "section-y-lg": { "value": "4rem", "type": "spacing" }
+  }
+}

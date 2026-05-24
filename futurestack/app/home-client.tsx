@@ -2,9 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { CommandBar } from "@/components/discovery/command-bar";
+import { TrendingTags } from "@/components/discovery/trending-tags";
+import { EditorPickCarousel } from "@/components/discovery/editor-pick-carousel";
+import { FeaturedOn } from "@/components/discovery/featured-on";
+import { PersonalizedFeed } from "@/components/discovery/personalized-feed";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import type { Tool, Article, Stack } from "@/lib/types";
+import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
 import {
   ArrowRight, Search, Star, ChevronLeft, ChevronRight, Mail,
   PenTool, Video, Zap, Code2, Palette, FlaskConical, LayoutGrid,
@@ -54,27 +60,6 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function AnimatedCount({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      observer.disconnect();
-      let start = 0;
-      const step = Math.ceil(target / 40);
-      const timer = setInterval(() => {
-        start += step;
-        if (start >= target) { setCount(target); clearInterval(timer); }
-        else setCount(start);
-      }, 30);
-    });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target]);
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-}
-
 interface HomeClientProps {
   featuredArticles: Article[];
   topTools: Tool[];
@@ -89,35 +74,37 @@ interface HomeClientProps {
   };
 }
 
-const HOME_QUICK_CATEGORIES = [
-  { label: "AI Writing", category: "writing" },
-  { label: "Dev Tools", category: "code" },
-  { label: "Automation", category: "automation" },
-  { label: "Design", category: "design" },
-  { label: "Africa Tech", category: "writing" },
-  { label: "Finance", category: "analytics" },
-] as const;
-
 export function HomeClient({ topTools, featuredStacks, toolCategories, recentTools, catalogStats }: HomeClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const stats = catalogStats ?? {
-    toolCount: topTools.length > 0 ? 409 : 400,
-    categoryCount: toolCategories.length || 16,
-    stackCount: featuredStacks.length || 9,
-    africaReadyPct: 95,
+  const stats = {
+    toolCount: catalogStats?.toolCount || 409,
+    categoryCount: catalogStats?.categoryCount || toolCategories.length || 50,
+    stackCount: catalogStats?.stackCount || featuredStacks.length || 9,
+    africaReadyPct: catalogStats?.africaReadyPct || 95,
   };
 
   const goToToolsSearch = () => {
     const q = searchQuery.trim();
-    window.location.href = q ? `/tools?search=${encodeURIComponent(q)}` : "/tools";
+    if (!q) {
+      window.location.href = "/discover";
+      return;
+    }
+    const intent = parseSmartSearch(q);
+    window.location.href = buildToolsSearchUrl(intent);
   };
 
   const scrollLeft  = () => scrollRef.current?.scrollBy({ left: -360, behavior: "smooth" });
   const scrollRight = () => scrollRef.current?.scrollBy({ left: 360, behavior: "smooth" });
 
-  const exampleSearches = ["logo design tool", "AI coding assistant", "Mpesa integration", "social media scheduler", "invoice generator"];
+  const exampleSearches = [
+    "AI for Nigerian SME business",
+    "Tools like ChatGPT",
+    "Best free AI video editor",
+    "AI coding assistant",
+    "Mpesa integration tools",
+  ];
   const [exampleIdx, setExampleIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setExampleIdx(i => (i + 1) % exampleSearches.length), 2800);
@@ -130,92 +117,64 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
       <main className="flex-1">
 
         {/* ══════════════════════════════════════════════════════
-            HERO
+            HERO — Futurepedia-level discovery
         ══════════════════════════════════════════════════════ */}
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden hero-glow">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute top-0 left-1/4 h-[700px] w-[700px] rounded-full bg-violet-600/10 blur-[140px]" />
-            <div className="absolute top-20 right-1/4 h-[500px] w-[500px] rounded-full bg-indigo-700/8 blur-[120px]" />
-            <div className="absolute bottom-0 left-0 h-[350px] w-[350px] rounded-full bg-emerald-700/6 blur-[100px]" />
+            <div className="orb-glow top-0 left-1/4 h-[600px] w-[600px] bg-brand-primary/12 animate-float" />
+            <div className="orb-glow top-16 right-1/4 h-[400px] w-[400px] bg-brand-lilac/10" style={{ animationDelay: "1s" }} />
+            <div className="orb-glow bottom-0 left-0 h-[300px] w-[300px] bg-brand-gold/8" />
             <div
-              className="absolute inset-0 opacity-[0.025]"
+              className="absolute inset-0 opacity-[0.02]"
               style={{
-                backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)",
-                backgroundSize: "64px 64px",
+                backgroundImage: "linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px)",
+                backgroundSize: "48px 48px",
               }}
             />
           </div>
 
-          <div className="container relative mx-auto px-4 lg:px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
-            <div className="max-w-3xl mx-auto text-center">
-
-              {/* Headline */}
-              <h1 className="text-5xl font-bold leading-[1.06] tracking-tight text-white lg:text-6xl xl:text-7xl mb-6">
-                Discover tools that<br />
-                <span className="bg-gradient-to-r from-violet-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
-                  move your work forward
-                </span>
+          <div className="container relative mx-auto px-4 lg:px-6 pt-8 pb-6 sm:pt-10 lg:pt-14 lg:pb-10">
+            <div className="max-w-3xl lg:max-w-none mx-auto lg:mx-0 text-left">
+              <h1 className="text-[1.65rem] sm:text-4xl font-bold leading-[1.15] tracking-tight text-foreground lg:text-5xl xl:text-6xl mb-3 sm:mb-4">
+                Discover the Best AI Tools for{" "}
+                <span className="gradient-text">Work, Creativity &amp; Business</span>
               </h1>
 
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed mb-10">
-                Find, compare, and build stacks from 400+ AI tools, SaaS products, and apps — curated and rated for founders, freelancers, and builders.
+              <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl leading-relaxed mb-4 sm:mb-6">
+                Explore {stats.toolCount.toLocaleString()}+ curated AI tools &amp; workflows.
+                Your intelligent assistant for global and local growth.
               </p>
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-brand-primary hover:text-brand-lilac mb-6 sm:mb-8 transition-colors"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Personalize my feed →
+              </Link>
 
-              {/* Search — full width, centred */}
-              <div className="flex gap-2 max-w-2xl mx-auto mb-5">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") goToToolsSearch();
-                    }}
-                    placeholder={`Try "${exampleSearches[exampleIdx]}"`}
-                    className="w-full rounded-xl border border-border/60 bg-secondary/50 pl-11 pr-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/40 backdrop-blur-sm"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={goToToolsSearch}
-                  className="rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors whitespace-nowrap"
-                >
-                  Search
-                </button>
-              </div>
+              <CommandBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSubmit={goToToolsSearch}
+                placeholder={`Try "${exampleSearches[exampleIdx]}"`}
+              />
 
-              {/* Quick links */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-                <span className="text-xs text-muted-foreground">Explore:</span>
-                {HOME_QUICK_CATEGORIES.map(({ label, category }) => (
-                  <Link
-                    key={label}
-                    href={`/tools?category=${category}`}
-                    className="rounded-lg border border-border/40 bg-secondary/30 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground hover:border-border/70 hover:bg-secondary/60 transition-all"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </div>
-
-              {/* Trust bar */}
-              <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
-                {[
-                  { icon: CheckCircle2, text: "400+ curated tools" },
-                  { icon: Globe,        text: "Africa-rated & tested" },
-                  { icon: Sparkles,     text: "AI-powered discovery" },
-                  { icon: CheckCircle2, text: "Free to use" },
-                ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5 text-emerald-400" />
-                    <span>{text}</span>
-                  </div>
-                ))}
+              <div className="mt-6 sm:mt-8">
+                <TrendingTags />
               </div>
             </div>
           </div>
         </section>
+
+        <EditorPickCarousel stacks={featuredStacks} tools={topTools} />
+
+        <section className="border-b border-neutral-stroke/30">
+          <div className="container mx-auto px-4 lg:px-6">
+            <FeaturedOn />
+          </div>
+        </section>
+
+        <PersonalizedFeed fallbackTools={topTools} />
 
         {/* ══════════════════════════════════════════════════════
             STATS BAR
@@ -235,7 +194,7 @@ export function HomeClient({ topTools, featuredStacks, toolCategories, recentToo
                   </div>
                   <div>
                     <p className="text-xl font-bold text-foreground leading-none">
-                      <AnimatedCount target={value} suffix={suffix} />
+                      {value.toLocaleString()}{suffix}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                   </div>
