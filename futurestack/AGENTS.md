@@ -651,3 +651,69 @@ tsc --noEmit  # fails
 > **Always read `AGENTS.md` before generating code.**
 
 This document is the law of this repository. Follow it completely.
+
+---
+
+## Cursor Cloud specific instructions
+
+### Monorepo layout
+
+| Path | Package manager | Purpose |
+|------|-----------------|---------|
+| `futurestack/` | **npm** (`package-lock.json`) | Main DISCOVA Next.js app — primary dev entry |
+| repo root + `artifacts/`, `lib/` | **pnpm** (`pnpm-workspace.yaml`) | Replit workspace packages (api-server, mockup-sandbox, shared libs) |
+
+For product work, always `cd futurestack` first. Use pnpm at the repo root only when editing `artifacts/*` or `lib/*`.
+
+### Dependencies
+
+- **`npm ci` in `futurestack/` may fail** if `package-lock.json` is out of sync with `package.json`. Use `npm install` instead (the VM update script does this).
+- Root `pnpm install` is required for workspace packages; the root `preinstall` hook rejects npm/yarn at the workspace root.
+
+### Required secrets (blocking for full local app)
+
+The homepage and tool catalog need Supabase. Without these in Cursor Cloud secrets (or `futurestack/.env.local`), `/` returns 500 but auth routes still work:
+
+- `NEXT_PUBLIC_SUPABASE_URL` — project `nuyigpwhmyiogfzsdvzw` per `replit.md`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_USE_REST=true` (recommended per `futurestack/docs/DEPLOY.md`)
+
+Optional for DB scripts: `SUPABASE_DB_URL`, `SUPABASE_DB_PASSWORD`.
+
+One-time DB setup after secrets are set:
+
+```bash
+cd futurestack
+cp .env.example .env.local   # fill Supabase vars
+node scripts/setup.mjs       # schema + quick seed
+```
+
+### Start services
+
+```bash
+cd futurestack && npm run dev
+```
+
+This starts **Next.js on port 3000** and **Inngest dev UI on port 8288** via `concurrently`. Inngest registers 18 functions and `/api/inngest` responds without cloud keys when `INNGEST_DEV=1`.
+
+`/login` loads without seeded DB data. `/` requires Supabase credentials.
+
+### Lint / typecheck / build
+
+See `futurestack/package.json` and root `package.json` scripts. Standard commands:
+
+```bash
+cd futurestack && npm run check    # tsc --noEmit (passes)
+cd futurestack && npm run lint     # pre-existing eslint errors in lib/queries/*
+cd futurestack && npm run build    # needs Supabase env vars
+cd /workspace && pnpm run typecheck
+```
+
+Pre-commit hook (husky in `futurestack/.husky/pre-commit`): `lint-staged` + `tsc --noEmit`.
+
+### Gotchas
+
+- No Docker in Cloud Agent VMs — local Supabase via `supabase start` is not available; use cloud Supabase project secrets.
+- `artifacts/mockup-sandbox` Vite dev server may fail without Replit-specific Vite plugins; it is optional for product work.
+- Replit Express gateway (`artifacts/api-server` on 8080) is only needed for Replit deployment topology, not standard local dev.
