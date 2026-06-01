@@ -6,6 +6,16 @@ import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
 const DEFAULT_BASE_PATH = "/__mockup";
+const cartographerPlugins =
+  process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
+    ? [
+        await import("@replit/vite-plugin-cartographer").then((m) =>
+          m.cartographer({
+            root: path.resolve(import.meta.dirname, ".."),
+          }),
+        ),
+      ]
+    : [];
 
 function readRequiredPort(): number {
   const rawPort = process.env["PORT"];
@@ -25,7 +35,7 @@ function readRequiredPort(): number {
   return port;
 }
 
-export default defineConfig(async ({ command }) => {
+export default defineConfig(({ command }) => {
   const basePath = process.env["BASE_PATH"] ?? DEFAULT_BASE_PATH;
   const port = command === "serve" ? readRequiredPort() : undefined;
 
@@ -36,16 +46,7 @@ export default defineConfig(async ({ command }) => {
       react(),
       tailwindcss(),
       runtimeErrorOverlay(),
-      ...(process.env.NODE_ENV !== "production" &&
-      process.env.REPL_ID !== undefined
-        ? [
-            await import("@replit/vite-plugin-cartographer").then((m) =>
-              m.cartographer({
-                root: path.resolve(import.meta.dirname, ".."),
-              }),
-            ),
-          ]
-        : []),
+      ...cartographerPlugins,
     ],
     resolve: {
       alias: {
