@@ -3,6 +3,8 @@ import { getTools, getTrendingTools } from "@/lib/queries/tools";
 import type { Tool } from "@/lib/types";
 import { DashboardClient } from "./dashboard-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
