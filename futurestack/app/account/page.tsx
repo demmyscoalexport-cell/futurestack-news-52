@@ -88,7 +88,6 @@ export default function AccountPage() {
     await supabase.from("profiles").upsert({
       id: user!.id,
       full_name: data.full_name,
-      role: selectedRole,
       bio: data.bio,
       website: data.website,
       twitter: data.twitter,
