@@ -202,12 +202,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
-  INSERT INTO profiles (id, full_name, avatar_url, role)
+  INSERT INTO profiles (id, full_name, avatar_url)
   VALUES (
     NEW.id,
     NEW.raw_user_meta_data->>'full_name',
-    NEW.raw_user_meta_data->>'avatar_url',
-    NEW.raw_user_meta_data->>'role'
+    NEW.raw_user_meta_data->>'avatar_url'
   );
   RETURN NEW;
 END;
@@ -217,6 +216,34 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE handle_new_user();
+
+CREATE OR REPLACE FUNCTION prevent_profile_role_escalation()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public AS $$
+BEGIN
+  IF auth.role() <> 'service_role' THEN
+    IF TG_OP = 'INSERT' AND NEW.role IS NOT NULL THEN
+      RAISE EXCEPTION 'profiles.role cannot be set by user sessions';
+    END IF;
+
+    IF TG_OP = 'UPDATE' AND OLD.role IS DISTINCT FROM NEW.role THEN
+      RAISE EXCEPTION 'profiles.role cannot be changed by user sessions';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS prevent_profile_role_escalation_insert ON profiles;
+CREATE TRIGGER prevent_profile_role_escalation_insert
+BEFORE INSERT ON profiles
+FOR EACH ROW EXECUTE FUNCTION prevent_profile_role_escalation();
+
+DROP TRIGGER IF EXISTS prevent_profile_role_escalation_update ON profiles;
+CREATE TRIGGER prevent_profile_role_escalation_update
+BEFORE UPDATE OF role ON profiles
+FOR EACH ROW EXECUTE FUNCTION prevent_profile_role_escalation();
 
 -- ──────────────────────────────────────────────────────────
 -- EXTENDED SCHEMA (migration_002)

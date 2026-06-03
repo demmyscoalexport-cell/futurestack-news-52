@@ -62,7 +62,7 @@ export default function SignupPage() {
       email: data.email,
       password: data.password,
       options: {
-        data: { full_name: data.full_name, role: data.role },
+        data: { full_name: data.full_name },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });

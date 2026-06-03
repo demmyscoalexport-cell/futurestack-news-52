@@ -205,12 +205,11 @@ create table if not exists profiles (
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into profiles (id, full_name, avatar_url, role)
+  insert into profiles (id, full_name, avatar_url)
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
-    new.raw_user_meta_data->>'avatar_url',
-    new.raw_user_meta_data->>'role'
+    new.raw_user_meta_data->>'avatar_url'
   );
   return new;
 end;
@@ -264,6 +263,34 @@ create policy "saved_stacks_owner"   on saved_stacks for all using (auth.uid() =
 alter table profiles           enable row level security;
 create policy "profiles_public_read" on profiles for select using (true);
 create policy "profiles_owner_write" on profiles for update using (auth.uid() = id);
+
+create or replace function prevent_profile_role_escalation()
+returns trigger language plpgsql security definer
+set search_path = public as $$
+begin
+  if auth.role() <> 'service_role' then
+    if tg_op = 'INSERT' and new.role is not null then
+      raise exception 'profiles.role cannot be set by user sessions';
+    end if;
+
+    if tg_op = 'UPDATE' and old.role is distinct from new.role then
+      raise exception 'profiles.role cannot be changed by user sessions';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_profile_role_escalation_insert on profiles;
+create trigger prevent_profile_role_escalation_insert
+before insert on profiles
+for each row execute function prevent_profile_role_escalation();
+
+drop trigger if exists prevent_profile_role_escalation_update on profiles;
+create trigger prevent_profile_role_escalation_update
+before update of role on profiles
+for each row execute function prevent_profile_role_escalation();
 
 -- Newsletter: no direct access (use service role in API routes)
 alter table newsletter_subscribers enable row level security;
