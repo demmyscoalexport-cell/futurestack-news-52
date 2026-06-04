@@ -210,7 +210,7 @@ begin
     new.id,
     new.raw_user_meta_data->>'full_name',
     new.raw_user_meta_data->>'avatar_url',
-    new.raw_user_meta_data->>'role'
+    'user'
   );
   return new;
 end;
@@ -220,6 +220,21 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
+
+create or replace function prevent_profile_role_self_update()
+returns trigger language plpgsql as $$
+begin
+  if new.role is distinct from old.role and coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'profile role can only be changed by service role';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_prevent_role_self_update on profiles;
+create trigger profiles_prevent_role_self_update
+  before update of role on profiles
+  for each row execute function prevent_profile_role_self_update();
 
 -- ──────────────────────────────────────────────────────────
 -- ROW LEVEL SECURITY
@@ -330,7 +345,7 @@ LANGUAGE sql STABLE AS \$\$
 -- ----------------------------------------------------
 -- ENHANCED PROFILES SCHEMA (Phase 6)
 -- ----------------------------------------------------
-ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT; -- 'freelancer', 'founder', 'agency'
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS role TEXT; -- 'user', 'editor', 'admin'
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS primary_goals TEXT[];
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS monthly_tool_budget INT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS team_size TEXT;
