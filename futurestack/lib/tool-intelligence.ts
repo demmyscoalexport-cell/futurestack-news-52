@@ -154,7 +154,7 @@ export function getVideos(tool: ToolRecord): ToolVideo[] {
     return raw.flatMap((item) => {
       if (!item || typeof item !== "object") return [];
       const row = item as Record<string, unknown>;
-      const youtubeUrl = fieldString(row, ["youtubeUrl", "youtube_url", "url"]);
+      const youtubeUrl = fieldString(row, ["youtubeUrl", "youtube_url", "embed_url", "url"]);
       if (!youtubeUrl) return [];
       return [{
         title: fieldString(row, ["title"], `${getToolName(tool)} tutorial`),

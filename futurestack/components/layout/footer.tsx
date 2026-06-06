@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Compass, Twitter, Linkedin, Youtube, Github, Instagram } from "lucide-react";
+import { Twitter, Linkedin, Youtube, Github, Instagram } from "lucide-react";
+import { NewsletterSignup } from "@/components/newsletter/newsletter-signup";
 
 const footerLinks = {
   discover: [
@@ -44,6 +43,8 @@ const socialLinks = [
   { name: "GitHub", href: "https://github.com/discova", icon: Github },
 ];
 
+const COPYRIGHT_YEAR = new Date().getFullYear();
+
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card">
@@ -63,10 +64,7 @@ export function Footer() {
                 Top tools, opportunities, and workflows curated for African builders — every Tuesday. Join 15,000+ subscribers.
               </p>
             </div>
-            <div className="flex w-full max-w-md gap-2">
-              <Input type="email" placeholder="Enter your email" className="flex-1" />
-              <Button>Subscribe Free</Button>
-            </div>
+            <NewsletterSignup />
           </div>
         </div>
 
@@ -167,7 +165,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 lg:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} DISCOVA. All rights reserved.
+            &copy; {COPYRIGHT_YEAR} DISCOVA. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground">
             Built for Africa and emerging markets. Designed for global ambition. 🌍

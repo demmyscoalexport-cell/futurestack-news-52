@@ -261,12 +261,16 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
     event.preventDefault();
     event.stopPropagation();
     const url = `${window.location.origin}/tools/${slug}`;
-    if (navigator.share) {
-      await navigator.share({ title: name, url });
-      return;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: name, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+    } catch {
+      setCopied(false);
     }
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
   };
 
   return (

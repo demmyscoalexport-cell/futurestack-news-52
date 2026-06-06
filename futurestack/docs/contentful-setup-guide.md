@@ -19,17 +19,141 @@ Create the following content types in Contentful. Use `slug` as unique where app
 - `slug` (Short text, required, unique)
 - `tagline` (Short text)
 - `description` (Long text, required)
+- `longDescription` (Long text, target 1500-3000 words)
 - `logoUrl` (Short text URL)
 - `websiteUrl` (Short text URL, required)
+- `companyName` (Short text)
+- `heroImage` (Short text URL or Media)
+- `galleryImages` (Short text list of Cloudinary/Contentful media URLs)
 - `categorySlug` (Short text, required)
 - `subcategorySlugs` (Short text list)
 - `tags` (Short text list)
+- `audience` (Short text list)
+- `useCases` (Short text list)
+- `pros` (Short text list)
+- `cons` (Short text list)
+- `features` (JSON object list or references to `toolFeature`)
+- `videos` (JSON object list or references to `toolVideo`)
+- `faqs` (JSON object list or references to `toolFAQ`)
+- `alternatives` (References, many -> `tool`)
+- `aiSummary30` (Long text)
+- `aiSummary120` (Long text)
+- `aiDeepAnalysis` (Long text)
 - `pricingModel` (Short text)
 - `startingPrice` (Number)
 - `freeTier` (Boolean)
 - `verified` (Boolean)
+- `featured` (Boolean)
+- `trending` (Boolean)
+- `editorPick` (Boolean)
 - `futurestackScore` (Number)
 - `status` (Short text with validation: `draft`, `published`, `archived`)
+
+### `category`
+
+- `name` (Short text, required)
+- `slug` (Short text, required, unique)
+- `description` (Long text)
+- `icon` (Short text)
+- `heroImage` (Media or URL)
+- `sortOrder` (Number)
+
+### `subcategory`
+
+- `name` (Short text, required)
+- `slug` (Short text, required, unique)
+- `category` (Reference -> `category`)
+- `description` (Long text)
+- `icon` (Short text)
+- `sortOrder` (Number)
+
+### `toolFeature`
+
+- `tool` (Reference -> `tool`)
+- `title` (Short text, required)
+- `description` (Long text, required)
+- `icon` (Short text)
+- `priority` (Number)
+
+### `toolVideo`
+
+- `tool` (Reference -> `tool`)
+- `title` (Short text, required)
+- `youtubeUrl` (Short text URL, required)
+- `thumbnail` (Media or URL)
+- `duration` (Short text)
+- `creator` (Short text)
+- `featured` (Boolean)
+- `position` (Number)
+
+### `toolFAQ`
+
+- `tool` (Reference -> `tool`)
+- `question` (Short text, required)
+- `answer` (Long text, required)
+- `order` (Number)
+
+### `toolGallery`
+
+- `tool` (Reference -> `tool`)
+- `image` (Media, required)
+- `imageUrl` (Short text URL, optional Cloudinary URL)
+- `title` (Short text)
+- `alt` (Short text)
+- `mediaType` (Short text: `screenshot`, `mobile`, `dashboard`, `feature`, `before_after`, `gif`, `video_preview`)
+- `position` (Number)
+
+### `toolUseCase`
+
+- `tool` (Reference -> `tool`)
+- `title` (Short text, required)
+- `description` (Long text)
+- `icon` (Short text)
+- `priority` (Number)
+
+### `toolPricing`
+
+- `tool` (Reference -> `tool`)
+- `tierName` (Short text, required)
+- `priceMonthly` (Number)
+- `priceAnnual` (Number)
+- `currency` (Short text, default `USD`)
+- `features` (Short text list)
+- `isPopular` (Boolean)
+- `isFreeTier` (Boolean)
+
+### `toolCompany`
+
+- `name` (Short text, required)
+- `slug` (Short text, required, unique)
+- `websiteUrl` (Short text URL)
+- `logoUrl` (Short text URL)
+- `description` (Long text)
+
+### `verificationStatus`
+
+- `tool` (Reference -> `tool`)
+- `officialWebsiteVerified` (Boolean)
+- `workingProduct` (Boolean)
+- `reviewedByDiscova` (Boolean)
+- `noMalware` (Boolean)
+- `noSpam` (Boolean)
+- `recentlyUpdated` (Boolean)
+- `trustedSource` (Boolean)
+- `notes` (Long text)
+- `verifiedAt` (Date/time)
+
+### Optional launch models
+
+Create these next if you want the full editorial/discovery ecosystem from day one:
+
+- `toolTag`: `name`, `slug`
+- `toolAlternative`: `tool`, `alternativeTool`, `similarityScore`, `reason`
+- `toolComparison`: `title`, `slug`, `toolA`, `toolB`, `summary`, `verdict`, `winner`, `status`, `publishedAt`
+- `toolReview`: `tool`, `userName`, `rating`, `content`, `verified`, `location`
+- `toolCollections`: `title`, `slug`, `description`, `tools`, `featured`, `status`
+- `toolAwards`: `tool`, `title`, `description`, `awardedAt`
+- `toolNews`: `tool`, `title`, `url`, `source`, `summary`, `publishedAt`
 
 ### `newsArticle`
 
@@ -121,6 +245,12 @@ Recommended headers:
 
 - `x-futurestack-webhook-secret: <your-secret>`
 
+For Vercel, use the full production URL:
+
+```text
+https://YOUR-VERCEL-DOMAIN.com/api/contentful/sync
+```
+
 ## 5) FutureStack Endpoints (current + next)
 
 Already added in codebase:
@@ -187,3 +317,36 @@ Use only these statuses:
 - no tool without `websiteUrl`, `categorySlug`, and `status`
 - no article without `title`, `slug`, `body`, and `publishedAt`
 - all published entries return from `/api/contentful/pull`
+
+## 9) Immediate Contentful Checklist
+
+Before deploy, create at least:
+
+1. `category`
+2. `subcategory`
+3. `tool`
+4. `toolFeature`
+5. `toolVideo`
+6. `toolFAQ`
+7. `toolGallery`
+8. `toolUseCase`
+9. `toolPricing`
+10. `verificationStatus`
+
+Then create one complete test tool with:
+
+- logo
+- hero screenshot
+- 3 screenshots
+- 3 features
+- 2 FAQs
+- 1 YouTube tutorial
+- pros and cons
+- audience chips
+- 30-second, 2-minute, and deep AI summaries
+
+Finally test:
+
+- `/api/contentful/pull`
+- `/api/contentful/publish/tools` with `dryRun: true`
+- `/tools/<your-test-tool-slug>`

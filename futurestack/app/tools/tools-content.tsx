@@ -235,9 +235,9 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
               <div className="flex items-center gap-1">
                 <span className="text-xs opacity-60">{cat.count ?? 0}</span>
                 {subs.length > 0 && (
-                  <span onClick={(e) => toggleExpand(cat.id, e)} className="p-0.5 rounded hover:bg-white/10">
+                  <button type="button" onClick={(e) => toggleExpand(cat.id, e)} className="p-0.5 rounded hover:bg-white/10">
                     {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                  </span>
+                  </button>
                 )}
               </div>
             </button>

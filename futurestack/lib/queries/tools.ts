@@ -207,13 +207,39 @@ export async function getToolBySlug(slug: string) {
     );
     if (!rows[0]) return null;
     const tool = withLogo(rows[0]);
-    const [pricing, alts, changelogs, reviews] = await Promise.all([
+    const [
+      pricing,
+      alts,
+      changelogs,
+      reviews,
+      features,
+      videos,
+      faqs,
+      gallery,
+      useCases,
+    ] = await Promise.all([
       db.query(`SELECT * FROM tool_pricing WHERE tool_id=$1 ORDER BY price_monthly ASC NULLS FIRST`, [tool.id]).then(r=>r.rows).catch(()=>[]),
       db.query(`SELECT t2.id,t2.name,t2.slug,t2.logo,t2.tagline,t2.website_url,ta.similarity_score FROM tool_alternatives ta JOIN tools t2 ON t2.id=ta.alternative_id WHERE ta.tool_id=$1 ORDER BY ta.similarity_score DESC LIMIT 6`,[tool.id]).then(r=>r.rows).then(withLogos).catch(()=>[]),
       db.query(`SELECT * FROM tool_changelogs WHERE tool_id=$1 ORDER BY published_at DESC LIMIT 5`,[tool.id]).then(r=>r.rows).catch(()=>[]),
       db.query(`SELECT * FROM reviews WHERE tool_id=$1 ORDER BY created_at DESC LIMIT 10`,[tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title, description, icon, priority FROM tool_features WHERE tool_id=$1 ORDER BY priority ASC, title ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title, coalesce(youtube_url, embed_url) AS youtube_url, thumbnail, duration, creator, featured, position FROM tool_videos WHERE tool_id=$1 ORDER BY featured DESC, position ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT question, answer, display_order AS "order" FROM tool_faqs WHERE tool_id=$1 ORDER BY display_order ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT image_url FROM tool_gallery WHERE tool_id=$1 ORDER BY position ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title FROM tool_use_cases WHERE tool_id=$1 ORDER BY priority ASC, title ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
     ]);
-    return { ...tool, tool_pricing: pricing, alternatives: alts, tool_changelogs: changelogs, reviews };
+    return {
+      ...tool,
+      gallery: gallery.map((item: { image_url?: string }) => item.image_url).filter(Boolean),
+      useCases: useCases.map((item: { title?: string }) => item.title).filter(Boolean),
+      tool_pricing: pricing,
+      alternatives: alts,
+      tool_changelogs: changelogs,
+      reviews,
+      features,
+      videos,
+      faqs,
+    };
   }, null);
 }
 
