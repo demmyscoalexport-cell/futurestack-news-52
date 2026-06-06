@@ -49,7 +49,7 @@ import {
   youtubeEmbedUrl,
 } from "@/lib/tool-intelligence";
 
-export const revalidate = 3600; // 1 hour ISR
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

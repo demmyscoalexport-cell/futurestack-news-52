@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import type { Tool } from "@/lib/types";
 import { getTools, getCategoriesWithSubcategories } from "@/lib/queries/tools";
 import { ToolsContent } from "./tools-content";
