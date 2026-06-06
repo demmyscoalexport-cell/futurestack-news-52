@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { checkAdminOrRedirect } from "@/lib/supabase/admin-guard";
 import UsersClient from "./users-client";
 

@@ -5,11 +5,13 @@ import { SEO_LANDING_PAGES } from "@/lib/seo-pages";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = await createClient();
+  let tools: { slug: string; updated_at: string }[] = [];
+  let articles: { slug: string; updated_at: string }[] = [];
+  let comparisons: { tool1_slug: string; tool2_slug: string; updated_at: string }[] = [];
 
-  // Fetch dynamic slugs in parallel
-  const [{ data: tools }, { data: articles }, { data: comparisons }] =
-    await Promise.all([
+  try {
+    const supabase = await createClient();
+    const [toolsRes, articlesRes, comparisonsRes] = await Promise.all([
       supabase
         .from("tools")
         .select("slug, updated_at")
@@ -27,22 +29,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .order("view_count", { ascending: false })
         .limit(50),
     ]);
+    tools = toolsRes.data ?? [];
+    articles = articlesRes.data ?? [];
+    comparisons = comparisonsRes.data ?? [];
+  } catch {
+    // Supabase not available at build time — sitemap will only include static routes
+  }
 
-  const toolUrls: MetadataRoute.Sitemap = (tools || []).map((t) => ({
+  const toolUrls: MetadataRoute.Sitemap = tools.map((t) => ({
     url: `${BASE_URL}/tools/${t.slug}`,
     lastModified: t.updated_at ? new Date(t.updated_at) : new Date(),
     changeFrequency: "weekly",
     priority: 0.8,
   }));
 
-  const articleUrls: MetadataRoute.Sitemap = (articles || []).map((a) => ({
+  const articleUrls: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${BASE_URL}/news/${a.slug}`,
     lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
     changeFrequency: "daily",
     priority: 0.9,
   }));
 
-  const comparisonUrls: MetadataRoute.Sitemap = (comparisons || []).map(
+  const comparisonUrls: MetadataRoute.Sitemap = comparisons.map(
     (c) => ({
       url: `${BASE_URL}/compare/${c.tool1_slug}-vs-${c.tool2_slug}`,
       lastModified: c.updated_at ? new Date(c.updated_at) : new Date(),

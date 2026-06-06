@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getTrendingTools } from "@/lib/queries/tools";
 import { tools as fallbackTools } from "@/lib/data";
 import { CollectionsClient } from "./collections-client";
