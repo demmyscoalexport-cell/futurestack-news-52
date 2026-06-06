@@ -5,20 +5,7 @@
 
 ---
 
-## 🚨 CRITICAL: TWO SEPARATE PROJECTS IN THIS REPO
-
-This repository (`futurestack-news-52`) contains **two completely separate projects**:
-
-| Project | Location | Status | Repo |
-|---------|----------|--------|------|
-| **Discova** | `/futurestack/` | ✅ LIVE at getdiscova.com | This repo |
-| **Ampliforge** | Separate repo | 🔨 In development | `demmyscoalexport-cell/AMPLIFORGE` |
-
-**NEVER mix up these two projects. Never build Ampliforge features inside `/futurestack/`.**
-
----
-
-## Project 1: Discova
+## Project: Discova
 
 ### What is Discova?
 An AI Tools Discovery Platform at **GetDiscova.com**. Helps users discover, compare, evaluate, save, and use the best AI tools in the world.
@@ -80,7 +67,7 @@ CSS Utilities:
 app/
 ├── (auth)/          — Auth group layout
 ├── page.tsx         — Homepage
-├── blog/            — ✨ NEW Blog system (built June 2026)
+├── blog/            — ✨ Blog system (built June 2026)
 │   ├── page.tsx                  — Blog homepage
 │   ├── layout.tsx                — Blog layout (SEO schema)
 │   ├── [slug]/page.tsx           — Article detail
@@ -183,74 +170,17 @@ INNGEST_EVENT_KEY
 
 ---
 
-## Project 2: Ampliforge
-
-### What is Ampliforge?
-An enterprise-grade AI Content Intelligence & Content Repurposing Platform.
-
-**Transforms**: YouTube videos, podcasts, articles → email sequences, LinkedIn carousels, X threads, blog posts, SEO metadata, lead magnets.
-
-**Target users**: Creators, coaches, podcasters, agencies, educators, consultants, founders, SaaS companies, YouTubers, media businesses.
-
-### Repo
-`https://github.com/demmyscoalexport-cell/AMPLIFORGE`
-
-### Design System
-```
-Background: #09090B (primary), #111113 (secondary), #18181B (tertiary)
-Text:        #FAFAFA (primary), #A1A1AA (secondary)
-Border:      #27272A
-Accent:      #6366F1 (Indigo)
-Success:     #22C55E
-Warning:     #F59E0B
-Danger:      #EF4444
-Font:        Inter
-Radius:      sm 8px, md 12px, lg 16px, xl 24px
-```
-
-### Planned Tech Stack
-- Next.js 15 App Router, TypeScript, Tailwind CSS, Shadcn UI, Framer Motion
-- Supabase, Clerk, Stripe, OpenAI + Anthropic + Gemini
-- Deepgram (transcription), Mux (video), Inngest (jobs), Resend (email)
-- PostHog, Sentry, Vercel
-
-### Key Features
-```
-Inputs:  YouTube URL, Podcast URL, RSS Feed, Video upload, Audio upload, Text
-Outputs: Email sequences, LinkedIn carousels, X threads, Blog articles,
-         SEO metadata, Lead magnets, Video summaries, Sales copy
-
-Navigation:
-  /dashboard   — Command center with stats
-  /create      — Main content generation (heart of the app)
-  /library     — Content archive
-  /automations — RSS/channel monitoring, recurring workflows
-  /analytics   — Performance reporting
-  /studio      — Custom prompts, AI templates, brand voice training
-  /integrations — Third-party connections
-  /billing     — Subscriptions, usage
-  /settings    — Account management
-```
-
-### Status
-**NOT YET BUILT in code.** Architecture and specifications defined. Needs a dedicated Claude Code session connected to the AMPLIFORGE repository.
-
----
-
 ## Git Workflow
 
-**Active branch for Discova work**: `claude/ampliforge-master-build-KEKaR`
-(Yes, confusingly named — this is still the Discova repo branch)
+**Active branch**: `claude/ampliforge-master-build-KEKaR`
 
 **Always**:
-1. Work in `/futurestack/` for Discova changes
+1. Work in `/futurestack/` for all changes
 2. Commit descriptively: `feat(blog): add article card component`
 3. Push: `git push -u origin claude/ampliforge-master-build-KEKaR`
 
 **Never**:
 - Commit to `main` directly
-- Mix Discova and Ampliforge code
-- Delete or modify files outside `/futurestack/` without confirmation
 
 ---
 
@@ -260,29 +190,24 @@ Navigation:
 cd /home/user/futurestack-news-52/futurestack
 
 # Dev server
-pnpm dev
+npm run dev
 
 # Type check
-pnpm check
-
-# Lint
-pnpm lint
+npx tsc --noEmit
 
 # Build
-pnpm build
+npm run build
 ```
 
 ---
 
 ## Session Continuation Checklist
 
-When starting a new session on this codebase:
+When starting a new session:
 
 1. ✅ Read this CLAUDE.md
-2. ✅ Confirm which project is being worked on (Discova vs Ampliforge)
-3. ✅ Check `git status` and `git log --oneline -5`
-4. ✅ Never modify `/futurestack/` when working on Ampliforge
-5. ✅ Ask user to clarify if the task is ambiguous
+2. ✅ Check `git status` and `git log --oneline -5`
+3. ✅ Confirm the active branch is `claude/ampliforge-master-build-KEKaR`
 
 ---
 
