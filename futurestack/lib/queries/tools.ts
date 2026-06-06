@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { resolveToolLogo } from "@/lib/logo-resolver";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import {
   supabaseGetCategoriesWithSubcategories,
   supabaseGetFeaturedTools,
@@ -30,7 +30,7 @@ function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getFeaturedTools(limit = 6) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetFeaturedTools(limit)), []);
   }
   return safe(async () => {
@@ -47,7 +47,7 @@ export async function getFeaturedTools(limit = 6) {
 }
 
 export async function getTrendingTools(limit = 10) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetTrendingTools(limit)), []);
   }
   return safe(async () => {
@@ -84,7 +84,7 @@ export async function getTools({
   limit?: number;
   offset?: number;
 } = {}): Promise<ToolRow[]> {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(
       async () =>
         withLogos(
@@ -155,7 +155,7 @@ export async function getToolSubcategories(categoryId?: string) {
 export async function getCategoriesWithSubcategories(): Promise<
   Array<{ id: string; name: string; icon?: string; count?: number; subcategories?: unknown[] }>
 > {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(
       async () =>
         (await supabaseGetCategoriesWithSubcategories()) as Array<{
@@ -181,7 +181,7 @@ export async function getCategoriesWithSubcategories(): Promise<
 }
 
 export async function getToolBySlug(slug: string) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => {
       const tool = await supabaseGetToolBySlug(slug);
       if (!tool) return null;
@@ -207,13 +207,39 @@ export async function getToolBySlug(slug: string) {
     );
     if (!rows[0]) return null;
     const tool = withLogo(rows[0]);
-    const [pricing, alts, changelogs, reviews] = await Promise.all([
+    const [
+      pricing,
+      alts,
+      changelogs,
+      reviews,
+      features,
+      videos,
+      faqs,
+      gallery,
+      useCases,
+    ] = await Promise.all([
       db.query(`SELECT * FROM tool_pricing WHERE tool_id=$1 ORDER BY price_monthly ASC NULLS FIRST`, [tool.id]).then(r=>r.rows).catch(()=>[]),
       db.query(`SELECT t2.id,t2.name,t2.slug,t2.logo,t2.tagline,t2.website_url,ta.similarity_score FROM tool_alternatives ta JOIN tools t2 ON t2.id=ta.alternative_id WHERE ta.tool_id=$1 ORDER BY ta.similarity_score DESC LIMIT 6`,[tool.id]).then(r=>r.rows).then(withLogos).catch(()=>[]),
       db.query(`SELECT * FROM tool_changelogs WHERE tool_id=$1 ORDER BY published_at DESC LIMIT 5`,[tool.id]).then(r=>r.rows).catch(()=>[]),
       db.query(`SELECT * FROM reviews WHERE tool_id=$1 ORDER BY created_at DESC LIMIT 10`,[tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title, description, icon, priority FROM tool_features WHERE tool_id=$1 ORDER BY priority ASC, title ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title, coalesce(youtube_url, embed_url) AS youtube_url, thumbnail, duration, creator, featured, position FROM tool_videos WHERE tool_id=$1 ORDER BY featured DESC, position ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT question, answer, display_order AS "order" FROM tool_faqs WHERE tool_id=$1 ORDER BY display_order ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT image_url FROM tool_gallery WHERE tool_id=$1 ORDER BY position ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
+      db.query(`SELECT title FROM tool_use_cases WHERE tool_id=$1 ORDER BY priority ASC, title ASC`, [tool.id]).then(r=>r.rows).catch(()=>[]),
     ]);
-    return { ...tool, tool_pricing: pricing, alternatives: alts, tool_changelogs: changelogs, reviews };
+    return {
+      ...tool,
+      gallery: gallery.map((item: { image_url?: string }) => item.image_url).filter(Boolean),
+      useCases: useCases.map((item: { title?: string }) => item.title).filter(Boolean),
+      tool_pricing: pricing,
+      alternatives: alts,
+      tool_changelogs: changelogs,
+      reviews,
+      features,
+      videos,
+      faqs,
+    };
   }, null);
 }
 
@@ -224,7 +250,7 @@ export const getToolBySlugCached = unstable_cache(
 );
 
 export async function getRecentTools(limit = 6) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetRecentTools(limit)), []);
   }
   return safe(async () => {
@@ -241,7 +267,7 @@ export async function getRecentTools(limit = 6) {
 }
 
 export async function getToolCategories() {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => supabaseGetToolCategories(), []);
   }
   return safe(async () => {
@@ -258,7 +284,7 @@ export async function getToolCategories() {
 }
 
 export async function getCatalogStats() {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     const { getSupabaseAdmin } = await import("@/lib/supabase/db");
     const supa = getSupabaseAdmin();
     const [toolsRes, africaRes, stacksRes, categories] = await Promise.all([
@@ -293,7 +319,7 @@ export async function getCatalogStats() {
 }
 
 export async function searchTools(query: string, filters?: { category?: string; hasFree?: boolean }) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return getTools({
       search: query,
       category: filters?.category,

@@ -10,7 +10,7 @@ export function isPostgresConfigured(): boolean {
 }
 
 /** Use Supabase REST for reads/writes when Postgres is unavailable or explicitly disabled. */
-export function useSupabaseRest(): boolean {
+export function shouldUseSupabaseRest(): boolean {
   const hasSupabase = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       (process.env.SUPABASE_SERVICE_ROLE_KEY ||

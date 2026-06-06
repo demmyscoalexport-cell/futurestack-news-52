@@ -159,9 +159,11 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
   const [currency, setCurrency] = useState<Currency>("USD");
+  const [checkoutError, setCheckoutError] = useState("");
   const { plan: currentPlan, startUpgrade, startPaystackUpgrade } = useSubscription();
 
   const handleUpgrade = async (tier: UpgradeTier) => {
+    setCheckoutError("");
     setLoading(tier.id);
     try {
       if (paymentMethod === "paystack") {
@@ -176,9 +178,9 @@ export default function PricingPage() {
           : tier.priceIdMonthly;
         await startUpgrade(priceId!, "pricing_page");
       }
-    } catch {
+    } catch (error) {
       setLoading(null);
-      alert("Something went wrong. Please try again.");
+      setCheckoutError(error instanceof Error ? error.message : "Something went wrong. Please try again.");
     }
   };
 
@@ -216,7 +218,10 @@ export default function PricingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-xl">
             <button
-              onClick={() => setPaymentMethod("paystack")}
+              onClick={() => {
+                setPaymentMethod("paystack");
+                setCheckoutError("");
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 paymentMethod === "paystack"
                   ? "bg-[#00C3F7] text-slate-900 shadow"
@@ -227,7 +232,10 @@ export default function PricingPage() {
               <span className="text-xs font-normal opacity-75">(Africa & more)</span>
             </button>
             <button
-              onClick={() => setPaymentMethod("stripe")}
+              onClick={() => {
+                setPaymentMethod("stripe");
+                setCheckoutError("");
+              }}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 paymentMethod === "stripe"
                   ? "bg-[#635BFF] text-white shadow"
@@ -243,7 +251,10 @@ export default function PricingPage() {
           {paymentMethod === "paystack" && (
             <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-xl">
               <button
-                onClick={() => setCurrency("USD")}
+                onClick={() => {
+                  setCurrency("USD");
+                  setCheckoutError("");
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
                   currency === "USD" ? "bg-white text-slate-900" : "text-slate-400"
                 }`}
@@ -251,7 +262,10 @@ export default function PricingPage() {
                 USD $
               </button>
               <button
-                onClick={() => setCurrency("NGN")}
+                onClick={() => {
+                  setCurrency("NGN");
+                  setCheckoutError("");
+                }}
                 className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
                   currency === "NGN" ? "bg-white text-slate-900" : "text-slate-400"
                 }`}
@@ -265,13 +279,19 @@ export default function PricingPage() {
         {/* Billing Toggle */}
         <div className="inline-flex items-center gap-3 bg-slate-900 border border-slate-800 p-1 rounded-xl">
           <button
-            onClick={() => setAnnual(false)}
+            onClick={() => {
+              setAnnual(false);
+              setCheckoutError("");
+            }}
             className={`px-5 py-2 rounded-lg text-sm font-bold transition-colors ${!annual ? "bg-white text-slate-900" : "text-slate-400"}`}
           >
             Monthly
           </button>
           <button
-            onClick={() => setAnnual(true)}
+            onClick={() => {
+              setAnnual(true);
+              setCheckoutError("");
+            }}
             className={`px-5 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 ${annual ? "bg-white text-slate-900" : "text-slate-400"}`}
           >
             Annual
@@ -280,6 +300,11 @@ export default function PricingPage() {
             </span>
           </button>
         </div>
+        {checkoutError && (
+          <p className="mx-auto mt-4 max-w-xl rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {checkoutError}
+          </p>
+        )}
       </div>
 
       {/* Pricing Cards */}

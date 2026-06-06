@@ -147,7 +147,7 @@ export function NewsContent({ initialArticles }: NewsContentProps) {
           <CommandBar
             value={searchQuery}
             onChange={setSearchQuery}
-            onSubmit={() => {}}
+            onSubmit={() => setVisibleCount(PAGE_SIZE)}
             placeholder="Search articles, guides, comparisons..."
           />
         </PageHero>

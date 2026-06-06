@@ -6,6 +6,8 @@
     "setup": "node scripts/setup.mjs",
     "dev": "concurrently --continue-on-error \"next dev\" \"npx --yes inngest-cli@latest dev\"",
     "build": "next build",
+    "vercel:preflight": "node scripts/vercel-preflight.mjs",
+    "vercel:build": "npm run vercel:preflight && npm run build",
     "start": "next start",
     "lint": "eslint .",
     "health": "node scripts/healthcheck.mjs",
@@ -30,6 +32,10 @@
     "*.{js,jsx,json,css,md}": [
       "prettier --write"
     ]
+  },
+  "engines": {
+    "node": ">=22.22.0",
+    "npm": ">=10.9.0"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.69",

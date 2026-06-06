@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
+import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
 import {
   Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
   BookmarkCheck, ChevronDown, Zap, Globe, Layers, Rocket,
@@ -56,8 +56,11 @@ const mobileNav = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const { user, isLoading, signOut } = useAuth();
 
@@ -67,6 +70,14 @@ export function Header() {
 
   const primaryNav = navigation.slice(0, 7);
   const moreNav = navigation.slice(7);
+
+  const submitSearch = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    router.push(buildToolsSearchUrl(parseSmartSearch(trimmed)));
+    setIsSearchOpen(false);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-neutral-stroke/40 bg-neutral-deep/80 backdrop-blur-xl">
@@ -178,7 +189,7 @@ export function Header() {
                     <Link href="/account"><Settings className="mr-2 h-4 w-4" />Account</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/account/saved"><BookmarkCheck className="mr-2 h-4 w-4" />Saved Tools</Link>
+                    <Link href="/collections"><BookmarkCheck className="mr-2 h-4 w-4" />Saved Tools</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
@@ -230,10 +241,21 @@ export function Header() {
                 </div>
 
                 <div className="border-b border-border/40 p-4">
-                  <div className="relative">
+                  <form
+                    className="relative"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      submitSearch(mobileSearchQuery);
+                    }}
+                  >
                     <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <Input placeholder="Search tools, stacks, workflows..." className="pl-9 h-9 text-sm" />
-                  </div>
+                    <Input
+                      value={mobileSearchQuery}
+                      onChange={(event) => setMobileSearchQuery(event.target.value)}
+                      placeholder="Search tools, stacks, workflows..."
+                      className="pl-9 h-9 text-sm"
+                    />
+                  </form>
                 </div>
 
                 <div className="p-3 flex-1 overflow-y-auto">
@@ -275,10 +297,22 @@ export function Header() {
       {isSearchOpen && (
         <div className="absolute left-0 right-0 top-full border-b border-border/40 bg-background p-3 shadow-lg">
           <div className="container mx-auto">
-            <div className="relative">
+            <form
+              className="relative"
+              onSubmit={(event) => {
+                event.preventDefault();
+                submitSearch(searchQuery);
+              }}
+            >
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search tools, workflows, stacks, opportunities..." className="pl-9" autoFocus />
-            </div>
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search tools, workflows, stacks, opportunities..."
+                className="pl-9"
+                autoFocus
+              />
+            </form>
           </div>
         </div>
       )}

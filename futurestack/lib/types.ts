@@ -22,6 +22,24 @@ export interface Tool {
   cons: string[];
   lastUpdated: string;
   screenshots?: string[];
+  gallery?: string[];
+  heroImage?: string;
+  company_name?: string;
+  features?: Array<{ title: string; description: string; icon?: string; priority?: number }> | string[];
+  videos?: Array<{
+    title: string;
+    youtubeUrl: string;
+    thumbnail?: string;
+    duration?: string;
+    creator?: string;
+    featured?: boolean;
+  }>;
+  faqs?: Array<{ question: string; answer: string; order?: number }>;
+  useCases?: string[];
+  audience?: string[];
+  aiSummary30?: string;
+  aiSummary120?: string;
+  aiDeepAnalysis?: string;
   // DB snake_case fields returned from SQL queries
   tagline?: string;
   category_name?: string;

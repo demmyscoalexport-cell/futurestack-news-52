@@ -45,6 +45,11 @@ function asStringList(value: unknown) {
   return [];
 }
 
+function asObjectList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is AnyObject => Boolean(item) && typeof item === "object" && !Array.isArray(item));
+}
+
 function normalizeTool(item: AnyObject) {
   const name = String(item.name ?? "").trim();
   const slug = String(item.slug ?? "").trim() || toSlug(name);
@@ -57,15 +62,33 @@ function normalizeTool(item: AnyObject) {
     slug,
     tagline: String(item.tagline ?? "").trim(),
     description,
+    longDescription: String(item.longDescription ?? item.long_description ?? "").trim() || undefined,
     websiteUrl,
+    companyName: String(item.companyName ?? item.company_name ?? "").trim() || undefined,
+    heroImage: String(item.heroImage ?? item.hero_image ?? "").trim() || undefined,
+    galleryImages: asStringList(item.galleryImages ?? item.gallery ?? item.screenshots),
     categorySlug,
     tags: asStringList(item.tags),
+    audience: asStringList(item.audience ?? item.targetUsers),
+    useCases: asStringList(item.useCases ?? item.toolUseCases),
+    pros: asStringList(item.pros),
+    cons: asStringList(item.cons),
+    features: asObjectList(item.features),
+    videos: asObjectList(item.videos),
+    faqs: asObjectList(item.faqs),
+    alternatives: asObjectList(item.alternatives),
+    aiSummary30: String(item.aiSummary30 ?? item.ai_summary_30 ?? "").trim() || undefined,
+    aiSummary120: String(item.aiSummary120 ?? item.ai_summary_120 ?? "").trim() || undefined,
+    aiDeepAnalysis: String(item.aiDeepAnalysis ?? item.ai_deep_analysis ?? "").trim() || undefined,
     subcategorySlugs: asStringList(item.subcategorySlugs),
     pricingModel: String(item.pricingModel ?? "").trim() || undefined,
     startingPrice:
       typeof item.startingPrice === "number" ? item.startingPrice : undefined,
     freeTier: typeof item.freeTier === "boolean" ? item.freeTier : undefined,
     verified: typeof item.verified === "boolean" ? item.verified : undefined,
+    featured: typeof item.featured === "boolean" ? item.featured : undefined,
+    trending: typeof item.trending === "boolean" ? item.trending : undefined,
+    editorPick: typeof item.editorPick === "boolean" ? item.editorPick : undefined,
     futurestackScore:
       typeof item.futurestackScore === "number"
         ? item.futurestackScore
