@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { resolveToolLogo } from "@/lib/logo-resolver";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import {
   supabaseGetStackById,
   supabaseGetStackBySlug,
@@ -72,7 +72,7 @@ export async function getPublicStacks({
   limit?: number;
   offset?: number;
 } = {}) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => {
       const rows = await supabaseGetStacks({ featured, limit, offset });
       return rows.map(mapStack);
@@ -101,7 +101,7 @@ export async function getFeaturedStacks(limit = 3) {
 }
 
 export async function getStackBySlug(slug: string) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => {
       const row = await supabaseGetStackBySlug(slug);
       return row ? mapStack(row) : null;
@@ -116,7 +116,7 @@ export async function getStackBySlug(slug: string) {
 }
 
 export async function getStackById(id: string) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => {
       const row = await supabaseGetStackById(id);
       return row ? mapStack(row) : null;

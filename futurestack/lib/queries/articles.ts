@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import type { Article } from "@/lib/types";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import {
   supabaseGetArticleBySlug,
   supabaseGetPublishedArticles,
@@ -48,7 +48,7 @@ export async function getPublishedArticles({
   limit?: number;
   offset?: number;
 } = {}) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => supabaseGetPublishedArticles({ limit, offset }), []);
   }
   return safe(async () => {
@@ -77,7 +77,7 @@ export async function getPublishedArticles({
 }
 
 export async function getFeaturedArticles(limit = 4) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => supabaseGetPublishedArticles({ limit, featured: true }), []);
   }
   return safe(async () => {
@@ -96,7 +96,7 @@ export async function getFeaturedArticles(limit = 4) {
 }
 
 export async function getArticleBySlug(slug: string) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => supabaseGetArticleBySlug(slug), null);
   }
   return safe(async () => {

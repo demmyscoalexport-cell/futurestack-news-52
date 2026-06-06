@@ -79,7 +79,7 @@ export async function generateMetadata(
           url: `/api/og/tool?slug=${slug}`,
           width: 1200,
           height: 630,
-          alt: `${resolved.name} UI Preview`,
+          alt: `${name} UI Preview`,
         },
       ],
     },
@@ -144,7 +144,7 @@ function normalizeReviews(value: unknown): Array<{
 }
 
 function PricingPanel({ tool }: { tool: ToolRecord }) {
-  const raw = Array.isArray(tool.tool_pricing) ? tool.tool_pricing : [];
+  const raw: unknown[] = Array.isArray(tool.tool_pricing) ? tool.tool_pricing : [];
   const rows = raw.flatMap((item, index) => {
     if (!item || typeof item !== "object") return [];
     const row = item as Record<string, unknown>;

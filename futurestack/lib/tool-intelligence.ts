@@ -1,10 +1,27 @@
-export type ToolRecord = Record<string, unknown> & {
+export type ToolRecord = object & {
   id?: string;
   name?: string;
   slug?: string;
   logo?: string | null;
   website?: string;
   website_url?: string;
+  short_description?: string;
+  shortDescription?: string;
+  tagline?: string;
+  description?: string;
+  is_featured?: boolean;
+  featured?: boolean;
+  is_new?: boolean;
+  has_free?: boolean;
+  freeTier?: boolean;
+  pricing_model?: string;
+  pricingModel?: string;
+  tool_pricing?: unknown;
+  reviews?: unknown;
+  alternatives?: unknown;
+  videos?: unknown;
+  features?: unknown;
+  faqs?: unknown;
 };
 
 export interface ToolVideo {
@@ -39,16 +56,18 @@ export interface ToolComparisonSeed {
 }
 
 export function fieldString(tool: ToolRecord, keys: string[], fallback = ""): string {
+  const record = tool as Record<string, unknown>;
   for (const key of keys) {
-    const value = tool[key];
+    const value = record[key];
     if (typeof value === "string" && value.trim()) return value.trim();
   }
   return fallback;
 }
 
 export function fieldBool(tool: ToolRecord, keys: string[], fallback = false): boolean {
+  const record = tool as Record<string, unknown>;
   for (const key of keys) {
-    const value = tool[key];
+    const value = record[key];
     if (typeof value === "boolean") return value;
   }
   return fallback;
@@ -65,8 +84,9 @@ export function stringList(value: unknown): string[] {
 }
 
 export function fieldList(tool: ToolRecord, keys: string[]): string[] {
+  const record = tool as Record<string, unknown>;
   for (const key of keys) {
-    const list = stringList(tool[key]);
+    const list = stringList(record[key]);
     if (list.length > 0) return list;
   }
   return [];
@@ -128,7 +148,8 @@ export function getHeroVisual(tool: ToolRecord): string {
 }
 
 export function getVideos(tool: ToolRecord): ToolVideo[] {
-  const raw = tool.videos ?? tool.tool_videos ?? tool.toolVideos;
+  const record = tool as Record<string, unknown>;
+  const raw = record.videos ?? record.tool_videos ?? record.toolVideos;
   if (Array.isArray(raw)) {
     return raw.flatMap((item) => {
       if (!item || typeof item !== "object") return [];
@@ -155,7 +176,8 @@ export function youtubeEmbedUrl(url: string): string {
 }
 
 export function getFeatures(tool: ToolRecord): ToolFeature[] {
-  const raw = tool.features ?? tool.tool_features ?? tool.toolFeatures;
+  const record = tool as Record<string, unknown>;
+  const raw = record.features ?? record.tool_features ?? record.toolFeatures;
   if (Array.isArray(raw)) {
     return raw.flatMap((item, index) => {
       if (typeof item === "string") {
@@ -203,7 +225,8 @@ export function getUseCases(tool: ToolRecord): string[] {
 }
 
 export function getFaqs(tool: ToolRecord): ToolFaq[] {
-  const raw = tool.faqs ?? tool.tool_faqs ?? tool.toolFAQs;
+  const record = tool as Record<string, unknown>;
+  const raw = record.faqs ?? record.tool_faqs ?? record.toolFAQs;
   if (Array.isArray(raw)) {
     return raw.flatMap((item, index) => {
       if (!item || typeof item !== "object") return [];

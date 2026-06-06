@@ -32,7 +32,6 @@ import {
   getToolName,
   getToolSlug,
   getToolSummary,
-  getToolWebsite,
   getVideos,
   type ToolRecord,
   youtubeEmbedUrl,
@@ -252,7 +251,6 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
   const [copied, setCopied] = useState(false);
   const name = getToolName(tool);
   const slug = getToolSlug(tool);
-  const websiteUrl = getToolWebsite(tool);
   const chips = getInsightChips(tool);
   const summary = getToolSummary(tool);
   const isFeatured = Boolean(tool.is_featured ?? tool.featured);

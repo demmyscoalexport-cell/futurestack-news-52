@@ -8,13 +8,13 @@ import { NextResponse } from "next/server";
 import { db, DB_SOURCE } from "@/lib/db";
 import { getProductHuntToken } from "@/lib/producthunt";
 import { config } from "@/lib/config";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import { getSupabaseAdmin } from "@/lib/supabase/db";
 
 export const dynamic = "force-dynamic";
 
 async function readCatalogCounts() {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     const supa = getSupabaseAdmin();
     const [tools, articles, stacks] = await Promise.all([
       supa.from("tools").select("id", { count: "exact", head: true }).eq("status", "active"),
@@ -80,7 +80,7 @@ export async function GET() {
     configured: Boolean(process.env.STRIPE_SECRET_KEY),
   };
 
-  checks.restMode = useSupabaseRest();
+  checks.restMode = shouldUseSupabaseRest();
 
   const responseTime = Date.now() - start;
 

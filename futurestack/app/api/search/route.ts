@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import { supabaseGetTools } from "@/lib/queries/supabase-read";
 import { parseSmartSearch } from "@/lib/smart-search";
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") ?? 10), 24);
     const searchTerm = intent.query;
 
-    if (useSupabaseRest()) {
+    if (shouldUseSupabaseRest()) {
       const tools = await supabaseGetTools({
         search: searchTerm,
         category: intent.category,

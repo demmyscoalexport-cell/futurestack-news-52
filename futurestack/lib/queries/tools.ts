@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { resolveToolLogo } from "@/lib/logo-resolver";
-import { useSupabaseRest } from "@/lib/static-db-fallback";
+import { shouldUseSupabaseRest } from "@/lib/static-db-fallback";
 import {
   supabaseGetCategoriesWithSubcategories,
   supabaseGetFeaturedTools,
@@ -30,7 +30,7 @@ function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 }
 
 export async function getFeaturedTools(limit = 6) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetFeaturedTools(limit)), []);
   }
   return safe(async () => {
@@ -47,7 +47,7 @@ export async function getFeaturedTools(limit = 6) {
 }
 
 export async function getTrendingTools(limit = 10) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetTrendingTools(limit)), []);
   }
   return safe(async () => {
@@ -84,7 +84,7 @@ export async function getTools({
   limit?: number;
   offset?: number;
 } = {}): Promise<ToolRow[]> {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(
       async () =>
         withLogos(
@@ -155,7 +155,7 @@ export async function getToolSubcategories(categoryId?: string) {
 export async function getCategoriesWithSubcategories(): Promise<
   Array<{ id: string; name: string; icon?: string; count?: number; subcategories?: unknown[] }>
 > {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(
       async () =>
         (await supabaseGetCategoriesWithSubcategories()) as Array<{
@@ -181,7 +181,7 @@ export async function getCategoriesWithSubcategories(): Promise<
 }
 
 export async function getToolBySlug(slug: string) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => {
       const tool = await supabaseGetToolBySlug(slug);
       if (!tool) return null;
@@ -224,7 +224,7 @@ export const getToolBySlugCached = unstable_cache(
 );
 
 export async function getRecentTools(limit = 6) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => withLogos(await supabaseGetRecentTools(limit)), []);
   }
   return safe(async () => {
@@ -241,7 +241,7 @@ export async function getRecentTools(limit = 6) {
 }
 
 export async function getToolCategories() {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return safe(async () => supabaseGetToolCategories(), []);
   }
   return safe(async () => {
@@ -258,7 +258,7 @@ export async function getToolCategories() {
 }
 
 export async function getCatalogStats() {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     const { getSupabaseAdmin } = await import("@/lib/supabase/db");
     const supa = getSupabaseAdmin();
     const [toolsRes, africaRes, stacksRes, categories] = await Promise.all([
@@ -293,7 +293,7 @@ export async function getCatalogStats() {
 }
 
 export async function searchTools(query: string, filters?: { category?: string; hasFree?: boolean }) {
-  if (useSupabaseRest()) {
+  if (shouldUseSupabaseRest()) {
     return getTools({
       search: query,
       category: filters?.category,
