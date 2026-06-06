@@ -5,19 +5,11 @@
  */
 
 import { NextResponse } from "next/server";
+import { inngest } from "@/inngest/client";
 import { AT_CATEGORIES } from "@/lib/alternativeto";
 
-const INNGEST_DEV_URL = "http://localhost:8288/e/key";
-
 async function sendInngestEvent(name: string, data: Record<string, unknown>) {
-  const res = await fetch(INNGEST_DEV_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, data }),
-    signal: AbortSignal.timeout(5_000),
-  });
-  if (!res.ok) throw new Error(`Inngest event failed: ${res.status}`);
-  return res.json();
+  return inngest.send({ name: name as string, data });
 }
 
 export async function POST(req: Request) {

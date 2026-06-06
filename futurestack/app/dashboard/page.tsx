@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { createClient } from "@/lib/supabase/server";
 import { getTools, getTrendingTools } from "@/lib/queries/tools";
 import type { Tool } from "@/lib/types";
