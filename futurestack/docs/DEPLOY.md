@@ -8,8 +8,10 @@ Deploy the Next.js app from the **`futurestack/`** directory (root of the Vercel
 
 1. Import repo: `demmyscoalexport-cell/futurestack-news-52`
 2. Set **Root Directory** → `futurestack`
-3. Install command: `npm install --legacy-peer-deps`
-4. Build command: `npm run build`
+3. Install command: `npm ci`
+4. Build command: `npm run vercel:build`
+
+See `docs/VERCEL_DEPLOYMENT.md` for the full deployment setup and troubleshooting guide.
 
 ## Required environment variables
 
@@ -18,7 +20,7 @@ Deploy the Next.js app from the **`futurestack/`** directory (root of the Vercel
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-side writes |
-| `SUPABASE_USE_REST` | Yes | Set `true` until Postgres pooler is fixed |
+| `SUPABASE_DB_URL` | Recommended | Supabase transaction pooler connection string |
 | `NEXT_PUBLIC_SITE_URL` | Yes | `https://getdiscova.com` |
 | `CONTENTFUL_SPACE_ID` | Optional | CMS content |
 | `CONTENTFUL_DELIVERY_TOKEN` | Optional | Read published entries |
@@ -29,20 +31,15 @@ Deploy the Next.js app from the **`futurestack/`** directory (root of the Vercel
 | `INNGEST_EVENT_KEY` | Optional | Background jobs (Inngest Cloud) |
 | `INNGEST_SIGNING_KEY` | Optional | Inngest webhook verification |
 
-## Do NOT set on Vercel (until pooler works)
-
-- `SUPABASE_DB_URL` — currently returns "Tenant or user not found"
-- `DATABASE_URL` — same issue
-
-The app reads/writes via **Supabase REST** when `SUPABASE_USE_REST=true`.
+If `SUPABASE_DB_URL` is not configured, the app falls back to Supabase REST when the public Supabase URL, anon key, and service-role key are present.
 
 ## Pre-deploy commands (local)
 
 ```bash
 cd futurestack
-npm install --legacy-peer-deps
+npm ci
 npm run health:check
-npm run build
+npm run vercel:build
 ```
 
 ## Post-deploy sync

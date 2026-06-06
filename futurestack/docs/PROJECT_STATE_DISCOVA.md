@@ -148,6 +148,9 @@ The frontend now builds successfully with the required Supabase environment vari
 - Pull requests run lint/type/build checks without deploying.
 - Deployment job is skipped for pull requests.
 - Build job includes Supabase placeholders when GitHub secrets are unavailable.
+- Vercel build uses `npm run vercel:build`, which runs a preflight check before `next build`.
+- Vercel install uses `npm ci`.
+- Vercel setup details live in `docs/VERCEL_DEPLOYMENT.md`.
 - Production deploy still requires real Supabase and Vercel secrets.
 
 ## Why Vercel deployment was failing
@@ -158,9 +161,10 @@ Most likely causes:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
-2. Previous GitHub deploy workflow did not pass `SUPABASE_SERVICE_ROLE_KEY` into the build job.
-3. `npm ci` was previously blocked by a package-lock mismatch; that has been reconciled.
-4. Supabase and Contentful setup is not complete yet, so some runtime features will show fallbacks until configured.
+2. Vercel project root not set to `futurestack`.
+3. Previous GitHub deploy workflow did not pass `SUPABASE_SERVICE_ROLE_KEY` into the build job.
+4. `npm ci` was previously blocked by a package-lock mismatch; that has been reconciled.
+5. Supabase and Contentful setup is not complete yet, so some runtime features will show fallbacks until configured.
 
 The build passes with required Supabase env values present.
 
