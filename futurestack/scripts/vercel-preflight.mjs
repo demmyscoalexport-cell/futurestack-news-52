@@ -18,6 +18,11 @@ const missingFiles = requiredFiles
   .filter(([, path]) => !existsSync(path))
   .map(([label]) => label);
 
+// NEXT_PUBLIC_SITE_URL is optional — defaults to production domain if unset
+if (!process.env.NEXT_PUBLIC_SITE_URL) {
+  process.env.NEXT_PUBLIC_SITE_URL = "https://getdiscova.com";
+}
+
 const missingEnv = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
@@ -48,8 +53,12 @@ if (missingEnv.length > 0) {
   );
 }
 
-if (process.env.SUPABASE_DB_URL && !process.env.SUPABASE_DB_URL.startsWith("postgresql://")) {
-  problems.push("SUPABASE_DB_URL is set but is not a valid postgresql:// connection string.");
+if (
+  process.env.SUPABASE_DB_URL &&
+  !process.env.SUPABASE_DB_URL.startsWith("postgresql://") &&
+  !process.env.SUPABASE_DB_URL.startsWith("postgres://")
+) {
+  problems.push("SUPABASE_DB_URL is set but is not a valid postgres:// connection string.");
 }
 
 if (problems.length > 0) {
