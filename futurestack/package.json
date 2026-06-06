@@ -22,7 +22,11 @@
     "health:check": "node scripts/health-check.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "security:check": "node scripts/security-check.mjs"
+  },
+  "overrides": {
+    "protobufjs": ">=7.5.5"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
