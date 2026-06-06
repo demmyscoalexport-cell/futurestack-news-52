@@ -2,6 +2,28 @@ import { getContentfulContentTypeIds } from "@/lib/contentful/client";
 
 const TOOL_CONTENT_TYPES = ["tool-2", "tool"] as const;
 const NEWS_CONTENT_TYPES = ["newsArticle-3", "newsArticle-2", "newsArticle"] as const;
+export const DISCOVA_TOOL_CONTENT_TYPES = [
+  "tool",
+  "category",
+  "subcategory",
+  "toolFeature",
+  "toolVideo",
+  "toolFAQ",
+  "toolGallery",
+  "toolUseCase",
+  "toolPros",
+  "toolCons",
+  "toolTag",
+  "toolAlternative",
+  "toolComparison",
+  "toolReview",
+  "toolPricing",
+  "toolCompany",
+  "verificationStatus",
+  "toolCollections",
+  "toolAwards",
+  "toolNews",
+] as const;
 
 export type ToolContentTypeId = (typeof TOOL_CONTENT_TYPES)[number];
 export type NewsContentTypeId = (typeof NEWS_CONTENT_TYPES)[number];

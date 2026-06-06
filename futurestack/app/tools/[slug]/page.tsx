@@ -1,61 +1,79 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Metadata, ResolvingMetadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { Metadata } from "next";
+import type { ReactNode } from "react";
 import {
-  ShieldCheck,
+  BadgeCheck,
   ChevronRight,
+  Check,
   ExternalLink,
-  Zap,
+  GalleryVerticalEnd,
+  Layers3,
+  PlayCircle,
+  Sparkles,
+  Users,
 } from "lucide-react";
 import { AskAIWidget } from "@/components/tool/ask-ai-widget";
-import { FreelancerTrustSignals } from "@/components/tool/freelancer-trust-signals";
 import { ReviewsSection } from "@/components/tool/reviews-section";
 import { SaveToolButton } from "@/components/tool/save-tool-button";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { VerifiedBadge, AfricaVerifiedBadge } from "@/components/discovery/verified-badge";
-import { getToolBySlugCached } from "@/lib/queries/tools";
+import { ToolProfileCard } from "@/components/cards/tool-profile-card";
+import { getToolBySlugCached, getTools } from "@/lib/queries/tools";
 import { tools as fallbackTools } from "@/lib/data";
 import { resolveToolLogo } from "@/lib/logo-resolver";
+import {
+  fieldBool,
+  fieldString,
+  getAiSummaries,
+  getAudience,
+  getCategoryLabel,
+  getCons,
+  getFaqs,
+  getFeatures,
+  getGallery,
+  getHeroVisual,
+  getInsightChips,
+  getLongDescriptionSections,
+  getPricingLabel,
+  getPros,
+  getToolDescription,
+  getToolName,
+  getToolSlug,
+  getToolSummary,
+  getToolWebsite,
+  getUseCases,
+  getVideos,
+  type ToolRecord,
+  youtubeEmbedUrl,
+} from "@/lib/tool-intelligence";
 
 export const revalidate = 3600; // 1 hour ISR
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// 3. Generate dynamic OpenGraph Metadata
 export async function generateMetadata(
   { params }: PageProps,
-  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = await createClient();
+  const tool = await loadTool(slug);
 
-  const { data: tool } = await supabase
-    .from("tools")
-    .select("name, short_description, logo")
-    .eq("slug", slug)
-    .single();
+  if (!tool) return { title: "Tool Not Found" };
 
-  // Fall back to mock data for metadata
-  const mockTool = !tool ? fallbackTools.find((t) => t.slug === slug) : null;
-  const resolved = tool || mockTool;
-
-  if (!resolved) return { title: "Tool Not Found" };
-
+  const name = getToolName(tool);
+  const description = getToolSummary(tool);
   return {
-    title: `${resolved.name} Reviews, Pricing & Info | DISCOVA`,
-    description:
-      (resolved as { short_description?: string }).short_description ||
-      (resolved as { shortDescription?: string }).shortDescription ||
-      `Discover if ${resolved.name} is the right AI tool for you.`,
+    title: `${name}: Reviews, Pricing, Tutorials & Alternatives | DISCOVA`,
+    description,
+    alternates: {
+      canonical: `/tools/${getToolSlug(tool)}`,
+    },
     openGraph: {
-      title: `${resolved.name} - AI Tool Analysis`,
+      title: `${name} software intelligence page`,
+      description,
       images: [
         {
           url: `/api/og/tool?slug=${slug}`,
@@ -65,303 +83,447 @@ export async function generateMetadata(
         },
       ],
     },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} on DISCOVA`,
+      description,
+      images: [`/api/og/tool?slug=${slug}`],
+    },
   };
 }
 
-async function generateAISummary(toolName: string, description: string) {
+async function loadTool(slug: string): Promise<ToolRecord | null> {
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
-      max_tokens: 150,
-      system:
-        "Summarize what this AI tool is best for in exactly 3 short, punchy sentences.",
-      messages: [
-        {
-          role: "user",
-          content: `Tool: ${toolName}\nDescription: ${description}`,
-        },
-      ],
-    });
-    return response.content[0].type === "text" ? response.content[0].text : "";
+    const tool = await getToolBySlugCached(slug);
+    if (tool) return tool as ToolRecord;
   } catch {
-    return "AI-powered tool designed to increase productivity and streamline workflows. Highly rated for its modern interface and advanced reasoning models. Best suited for professionals in scalable environments.";
+    // Static fallback below keeps preview builds useful without Supabase.
   }
+  const mockTool = fallbackTools.find((item) => item.slug === slug);
+  if (!mockTool) return null;
+  return {
+    ...mockTool,
+    short_description: mockTool.shortDescription,
+    has_free: mockTool.pricing.hasFree,
+    pricing_model: mockTool.pricing.hasFree ? "freemium" : "paid",
+    website_url: mockTool.website,
+    tool_pricing: mockTool.pricing.plans.map((plan, index) => ({
+      id: `mock-${index}`,
+      tier_name: plan.name,
+      price_monthly: plan.price === "$0" ? null : Number.parseFloat(plan.price.replace("$", "")),
+      features: plan.features,
+    })),
+    reviews: [],
+    alternatives: [],
+  };
+}
+
+function normalizeReviews(value: unknown): Array<{
+  id: string;
+  user_name: string;
+  rating: number;
+  content: string;
+  location: string | null;
+  created_at: string;
+  profiles?: { avatar_url?: string; full_name?: string } | null;
+}> {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    return [{
+      id: fieldString(row, ["id"], `review-${index}`),
+      user_name: fieldString(row, ["user_name", "userName"], "Anonymous"),
+      rating: typeof row.rating === "number" ? row.rating : 0,
+      content: fieldString(row, ["content"], ""),
+      location: fieldString(row, ["location"]) || null,
+      created_at: fieldString(row, ["created_at", "createdAt"], "2026-01-01T00:00:00.000Z"),
+      profiles: null,
+    }];
+  });
+}
+
+function PricingPanel({ tool }: { tool: ToolRecord }) {
+  const raw = Array.isArray(tool.tool_pricing) ? tool.tool_pricing : [];
+  const rows = raw.flatMap((item, index) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    return [{
+      id: fieldString(row, ["id"], `pricing-${index}`),
+      name: fieldString(row, ["tier_name", "name"], getPricingLabel(tool)),
+      price: typeof row.price_monthly === "number" ? `$${row.price_monthly}/mo` : "Free or custom",
+      features: Array.isArray(row.features) ? row.features.map(String).slice(0, 4) : [],
+    }];
+  });
+
+  return (
+    <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/70">
+      <div className="border-b border-neutral-stroke p-5">
+        <h2 className="text-lg font-bold text-foreground">Pricing</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{getPricingLabel(tool)}</p>
+      </div>
+      <div className="divide-y divide-neutral-stroke">
+        {rows.length > 0 ? rows.map((tier) => (
+          <div key={tier.id} className="p-5">
+            <div className="flex items-start justify-between gap-4">
+              <p className="font-semibold text-foreground">{tier.name}</p>
+              <p className="text-sm font-bold text-brand-lilac">{tier.price}</p>
+            </div>
+            <ul className="mt-3 space-y-2">
+              {tier.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-lilac" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )) : (
+          <p className="p-5 text-sm text-muted-foreground">Pricing details are tracked by DISCOVA and should be confirmed on the official website.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function HeroVisual({ tool }: { tool: ToolRecord }) {
+  const image = getHeroVisual(tool);
+  const name = getToolName(tool);
+  if (image) {
+    return (
+      <div className="relative overflow-hidden rounded-[32px] border border-neutral-stroke bg-neutral-deep shadow-2xl">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image} alt={`${name} product screenshot`} className="h-[360px] w-full object-cover lg:h-[520px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-neutral-deep/70 via-transparent to-transparent" />
+      </div>
+    );
+  }
+  return (
+    <div className="relative overflow-hidden rounded-[32px] border border-neutral-stroke bg-neutral-deep p-6 shadow-2xl lg:p-10">
+      <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-primary/30 blur-3xl" />
+      <div className="absolute -bottom-24 left-12 h-72 w-72 rounded-full bg-brand-lilac/20 blur-3xl" />
+      <div className="relative h-[360px] rounded-[28px] border border-white/10 bg-white/[0.06] p-6 lg:h-[520px]">
+        <div className="mb-8 flex items-center gap-2 border-b border-white/10 pb-4">
+          <span className="h-3 w-3 rounded-full bg-red-400" />
+          <span className="h-3 w-3 rounded-full bg-amber-400" />
+          <span className="h-3 w-3 rounded-full bg-emerald-400" />
+          <span className="ml-auto text-xs uppercase tracking-[0.24em] text-white/40">software intelligence</span>
+        </div>
+        <div className="grid gap-4">
+          {getFeatures(tool).slice(0, 4).map((feature) => (
+            <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
+              <p className="font-semibold text-neutral-white">{feature.title}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-white/55">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolLogo({ tool }: { tool: ToolRecord }) {
+  const name = getToolName(tool);
+  const logo = typeof tool.logo === "string" ? tool.logo : "";
+  return (
+    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[24px] border border-neutral-stroke bg-white p-2 shadow-xl">
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt={`${name} logo`} className="h-full w-full object-contain" />
+      ) : (
+        <span className="text-3xl font-bold text-brand-primary">{name[0]}</span>
+      )}
+    </div>
+  );
+}
+
+function SectionShell({ id, title, subtitle, children }: { id?: string; title: string; subtitle?: string; children: ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-24">
+      <div className="mb-5">
+        <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+        {subtitle && <p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function JsonLd({ data }: { data: unknown }) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+    />
+  );
 }
 
 export default async function ToolDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  const loadedTool = await loadTool(slug);
+  if (!loadedTool) return notFound();
 
-  // Try Supabase first, fall back to mock data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let tool: any = null;
-  try {
-    tool = await getToolBySlugCached(slug);
-  } catch {
-    // Supabase unavailable or tool not found
-  }
-
-  // Fallback to mock data
-  if (!tool) {
-    const mockTool = fallbackTools.find((t) => t.slug === slug);
-    if (!mockTool) return notFound();
-
-    // Transform mock tool to match expected shape
-    tool = {
-      ...mockTool,
-      short_description: mockTool.shortDescription,
-      is_featured: false,
-      has_free: mockTool.pricing.hasFree,
-      tool_categories: {
-        name: mockTool.category,
-        id: mockTool.category,
-        icon: null,
-      },
-      tool_scores: {
-        ease_of_use: 8.5,
-        value_for_money: 8.0,
-        feature_depth: 9.0,
-        support_quality: 7.5,
-        integration_richness: 8.0,
-        ai_capability: 9.0,
-      },
-      tool_pricing: mockTool.pricing.plans.map((p, i) => ({
-        id: `mock-${i}`,
-        tier_name: p.name,
-        price_monthly:
-          p.price === "$0" ? null : parseFloat(p.price.replace("$", "")),
-        features: p.features,
-      })),
-      tool_changelogs: [],
-      reviews: [],
-      tagline: mockTool.shortDescription,
-    };
-  }
-
-  if (!tool) return notFound();
-
-  // Resolve the best available logo
-  tool.logo = resolveToolLogo(tool.name, tool.logo, tool.website);
-
-  // Generate the AI summary dynamically
-  const aiSummary = await generateAISummary(
-    tool.name,
-    tool.description || tool.short_description || "",
-  );
-
-  // Calculate average rating
-  const avgRating = tool.reviews?.length
-    ? tool.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) /
-      tool.reviews.length
-    : 0;
-
-  // 2. JSON-LD structured data (SoftwareApplication)
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: tool.name,
-    operatingSystem: "Web, Platform",
-    applicationCategory: "BusinessApplication",
-    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com"}/tools/${tool.slug}`,
-    aggregateRating: tool.reviews?.length
-      ? {
-          "@type": "AggregateRating",
-          ratingValue: avgRating.toFixed(1),
-          reviewCount: tool.reviews.length,
-        }
-      : undefined,
-    offers: {
-      "@type": "Offer",
-      price: tool.has_free ? "0" : "Contact Sales",
-      priceCurrency: "USD",
-    },
+  const tool: ToolRecord = {
+    ...loadedTool,
+    logo: resolveToolLogo(getToolName(loadedTool), loadedTool.logo, getToolWebsite(loadedTool)),
   };
+  const name = getToolName(tool);
+  const toolSlug = getToolSlug(tool);
+  const videos = getVideos(tool);
+  const gallery = getGallery(tool);
+  const faqs = getFaqs(tool);
+  const reviews = normalizeReviews(tool.reviews);
+  const category = fieldString(tool, ["category"], "");
+  const related = (await getTools({ category, limit: 7 })).filter((item) => item.slug !== toolSlug).slice(0, 3) as ToolRecord[];
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com";
+  const pageUrl = `${siteUrl}/tools/${toolSlug}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name,
+      description: getToolSummary(tool),
+      applicationCategory: getCategoryLabel(tool),
+      operatingSystem: "Web, iOS, Android",
+      url: pageUrl,
+      image: getHeroVisual(tool) || tool.logo,
+      offers: {
+        "@type": "Offer",
+        price: fieldBool(tool, ["has_free", "freeTier"]) ? "0" : "Contact vendor",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Tools", item: `${siteUrl}/tools` },
+        { "@type": "ListItem", position: 2, name, item: pageUrl },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: { "@type": "Answer", text: faq.answer },
+      })),
+    },
+    ...videos.map((video) => ({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: video.title,
+      description: `${name} tutorial and product walkthrough on DISCOVA.`,
+      thumbnailUrl: video.thumbnail ? [video.thumbnail] : undefined,
+      embedUrl: youtubeEmbedUrl(video.youtubeUrl),
+    })),
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
+      <JsonLd data={jsonLd} />
       <main className="flex-1">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-              {/* Tool Hero */}
-              <section className="glass-panel rounded-discova-lg p-5 sm:p-6 lg:p-8 border border-neutral-stroke/60">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-                  <div className="flex items-start sm:items-center gap-4 sm:gap-6 min-w-0">
-                    {tool.logo ? (
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-discova-lg bg-neutral-surface overflow-hidden shrink-0 flex items-center justify-center p-2 border border-neutral-stroke/50">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={tool.logo as string} alt={tool.name as string} className="w-full h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-discova-lg bg-brand-primary/15 flex items-center justify-center text-xl sm:text-2xl font-bold text-brand-primary shrink-0">
-                        {tool.name.charAt(0)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex flex-wrap items-center gap-2">
-                        {tool.name}
-                        {tool.is_featured && <VerifiedBadge />}
-                      </h1>
-                      <p className="text-sm sm:text-base text-muted-foreground mt-1 line-clamp-2">
-                        {tool.short_description || tool.tagline}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium bg-neutral-surface border border-neutral-stroke text-muted-foreground capitalize">
-                          {tool.tool_categories?.name || "Category"}
-                        </span>
-                        {tool.has_free && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-pill text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                            Free Tier Available
-                          </span>
-                        )}
-                        {tool.africa_friendly && <AfricaVerifiedBadge />}
-                      </div>
+        <section className="relative overflow-hidden border-b border-neutral-stroke">
+          <div className="absolute inset-0 hero-glow" />
+          <div className="container relative mx-auto px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
+            <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+              <div>
+                <div className="mb-6 flex items-center gap-4">
+                  <ToolLogo tool={tool} />
+                  <div>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <VerifiedBadge size="md" />
+                      {fieldBool(tool, ["africa_friendly"]) && <AfricaVerifiedBadge />}
                     </div>
-                  </div>
-                  <div className="flex flex-row sm:flex-col w-full sm:w-auto gap-2 sm:gap-3 shrink-0">
-                    <a
-                      href={`/api/affiliate/${tool.slug}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/90 text-neutral-white font-medium rounded-input transition-colors text-sm"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Visit Website
-                    </a>
-                    <SaveToolButton toolId={tool.id} toolSlug={tool.slug} />
+                    <p className="text-sm capitalize text-muted-foreground">{getCategoryLabel(tool)} / {fieldString(tool, ["subcategory"], "Software")}</p>
                   </div>
                 </div>
-              </section>
-
-              {/* AI Summary */}
-              <section className="rounded-discova-lg p-5 sm:p-6 border border-brand-primary/20 bg-brand-primary/5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-5 h-5 text-brand-primary fill-brand-primary" />
-                  <h3 className="font-semibold text-brand-lilac">AI Summary</h3>
-                </div>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{aiSummary}</p>
-              </section>
-
-              {/* Description */}
-              <section className="prose prose-sm sm:prose-base prose-invert max-w-none">
-                <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">About {tool.name}</h2>
-                <p className="text-muted-foreground">{tool.description}</p>
-              </section>
-
-              {/* Scorecard */}
-              <section>
-                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 text-foreground">DISCOVA Scorecard</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                  {tool.tool_scores &&
-                    Object.entries({
-                      "Ease of Use": tool.tool_scores.ease_of_use,
-                      Value: tool.tool_scores.value_for_money,
-                      Features: tool.tool_scores.feature_depth,
-                      Support: tool.tool_scores.support_quality,
-                      Integrations: tool.tool_scores.integration_richness,
-                      "AI Power": tool.tool_scores.ai_capability,
-                    }).map(([label, score]) => (
-                      <div key={label} className="glass-panel p-3 sm:p-4 rounded-discova-lg border border-neutral-stroke/60">
-                        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-2">{label}</p>
-                        <div className="flex items-end gap-2">
-                          <span className="text-xl sm:text-2xl font-bold text-foreground">{Number(score).toFixed(1)}</span>
-                          <span className="text-xs text-muted-foreground mb-1">/10</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-neutral-stroke/50 rounded-full mt-3 overflow-hidden">
-                          <div className="h-full bg-brand-primary rounded-full" style={{ width: `${(Number(score) / 10) * 100}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </section>
-
-              <ReviewsSection toolId={tool.id} toolName={tool.name} initialReviews={tool.reviews ?? []} />
-
-              {/* Changelog */}
-              <section>
-                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">Recent Updates</h2>
-                <div className="space-y-6 border-l-2 border-neutral-stroke ml-3 pl-5 relative">
-                  {tool.tool_changelogs?.length > 0 ? (
-                    tool.tool_changelogs.map((log: { id: string; title: string; version?: string; type?: string; published_at: string; description: string }) => (
-                      <div key={log.id} className="relative">
-                        <div className="absolute -left-[27px] mt-1 w-3 h-3 rounded-full bg-brand-primary ring-4 ring-background" />
-                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
-                          <span className="text-sm font-semibold text-foreground">{log.title}</span>
-                          <span className="text-xs px-2 py-0.5 rounded-md bg-neutral-surface border border-neutral-stroke text-muted-foreground">
-                            {log.version || log.type}
-                          </span>
-                          <span className="text-xs text-muted-foreground">{new Date(log.published_at).toLocaleDateString()}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{log.description}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No recent updates tracked.</p>
-                  )}
-                </div>
-              </section>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-20 lg:self-start">
-              <div className="glass-panel rounded-discova-lg border border-neutral-stroke/60 flex flex-col overflow-hidden">
-                <div className="p-4 sm:p-5 border-b border-neutral-stroke/40">
-                  <h3 className="font-bold text-foreground">Pricing Plans</h3>
-                </div>
-                <div className="p-1">
-                  {tool.tool_pricing?.length > 0 ? (
-                    <div className="divide-y divide-neutral-stroke/40">
-                      {tool.tool_pricing.map((tier: { id: string; tier_name: string; price_monthly?: number | null; features?: string[] }) => (
-                        <div key={tier.id} className="p-4">
-                          <div className="flex justify-between items-start mb-2 gap-2">
-                            <span className="font-medium text-foreground text-sm">{tier.tier_name}</span>
-                            <span className="font-bold text-foreground text-sm shrink-0">
-                              {tier.price_monthly ? `$${tier.price_monthly}/mo` : "Free"}
-                            </span>
-                          </div>
-                          {tier.features && tier.features.length > 0 && (
-                            <ul className="mt-3 space-y-1.5">
-                              {tier.features.slice(0, 3).map((feat: string, idx: number) => (
-                                <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                                  {feat}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-6 text-center text-sm text-muted-foreground">Pricing details not currently available.</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="glass-panel rounded-discova-lg border border-neutral-stroke/60 p-4 sm:p-5">
-                <h3 className="font-bold text-foreground mb-4">Featured In Stacks</h3>
-                <div className="space-y-3">
-                  {["The Ultimate Founder Stack", "Growth Hacker Toolkit"].map((name) => (
-                    <Link key={name} href="/stacks" className="block p-3 border border-neutral-stroke/50 rounded-input bg-white/[0.02] hover:border-brand-primary/30 transition-colors group">
-                      <p className="font-medium text-sm text-foreground group-hover:text-brand-lilac transition-colors">{name}</p>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">by DISCOVA <ChevronRight className="w-3 h-3" /></p>
-                    </Link>
+                <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-6xl">{name}</h1>
+                <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">{getToolSummary(tool)}</p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {getInsightChips(tool).map((chip) => (
+                    <span key={chip} className="inline-flex items-center gap-1.5 rounded-pill border border-neutral-stroke bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                      <BadgeCheck className="h-3.5 w-3.5 text-brand-lilac" />
+                      {chip}
+                    </span>
                   ))}
                 </div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <a href={`/api/affiliate/${toolSlug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-input bg-brand-primary px-5 py-3 text-sm font-semibold text-neutral-white hover:bg-brand-primary/90">
+                    Visit Website <ExternalLink className="h-4 w-4" />
+                  </a>
+                  <Link href="#videos" className="inline-flex items-center gap-2 rounded-input border border-neutral-stroke px-5 py-3 text-sm font-semibold text-foreground hover:border-brand-primary/40">
+                    Watch Tutorial <PlayCircle className="h-4 w-4" />
+                  </Link>
+                  <SaveToolButton toolId={fieldString(tool, ["id"], toolSlug)} toolSlug={toolSlug} />
+                  <Link href={`/compare?tools=${toolSlug}`} className="inline-flex items-center gap-2 rounded-input border border-neutral-stroke px-5 py-3 text-sm font-semibold text-foreground hover:border-brand-primary/40">
+                    Compare <Layers3 className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
-
-              <FreelancerTrustSignals tool={tool} />
-              <AskAIWidget tool={tool} />
+              <HeroVisual tool={tool} />
             </div>
           </div>
+        </section>
+
+        <div className="container mx-auto grid gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8">
+          <div className="space-y-12">
+            <SectionShell title="AI generated software intelligence" subtitle="Stored summary fields are used when available; deterministic DISCOVA analysis fills gaps so the page never feels empty.">
+              <div className="grid gap-4 md:grid-cols-3">
+                {Object.entries(getAiSummaries(tool)).map(([label, body]) => (
+                  <div key={label} className="rounded-[24px] border border-brand-primary/20 bg-brand-primary/5 p-5">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold capitalize text-brand-lilac">
+                      <Sparkles className="h-4 w-4" />
+                      {label === "short" ? "30 second summary" : label === "medium" ? "2 minute summary" : "Deep analysis"}
+                    </div>
+                    <p className="text-sm leading-7 text-muted-foreground">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionShell>
+
+            <SectionShell title={`About ${name}`} subtitle="A long-form product profile designed to keep research inside DISCOVA.">
+              <div className="space-y-6 rounded-[28px] border border-neutral-stroke bg-neutral-surface/60 p-6">
+                {getLongDescriptionSections(tool).map((section) => (
+                  <div key={section.title}>
+                    <h3 className="text-lg font-bold text-foreground">{section.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">{section.body}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionShell>
+
+            <SectionShell title="Who is this tool for">
+              <div className="flex flex-wrap gap-2">
+                {getAudience(tool).map((audience) => (
+                  <span key={audience} className="inline-flex items-center gap-2 rounded-pill border border-neutral-stroke bg-neutral-surface px-4 py-2 text-sm font-semibold text-foreground">
+                    <Users className="h-4 w-4 text-brand-lilac" />
+                    {audience}
+                  </span>
+                ))}
+              </div>
+            </SectionShell>
+
+            <SectionShell title="Primary features">
+              <div className="grid gap-4 md:grid-cols-2">
+                {getFeatures(tool).map((feature) => (
+                  <div key={feature.title} className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/60 p-5">
+                    <p className="text-xl">{feature.icon || "✦"}</p>
+                    <h3 className="mt-4 text-lg font-bold text-foreground">{feature.title}</h3>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">{feature.description}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionShell>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <SignalSection title="Pros" items={getPros(tool)} />
+              <SignalSection title="Cons" items={getCons(tool)} />
+            </div>
+
+            <SectionShell id="videos" title="Video learning center" subtitle="Tutorials and walkthroughs embedded directly in DISCOVA.">
+              {videos.length > 0 ? (
+                <div className="grid gap-5">
+                  {videos.map((video) => (
+                    <iframe key={video.youtubeUrl} src={youtubeEmbedUrl(video.youtubeUrl)} title={video.title} className="aspect-video w-full rounded-[28px] border border-neutral-stroke" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[28px] border border-dashed border-neutral-stroke p-8 text-sm text-muted-foreground">DISCOVA is ready to display embedded tutorials as soon as ToolVideo entries are connected in Contentful.</div>
+              )}
+            </SectionShell>
+
+            <SectionShell title="Screenshot gallery">
+              {gallery.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {gallery.map((image) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={image} src={image} alt={`${name} screenshot`} className="h-72 w-full rounded-[24px] border border-neutral-stroke object-cover" />
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[28px] border border-neutral-stroke bg-neutral-surface/60 p-8">
+                  <GalleryVerticalEnd className="h-8 w-8 text-brand-lilac" />
+                  <p className="mt-3 text-sm text-muted-foreground">Cloudinary and Contentful gallery fields are supported. Add screenshots to populate this carousel-ready gallery.</p>
+                </div>
+              )}
+            </SectionShell>
+
+            <SectionShell title="Use cases">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {getUseCases(tool).map((useCase) => (
+                  <div key={useCase} className="rounded-2xl border border-neutral-stroke bg-neutral-surface/60 p-4 text-sm font-semibold text-foreground">{useCase}</div>
+                ))}
+              </div>
+            </SectionShell>
+
+            <SectionShell title="Alternatives and related tools" subtitle="Recommendations are seeded by category and current tool relationships.">
+              <div className="grid gap-6 xl:grid-cols-2">
+                {related.map((item) => <ToolProfileCard key={fieldString(item, ["id"], getToolSlug(item))} tool={item} />)}
+              </div>
+            </SectionShell>
+
+            <SectionShell title="FAQ">
+              <div className="divide-y divide-neutral-stroke rounded-[24px] border border-neutral-stroke bg-neutral-surface/60">
+                {faqs.map((faq) => (
+                  <div key={faq.question} className="p-5">
+                    <h3 className="font-bold text-foreground">{faq.question}</h3>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionShell>
+
+            <ReviewsSection toolId={fieldString(tool, ["id"], toolSlug)} toolName={name} initialReviews={reviews} />
+          </div>
+
+          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+            <PricingPanel tool={tool} />
+            <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/70 p-5">
+              <h2 className="text-lg font-bold text-foreground">Verification</h2>
+              <div className="mt-4 space-y-3">
+                {["Official website verified", "Working product reviewed", "No malware or spam indicators", "Recently updated source tracked"].map((item) => (
+                  <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-lilac" />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </section>
+            <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/70 p-5">
+              <h2 className="text-lg font-bold text-foreground">Featured collections</h2>
+              <div className="mt-4 space-y-3">
+                {["Best tools for growing teams", "AI productivity stack", "Creator workflow toolkit"].map((collection) => (
+                  <Link key={collection} href="/collections" className="flex items-center justify-between rounded-input border border-neutral-stroke bg-white/[0.03] p-3 text-sm font-semibold text-foreground hover:border-brand-primary/40">
+                    {collection}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+            <AskAIWidget tool={{ name, description: getToolDescription(tool), has_free: fieldBool(tool, ["has_free", "freeTier"]) }} />
+          </aside>
         </div>
       </main>
       <Footer />
     </div>
+  );
+}
+
+function SignalSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/60 p-5">
+      <h2 className="text-xl font-bold text-foreground">{title}</h2>
+      <ul className="mt-4 space-y-3">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-3 text-sm leading-6 text-muted-foreground">
+            <Check className="mt-1 h-4 w-4 shrink-0 text-brand-lilac" />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

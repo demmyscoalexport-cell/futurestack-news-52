@@ -63,6 +63,16 @@ interface RawTool {
   is_verified?: boolean;
   pricing_model?: string;
   futurestack_score?: number;
+  screenshots?: string[];
+  gallery?: string[];
+  heroImage?: string;
+  company_name?: string;
+  videos?: Array<Record<string, unknown>>;
+  features?: Array<Record<string, unknown>> | string[];
+  pros?: string[];
+  cons?: string[];
+  useCases?: string[];
+  faqs?: Array<Record<string, unknown>>;
 }
 
 interface ToolsContentProps {
@@ -106,7 +116,7 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
   const [hasFreeOnly, setHasFreeOnly] = useState(false);
   const [africaFriendlyOnly, setAfricaFriendlyOnly] = useState(false);
   const [newOnly, setNewOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"popular" | "rating" | "newest" | "name">("popular");
+  const [sortBy, setSortBy] = useState<"popular" | "newest" | "name">("popular");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
@@ -164,7 +174,6 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
       );
     }
     return [...tools].sort((a, b) => {
-      if (sortBy === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
       if (sortBy === "newest") return (b.is_new ? 1 : 0) - (a.is_new ? 1 : 0);
       if (sortBy === "name") return a.name.localeCompare(b.name);
       if ((b.is_featured ? 1 : 0) !== (a.is_featured ? 1 : 0))
@@ -392,7 +401,6 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
                     className="text-sm bg-neutral-surface border border-neutral-stroke rounded-input px-2.5 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-brand-primary min-w-0 max-w-[140px] sm:max-w-none"
                   >
                     <option value="popular">Most Popular</option>
-                    <option value="rating">Top Rated</option>
                     <option value="newest">Newest</option>
                     <option value="name">Name A-Z</option>
                   </select>
@@ -414,7 +422,7 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
               {featured.length > 0 && !searchQuery && (
                 <div className="mb-8">
                   <SectionHeader title="Featured Tools" subtitle={`${featured.length} editor-picked tools`} badge="Hot" />
-                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
                     {featured.map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                   </div>
                   {rest.length > 0 && (
@@ -437,11 +445,11 @@ export function ToolsContent({ initialTools, initialCategories }: ToolsContentPr
                   <Button variant="outline" onClick={clearAll}>Clear filters</Button>
                 </div>
               ) : viewMode === "list" ? (
-                <div className="space-y-3">
+                <div className="grid gap-6 grid-cols-1">
                   {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               ) : (
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
                   {(searchQuery ? filtered : rest).map((tool) => <ToolProfileCard key={tool.id} tool={tool} />)}
                 </div>
               )}
