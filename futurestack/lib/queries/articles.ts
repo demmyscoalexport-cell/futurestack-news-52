@@ -13,6 +13,19 @@ function safe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
   });
 }
 
+async function queryArticlesWithFallback(
+  sql: string,
+  params: unknown[],
+  fallbackSql: string,
+  fallbackParams: unknown[],
+) {
+  try {
+    return await db.query(sql, params);
+  } catch {
+    return db.query(fallbackSql, fallbackParams);
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapArticle(row: any): any {
   return {
@@ -61,7 +74,9 @@ export async function getPublishedArticles({
       params.push(`%${search}%`); i++;
     }
     params.push(limit, offset);
-    const { rows } = await db.query(
+    const limitParam = i++;
+    const offsetParam = i++;
+    const { rows } = await queryArticlesWithFallback(
       `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
               au.name AS author_name, au.avatar AS author_avatar
        FROM articles a
@@ -69,7 +84,15 @@ export async function getPublishedArticles({
        LEFT JOIN authors au ON au.id = a.author_id
        WHERE ${where.join(" AND ")}
        ORDER BY a.published_at DESC
-       LIMIT $${i++} OFFSET $${i++}`,
+       LIMIT $${limitParam} OFFSET $${offsetParam}`,
+      params,
+      `SELECT a.*, a.category AS category_slug, a.category AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE ${where.join(" AND ").replaceAll("c.slug", "a.category")}
+       ORDER BY a.published_at DESC
+       LIMIT $${limitParam} OFFSET $${offsetParam}`,
       params,
     );
     return rows.map(mapArticle);
@@ -81,13 +104,20 @@ export async function getFeaturedArticles(limit = 4) {
     return safe(async () => supabaseGetPublishedArticles({ limit, featured: true }), []);
   }
   return safe(async () => {
-    const { rows } = await db.query(
+    const { rows } = await queryArticlesWithFallback(
       `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
               au.name AS author_name, au.avatar AS author_avatar
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
        LEFT JOIN authors au ON au.id = a.author_id
        WHERE a.status = 'published' AND a.is_featured = true
+       ORDER BY a.published_at DESC LIMIT $1`,
+      [limit],
+      `SELECT a.*, a.category AS category_slug, a.category AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE a.status = 'published' AND coalesce(a.featured, false) = true
        ORDER BY a.published_at DESC LIMIT $1`,
       [limit],
     );
@@ -100,11 +130,17 @@ export async function getArticleBySlug(slug: string) {
     return safe(async () => supabaseGetArticleBySlug(slug), null);
   }
   return safe(async () => {
-    const { rows } = await db.query(
+    const { rows } = await queryArticlesWithFallback(
       `SELECT a.*, c.slug AS category_slug, c.name AS category_name,
               au.name AS author_name, au.avatar AS author_avatar
        FROM articles a
        LEFT JOIN categories c ON c.id = a.category_id
+       LEFT JOIN authors au ON au.id = a.author_id
+       WHERE a.slug = $1 AND a.status = 'published'`,
+      [slug],
+      `SELECT a.*, a.category AS category_slug, a.category AS category_name,
+              au.name AS author_name, au.avatar AS author_avatar
+       FROM articles a
        LEFT JOIN authors au ON au.id = a.author_id
        WHERE a.slug = $1 AND a.status = 'published'`,
       [slug],
