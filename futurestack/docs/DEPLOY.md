@@ -62,9 +62,17 @@ npm run sync:contentful
 
 `GET https://getdiscova.com/api/health`
 
-## Production project
+## Production project (Discova)
 
-Deploy only to **`discova-ai-platform`** on Vercel (`getdiscova.com`). The duplicate `futurestack-news-52` project is ignored via `ignoreCommand` in `vercel.json`.
+| Setting | Value |
+|---|---|
+| Vercel project | **`discova-ai-platform`** |
+| Domain | `getdiscova.com` |
+| Root directory | `futurestack` |
+| Production branch | `main` |
+| Env vars | On `discova-ai-platform` only |
+
+The legacy **`futurestack-news-52`** Vercel project is connected to the same repo but **skipped on every push** via `ignoreCommand` in `vercel.json`. Never attach `getdiscova.com` to it.
 
 After deploy, verify public routes:
 
@@ -83,4 +91,4 @@ The build may succeed but the domain has no Production deployment assigned.
 4. **Settings → Domains** → confirm `getdiscova.com` is on this project (not `futurestack-news-52`)
 5. **Settings → General** → Root Directory = `futurestack`
 
-**Emergency fallback:** move `getdiscova.com` to **futurestack-news-52** in Vercel Domains (that project still has a live deployment at `futurestack-news-52.vercel.app`) until `discova-ai-platform` Production is promoted.
+Do **not** deploy or attach `getdiscova.com` to `futurestack-news-52`. All production traffic belongs on **`discova-ai-platform`** only.

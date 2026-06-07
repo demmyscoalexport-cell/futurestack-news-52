@@ -60,24 +60,24 @@ Visit **http://localhost:3000** — the app is live.
 
 ---
 
-## Deploy to Vercel
+## Deploy to Vercel (production)
 
-### Step 1 — Push to GitHub (already done if you cloned this repo)
+**Production Vercel project:** `discova-ai-platform`  
+**Domain:** `https://getdiscova.com`  
+**Repo:** `demmyscoalexport-cell/futurestack-news-52` (app lives in `futurestack/`)
 
-### Step 2 — Import into Vercel
+Do **not** use the legacy `futurestack-news-52` Vercel project for production — it is auto-skipped on every push.
 
-1. Go to [vercel.com/new](https://vercel.com/new) and click **Import Git Repository**
-2. Select **futurestack-news-52** from your GitHub list
-3. In the **Configure Project** screen:
-   - Set **Root Directory** → `futurestack`
-   - Framework will auto-detect as **Next.js**
-   - Build command: `npm run build` (auto-filled)
-   - Output directory: `.next` (auto-filled)
-4. Click **Environment Variables** and add every variable from `.env.example`
-   - For production, change `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://discova.vercel.app`)
-   - Remove `INNGEST_DEV=1` (not needed in production)
-   - Add `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY` from [inngest.com](https://www.inngest.com) for background jobs
-5. Click **Deploy**
+### Configure `discova-ai-platform`
+
+1. Open the [discova-ai-platform](https://vercel.com/demmyscoalexport-4319s-projects/discova-ai-platform) project in Vercel
+2. **Settings → General** → Root Directory = `futurestack`
+3. **Settings → Git** → Production Branch = `main`
+4. **Settings → Domains** → `getdiscova.com` and `www.getdiscova.com`
+5. **Settings → Deployment Protection** → **None** (public customers must not see Vercel SSO)
+6. **Settings → Environment Variables** → all vars from `.env.example` (`NEXT_PUBLIC_SITE_URL=https://getdiscova.com`)
+
+Pushes to `main` deploy automatically via Git integration. After each deploy, confirm the latest build is assigned to **Production**.
 
 ### Step 3 — Post-deploy (one time)
 
