@@ -73,9 +73,14 @@ cd futurestack
 SITE_URL=https://getdiscova.com npm run smoke:routes
 ```
 
-### If getdiscova.com shows Vercel NOT_FOUND
+### If getdiscova.com shows Vercel NOT_FOUND (urgent)
 
-1. Open **discova-ai-platform** → **Deployments** → promote latest `main` to Production
-2. **Settings → Deployment Protection** → disable for Production (public browsers must not see SSO)
-3. **Settings → Domains** → confirm `getdiscova.com` is valid and assigned to Production
-4. **Settings → General** → Root Directory = `futurestack`
+The build may succeed but the domain has no Production deployment assigned.
+
+1. Open [discova-ai-platform deployments](https://vercel.com/demmyscoalexport-4319s-projects/discova-ai-platform)
+2. Click the latest **Ready** deployment from `main` → **Promote to Production**
+3. **Settings → Deployment Protection** → set to **None** (customers must not see Vercel SSO)
+4. **Settings → Domains** → confirm `getdiscova.com` is on this project (not `futurestack-news-52`)
+5. **Settings → General** → Root Directory = `futurestack`
+
+**Emergency fallback:** move `getdiscova.com` to **futurestack-news-52** in Vercel Domains (that project still has a live deployment at `futurestack-news-52.vercel.app`) until `discova-ai-platform` Production is promoted.

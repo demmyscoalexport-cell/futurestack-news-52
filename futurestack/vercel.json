@@ -1,4 +1,5 @@
 {
+  "ssoProtection": null,
   "framework": "nextjs",
   "buildCommand": "npm run vercel:build",
   "devCommand": "npm run dev",
