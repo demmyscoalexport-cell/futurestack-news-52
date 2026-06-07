@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "health": "node scripts/healthcheck.mjs",
+    "security:check": "node scripts/security-regression-check.mjs",
     "restore": "node scripts/restore.mjs",
     "migrate:supabase": "node scripts/migrate-to-supabase.mjs",
     "import:catalog": "node scripts/import-full-catalog.mjs",

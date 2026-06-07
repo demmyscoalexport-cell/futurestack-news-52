@@ -1,21 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-export async function POST(req: NextRequest) {
+const preferencesSchema = z
+  .object({
+    goals: z.array(z.string()).max(8).optional(),
+    monthlyBudget: z.number().int().min(0).max(500).optional(),
+  })
+  .passthrough();
+
+type ProfilePreferencesUpdate = {
+  primary_goals: string[];
+  monthly_tool_budget: number;
+  onboarding_completed: true;
+};
+
+export function buildProfilePreferencesUpdate(input: unknown): ProfilePreferencesUpdate {
+  const result = preferencesSchema.safeParse(input);
+  const preferences = result.success ? result.data : {};
+
+  return {
+    primary_goals: preferences.goals ?? [],
+    monthly_tool_budget: preferences.monthlyBudget ?? 50,
+    onboarding_completed: true,
+  };
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const body = await req.json();
+    const body: unknown = await req.json();
+    const update = buildProfilePreferencesUpdate(body);
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
       const { error } = await supabase
         .from("profiles")
-        .update({
-          role: body.role || null,
-          primary_goals: body.goals ?? [],
-          monthly_tool_budget: body.monthlyBudget ?? 50,
-          onboarding_completed: true,
-        })
+        .update(update)
         .eq("id", user.id);
 
       if (error) {
