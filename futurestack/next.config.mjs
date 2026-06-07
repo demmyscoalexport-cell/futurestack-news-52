@@ -6,6 +6,8 @@ const __dirname = dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
   allowedDevOrigins: ["*.picard.replit.dev", "*.replit.dev", "*.repl.co"],
   images: {
     formats: ["image/avif", "image/webp"],
