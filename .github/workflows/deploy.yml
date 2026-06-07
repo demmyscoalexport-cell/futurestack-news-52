@@ -118,6 +118,21 @@ jobs:
           echo "url=$URL" >> "$GITHUB_OUTPUT"
         working-directory: futurestack
 
+      - name: Attach production domains
+        continue-on-error: true
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          for domain in getdiscova.com www.getdiscova.com; do
+            curl -sf -X POST "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d "{\"name\":\"${domain}\"}" \
+              && echo "Attached ${domain}" \
+              || echo "Skipped ${domain} (already linked or needs manual Vercel dashboard fix)"
+          done
+
   # ── 4. Notify on success ───────────────────────────────────────────
   notify-success:
     name: Notify Success
@@ -127,7 +142,8 @@ jobs:
 
     steps:
       - name: Send Slack success notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ vars.ENABLE_DEPLOY_NOTIFICATIONS == 'true' }}
+        continue-on-error: true
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -148,7 +164,8 @@ jobs:
             }
 
       - name: Send email success notification
-        if: ${{ secrets.NOTIFY_EMAIL != '' }}
+        if: ${{ vars.ENABLE_DEPLOY_NOTIFICATIONS == 'true' }}
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -174,7 +191,8 @@ jobs:
 
     steps:
       - name: Send Slack failure notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ vars.ENABLE_DEPLOY_NOTIFICATIONS == 'true' }}
+        continue-on-error: true
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -196,7 +214,8 @@ jobs:
             }
 
       - name: Send email failure notification
-        if: ${{ secrets.NOTIFY_EMAIL != '' }}
+        if: ${{ vars.ENABLE_DEPLOY_NOTIFICATIONS == 'true' }}
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
