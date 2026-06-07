@@ -2,6 +2,18 @@
 
 This is the exact Vercel setup required for reliable deployments.
 
+## Production project
+
+**Canonical Vercel project:** `discova-ai-platform`
+
+- **Domain:** `getdiscova.com`
+- **Repo:** `demmyscoalexport-cell/futurestack-news-52`
+- **Env vars:** configured on `discova-ai-platform` (Supabase, Contentful, etc.)
+
+A second Vercel project (`futurestack-news-52`) also connects to this repo but is not the production target. Use `discova-ai-platform` for all production deploys.
+
+If `getdiscova.com` returns Vercel `NOT_FOUND`, `discova-ai-platform` has no successful production deployment yet — redeploy from the Vercel dashboard or push to `main`.
+
 ## 1. Import settings
 
 In Vercel, import the GitHub repository and set:
@@ -74,11 +86,11 @@ STRIPE_WEBHOOK_SECRET=
 
 ## 5. Custom domain (getdiscova.com)
 
-If `https://getdiscova.com` returns Vercel `NOT_FOUND` while `https://futurestack-news-52.vercel.app` works, the custom domain is not attached to the active project.
+If `https://getdiscova.com` returns Vercel `NOT_FOUND`, the `discova-ai-platform` project has no successful production deployment (domain is attached but nothing is serving).
 
 Fix in Vercel:
 
-1. Open the `futurestack-news-52` project in Vercel
+1. Open the **`discova-ai-platform`** project in Vercel
 2. Go to **Settings → Domains**
 3. Add `getdiscova.com` and `www.getdiscova.com`
 4. Confirm DNS still points to Vercel (apex A records + `www` CNAME)
