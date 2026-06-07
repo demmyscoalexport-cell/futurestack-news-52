@@ -4,15 +4,15 @@ This is the exact Vercel setup required for reliable deployments.
 
 ## Production project
 
-**Canonical Vercel project:** `discova-ai-platform`
+**Canonical Vercel project:** `futurestack-news-52`
 
 - **Domain:** `getdiscova.com`
 - **Repo:** `demmyscoalexport-cell/futurestack-news-52`
-- **Env vars:** configured on `discova-ai-platform` (Supabase, Contentful, etc.)
+- **Env vars:** configured on `futurestack-news-52` (Supabase, Contentful, etc.)
 
-A second Vercel project (`futurestack-news-52`) also connects to this repo but is not the production target. Use `discova-ai-platform` for all production deploys.
+A second Vercel project (`discova-ai-platform`) also connects to this repo but is skipped on every push via `ignoreCommand`.
 
-If `getdiscova.com` returns Vercel `NOT_FOUND`, `discova-ai-platform` has no successful production deployment yet — redeploy from the Vercel dashboard or push to `main`.
+If `getdiscova.com` returns Vercel `NOT_FOUND`, `futurestack-news-52` has no successful production deployment yet — redeploy from the Vercel dashboard or push to `main`.
 
 ## 1. Import settings
 

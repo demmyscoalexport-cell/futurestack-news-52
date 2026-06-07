@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "HUSKY=0 npm --prefix futurestack ci",
+  "installCommand": "HUSKY=0 npm --prefix futurestack ci --engine-strict=false",
   "buildCommand": "npm --prefix futurestack run vercel:build",
   "devCommand": "npm --prefix futurestack run dev",
   "regions": ["iad1"],

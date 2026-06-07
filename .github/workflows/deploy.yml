@@ -78,9 +78,9 @@ jobs:
       - name: Build app
         run: npm run vercel:build
 
-  # ── 3. Deploy to Vercel (discova-ai-platform / getdiscova.com) ─────
-  # Git pushes also trigger Vercel Git integration on discova-ai-platform.
-  # If using CLI secrets below, VERCEL_PROJECT_ID must be discova-ai-platform (not futurestack-news-52).
+  # ── 3. Deploy to Vercel (futurestack-news-52 / getdiscova.com) ─────
+  # Git pushes also trigger Vercel Git integration on futurestack-news-52.
+  # If using CLI secrets below, VERCEL_PROJECT_ID must be futurestack-news-52.
   deploy-gate:
     name: Check Vercel CLI credentials
     runs-on: ubuntu-latest

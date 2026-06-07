@@ -62,15 +62,15 @@ Visit **http://localhost:3000** — the app is live.
 
 ## Deploy to Vercel (production)
 
-**Production Vercel project:** `discova-ai-platform`  
+**Production Vercel project:** `futurestack-news-52`  
 **Domain:** `https://getdiscova.com`  
 **Repo:** `demmyscoalexport-cell/futurestack-news-52` (app lives in `futurestack/`)
 
-Do **not** use the legacy `futurestack-news-52` Vercel project for production — it is auto-skipped on every push.
+The duplicate `discova-ai-platform` project is auto-skipped on every push via `ignoreCommand`.
 
-### Configure `discova-ai-platform`
+### Configure `futurestack-news-52`
 
-1. Open the [discova-ai-platform](https://vercel.com/demmyscoalexport-4319s-projects/discova-ai-platform) project in Vercel
+1. Open the [futurestack-news-52](https://vercel.com/demmyscoalexport-4319s-projects/futurestack-news-52) project in Vercel
 2. **Settings → General** → Root Directory = `futurestack`
 3. **Settings → Git** → Production Branch = `main`
 4. **Settings → Domains** → `getdiscova.com` and `www.getdiscova.com`

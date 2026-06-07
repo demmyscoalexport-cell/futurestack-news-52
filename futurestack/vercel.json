@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "buildCommand": "npm run vercel:build",
   "devCommand": "npm run dev",
-  "installCommand": "HUSKY=0 npm ci",
+  "installCommand": "HUSKY=0 npm ci --engine-strict=false",
   "regions": ["iad1"],
   "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" = \"discova-ai-platform\" ]; then exit 0; fi; exit 1'",
   "headers": [
