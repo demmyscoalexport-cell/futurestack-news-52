@@ -66,13 +66,13 @@ npm run sync:contentful
 
 | Setting | Value |
 |---|---|
-| Vercel project | **`discova-ai-platform`** |
+| Vercel project | **`futurestack-news-52`** |
 | Domain | `getdiscova.com` |
 | Root directory | `futurestack` |
 | Production branch | `main` |
-| Env vars | On `discova-ai-platform` only |
+| Env vars | On `futurestack-news-52` |
 
-The legacy **`futurestack-news-52`** Vercel project is connected to the same repo but **skipped on every push** via `ignoreCommand` in `vercel.json`. Never attach `getdiscova.com` to it.
+The duplicate **`discova-ai-platform`** project is skipped on every push via `ignoreCommand`.
 
 After deploy, verify public routes:
 

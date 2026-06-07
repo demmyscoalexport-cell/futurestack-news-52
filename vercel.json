@@ -5,5 +5,5 @@
   "buildCommand": "npm --prefix futurestack run vercel:build",
   "devCommand": "npm --prefix futurestack run dev",
   "regions": ["iad1"],
-  "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" = \"futurestack-news-52\" ]; then exit 0; fi; exit 1'"
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" = \"discova-ai-platform\" ]; then exit 0; fi; exit 1'"
 }
