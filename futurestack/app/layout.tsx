@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ErrorBoundary } from "@/components/providers/error-boundary";
@@ -136,6 +137,7 @@ export default function RootLayout({
         </ThemeProvider>
         <MobileBottomNav />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
