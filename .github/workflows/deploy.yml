@@ -79,11 +79,34 @@ jobs:
         run: npm run vercel:build
 
   # ── 3. Deploy to Vercel ────────────────────────────────────────────
-  deploy:
-    name: Deploy to Vercel
+  deploy-gate:
+    name: Check Vercel CLI credentials
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name != 'pull_request'
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Decide whether to run Vercel CLI deploy
+        id: check
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "Vercel CLI credentials found — running CLI deploy."
+          else
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Vercel CLI credentials missing — relying on Vercel Git integration for production deploys."
+          fi
+
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [build, deploy-gate]
+    if: github.event_name != 'pull_request' && needs.deploy-gate.outputs.should_deploy == 'true'
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -137,8 +160,11 @@ jobs:
   notify-success:
     name: Notify Success
     runs-on: ubuntu-latest
-    needs: deploy
-    if: success()
+    needs: [build, deploy-gate, deploy]
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
@@ -191,8 +217,12 @@ jobs:
   notify-failure:
     name: Notify Failure
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, build, deploy]
-    if: failure()
+    needs: [lint-and-typecheck, build, deploy-gate, deploy]
+    if: |
+      always() &&
+      (needs.lint-and-typecheck.result == 'failure' ||
+       needs.build.result == 'failure' ||
+       needs.deploy.result == 'failure')
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
