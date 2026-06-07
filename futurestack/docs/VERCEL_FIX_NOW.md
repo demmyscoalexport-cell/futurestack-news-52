@@ -1,55 +1,47 @@
-# Fix getdiscova.com in 2 minutes
+# Deploy to futurestack-news-52 (getdiscova.com)
 
-**You do NOT need a new Vercel account.** The app builds successfully. The domain just needs to be wired to the latest Production deployment on the correct project.
+Production project: **`futurestack-news-52`**  
+Domain: **`getdiscova.com`**
 
-## Which project?
+## Required Vercel settings (one time)
 
-| Project | Use for |
-|---|---|
-| **`discova-ai-platform`** | Production — `getdiscova.com`, all env vars, blog |
-| `futurestack-news-52` | Legacy — ignore it (auto-skipped on every push) |
-
-## Step 1 — Open the right project
-
-https://vercel.com/demmyscoalexport-4319s-projects/discova-ai-platform
-
-## Step 2 — Promote the latest deploy to Production
-
-1. Click **Deployments**
-2. Open the top **Ready** deployment from branch `main` (green checkmark)
-3. Click the **⋯** menu → **Promote to Production**
-
-If you only see **Redeploy**, use that on the latest successful `main` deployment.
-
-## Step 3 — Make the site public
-
-1. **Settings** → **Deployment Protection**
-2. Set protection to **None** (or disable Vercel Authentication for Production)
-3. Save
-
-## Step 4 — Confirm project settings (one time)
+Open: https://vercel.com/demmyscoalexport-4319s-projects/futurestack-news-52/settings/general
 
 | Setting | Value |
 |---|---|
-| Root Directory | `futurestack` |
-| Production Branch | `main` |
-| Domains | `getdiscova.com`, `www.getdiscova.com` |
+| **Root Directory** | `futurestack` |
+| **Production Branch** | `main` |
+| **Node.js Version** | `22.x` |
+| **Framework** | Next.js |
 
-## Step 5 — Verify
+If Root Directory is blank, builds fail with **"No Next.js version detected"**.
 
-Open https://getdiscova.com — you should see the homepage, not `404 NOT_FOUND`.
+## Required environment variables
 
-```bash
-cd futurestack
-SITE_URL=https://getdiscova.com npm run smoke:routes
+**Settings → Environment Variables** on `futurestack-news-52`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_SITE_URL=https://getdiscova.com
 ```
 
-## Optional — stop failure emails from the old project
+Copy any remaining vars from `.env.example` (Contentful, Resend, etc.).
 
-On **`futurestack-news-52`** → **Settings** → **Git** → **Disconnect Repository**
+## Deploy latest build
 
-This stops the duplicate project from watching `main` entirely.
+Pushes to `main` deploy automatically. To deploy manually:
 
-## Why you saw "No Next.js version detected"
+1. **Deployments** → latest `main` commit → **Redeploy**
+2. Or push any commit to `main`
 
-That error is on **`futurestack-news-52`** when Vercel builds from the repo root instead of `futurestack/`. That project is no longer used for production. New pushes skip it automatically.
+## Verify
+
+- https://getdiscova.com
+- https://getdiscova.com/blog
+- https://getdiscova.com/api/health
+
+```bash
+cd futurestack && SITE_URL=https://getdiscova.com npm run smoke:routes
+```

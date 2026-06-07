@@ -43,9 +43,15 @@ if (packageJson?.name !== "my-project") {
 }
 
 if (missingEnv.length > 0) {
-  problems.push(
-    `Missing required Vercel environment variables: ${missingEnv.join(", ")}. Add them in Vercel Project Settings -> Environment Variables for Production, Preview, and Development.`,
-  );
+  const project = process.env.VERCEL_PROJECT_NAME ?? "futurestack-news-52";
+  const envHint = `Add them on Vercel project "${project}" -> Settings -> Environment Variables (Production, Preview, Development).`;
+  if (process.env.VERCEL === "1") {
+    console.warn(
+      `\nDISCOVA Vercel preflight warning: missing ${missingEnv.join(", ")}. ${envHint}\n`,
+    );
+  } else {
+    problems.push(`Missing required Vercel environment variables: ${missingEnv.join(", ")}. ${envHint}`);
+  }
 }
 
 if (process.env.SUPABASE_DB_URL && !process.env.SUPABASE_DB_URL.startsWith("postgresql://")) {
