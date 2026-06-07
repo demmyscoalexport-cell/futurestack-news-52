@@ -99,6 +99,8 @@ The likely deployment blockers were:
 4. Previous lockfile mismatch causing `npm ci` to fail.
 5. GitHub workflow used Node 20 while dependencies now require a newer Node 22 version.
 6. GitHub Actions Vercel CLI may not have had `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`, causing non-interactive deploy commands to fail.
+7. The deploy workflow used `secrets.*` inside step `if` conditions, which GitHub Actions rejects at parse time. Use repository variables such as `ENABLE_DEPLOY_NOTIFICATIONS=true` for optional notification steps instead.
+8. `getdiscova.com` can return Vercel `NOT_FOUND` when DNS still points to Vercel but the domain is not attached to the active project. The deploy workflow now attempts to attach `getdiscova.com` and `www.getdiscova.com` after each production deploy.
 
 ## 7. What now protects deployments
 
