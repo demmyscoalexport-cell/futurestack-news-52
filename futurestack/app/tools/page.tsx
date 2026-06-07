@@ -9,7 +9,7 @@ import { tools as fallbackTools } from "@/lib/data";
 export const metadata = {
   title: "Tools & Apps Directory | DISCOVA",
   description:
-    "Discover, compare and build with 400+ tools — by category, pricing, and African compatibility. Built for creators, founders, and businesses across Africa.",
+    "Discover, compare and build with 409+ tools — by category, pricing, and African compatibility. Built for creators, founders, and businesses across Africa.",
 };
 
 const DEFAULT_CATEGORIES = [

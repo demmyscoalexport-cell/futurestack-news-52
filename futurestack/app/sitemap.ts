@@ -43,11 +43,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const articleUrls: MetadataRoute.Sitemap = articles.map((a) => ({
+  const newsUrls: MetadataRoute.Sitemap = articles.map((a) => ({
     url: `${BASE_URL}/news/${a.slug}`,
     lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
     changeFrequency: "daily",
     priority: 0.9,
+  }));
+
+  const blogUrls: MetadataRoute.Sitemap = articles.map((a) => ({
+    url: `${BASE_URL}/blog/${a.slug}`,
+    lastModified: a.updated_at ? new Date(a.updated_at) : new Date(),
+    changeFrequency: "weekly",
+    priority: 0.85,
   }));
 
   const comparisonUrls: MetadataRoute.Sitemap = comparisons.map(
@@ -73,6 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/collections`, priority: 0.7, changeFrequency: "weekly" },
     { url: `${BASE_URL}/onboarding`, priority: 0.75, changeFrequency: "monthly" },
     { url: `${BASE_URL}/news`, priority: 0.9, changeFrequency: "daily" },
+    { url: `${BASE_URL}/blog`, priority: 0.9, changeFrequency: "daily" },
     { url: `${BASE_URL}/radar`, priority: 0.8, changeFrequency: "weekly" },
     {
       url: `${BASE_URL}/stack-builder`,
@@ -87,7 +95,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
     },
     ...toolUrls,
-    ...articleUrls,
+    ...newsUrls,
+    ...blogUrls,
     ...comparisonUrls,
     ...seoUrls,
   ];

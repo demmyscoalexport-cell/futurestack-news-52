@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/providers/auth-provider";
+import { SearchBar } from "@/components/search/search-bar";
 
 const navigation = [
   { name: "Discover", href: "/discover" },
@@ -42,7 +43,7 @@ const navigation = [
 
 const mobileNav = [
   { name: "Discover", href: "/discover", icon: Compass, desc: "AI-powered discovery" },
-  { name: "Tools & Apps", href: "/tools", icon: Zap, desc: "Browse 400+ tools" },
+  { name: "Tools & Apps", href: "/tools", icon: Zap, desc: "Browse 409+ tools" },
   { name: "Stacks", href: "/stacks", icon: Layers, desc: "Curated tool bundles" },
   { name: "Workflows", href: "/workflows", icon: Layers, desc: "How tools work together" },
   { name: "Community", href: "/community", icon: Globe, desc: "Reviews & discussions" },
@@ -57,9 +58,7 @@ const mobileNav = [
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const { user, isLoading, signOut } = useAuth();
@@ -75,7 +74,6 @@ export function Header() {
     const trimmed = query.trim();
     if (!trimmed) return;
     router.push(buildToolsSearchUrl(parseSmartSearch(trimmed)));
-    setIsSearchOpen(false);
     setIsMobileMenuOpen(false);
   };
 
@@ -149,14 +147,7 @@ export function Header() {
             </Link>
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hidden sm:flex text-muted-foreground hover:text-foreground"
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-          >
-            <Search className="h-4 w-4" />
-          </Button>
+          <SearchBar />
 
           <Button
             variant="ghost"
@@ -294,28 +285,6 @@ export function Header() {
         </div>
       </div>
 
-      {isSearchOpen && (
-        <div className="absolute left-0 right-0 top-full border-b border-border/40 bg-background p-3 shadow-lg">
-          <div className="container mx-auto">
-            <form
-              className="relative"
-              onSubmit={(event) => {
-                event.preventDefault();
-                submitSearch(searchQuery);
-              }}
-            >
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search tools, workflows, stacks, opportunities..."
-                className="pl-9"
-                autoFocus
-              />
-            </form>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

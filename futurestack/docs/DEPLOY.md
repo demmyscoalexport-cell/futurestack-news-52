@@ -61,3 +61,21 @@ npm run sync:contentful
 ## Health check
 
 `GET https://getdiscova.com/api/health`
+
+## Production project
+
+Deploy only to **`discova-ai-platform`** on Vercel (`getdiscova.com`). The duplicate `futurestack-news-52` project is ignored via `ignoreCommand` in `vercel.json`.
+
+After deploy, verify public routes:
+
+```bash
+cd futurestack
+SITE_URL=https://getdiscova.com npm run smoke:routes
+```
+
+### If getdiscova.com shows Vercel NOT_FOUND
+
+1. Open **discova-ai-platform** → **Deployments** → promote latest `main` to Production
+2. **Settings → Deployment Protection** → disable for Production (public browsers must not see SSO)
+3. **Settings → Domains** → confirm `getdiscova.com` is valid and assigned to Production
+4. **Settings → General** → Root Directory = `futurestack`

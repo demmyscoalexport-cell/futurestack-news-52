@@ -20,6 +20,7 @@
     "import:ph": "node scripts/import-producthunt.mjs --target 150 --limit 50",
     "sync:contentful": "node scripts/sync-contentful-rest.mjs --limit 50",
     "health:check": "node scripts/health-check.mjs",
+    "smoke:routes": "node scripts/smoke-routes.mjs",
     "check": "tsc --noEmit",
     "fix": "eslint . --fix && prettier --write .",
     "prepare": "husky"

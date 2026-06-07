@@ -3,14 +3,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Settings,
-  Smile,
-  User,
-} from "lucide-react";
-import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -20,10 +12,34 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 
+interface SearchTool {
+  id: string;
+  name: string;
+  slug: string;
+  tagline?: string | null;
+  logo?: string | null;
+  futurestack_score?: number | null;
+  tool_scores?: Array<{ futurestack_score?: number | null }>;
+}
+
+interface SearchArticle {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  href?: string;
+}
+
 interface SearchResult {
-  tools: any[];
-  articles: any[];
+  tools: SearchTool[];
+  articles: SearchArticle[];
   total: number;
+}
+
+function getToolScore(tool: SearchTool): number | null {
+  if (typeof tool.futurestack_score === "number") return tool.futurestack_score;
+  const nested = tool.tool_scores?.[0]?.futurestack_score;
+  return typeof nested === "number" ? nested : null;
 }
 
 export function SearchBar() {
@@ -85,7 +101,7 @@ export function SearchBar() {
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search tools, AI models, categories..."
+          placeholder="Search tools, blog posts, categories..."
           value={query}
           onValueChange={setQuery}
         />
@@ -102,7 +118,9 @@ export function SearchBar() {
 
           {!loading && results.tools.length > 0 && (
             <CommandGroup heading="AI Tools & Platforms">
-              {results.tools.map((tool) => (
+              {results.tools.map((tool) => {
+                const score = getToolScore(tool);
+                return (
                 <CommandItem
                   key={tool.id}
                   onSelect={() => {
@@ -130,26 +148,27 @@ export function SearchBar() {
                       {tool.tagline}
                     </div>
                   </div>
-                  {tool.tool_scores?.[0]?.futurestack_score && (
+                  {score != null && (
                     <div className="shrink-0 text-xs font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded">
-                      {tool.tool_scores[0].futurestack_score.toFixed(1)}
+                      {score.toFixed(1)}
                     </div>
                   )}
                 </CommandItem>
-              ))}
+              );
+              })}
             </CommandGroup>
           )}
 
           {!loading && results.articles.length > 0 && (
             <>
               {results.tools.length > 0 && <CommandSeparator />}
-              <CommandGroup heading="Editorial Insights">
+              <CommandGroup heading="Blog & Editorial">
                 {results.articles.map((article) => (
                   <CommandItem
                     key={article.id}
                     onSelect={() => {
                       setOpen(false);
-                      router.push(`/news/${article.slug}`);
+                      router.push(article.href ?? `/blog/${article.slug}`);
                     }}
                     className="flex items-center gap-3 py-3 cursor-pointer"
                   >
@@ -158,7 +177,7 @@ export function SearchBar() {
                         {article.title}
                       </div>
                       <div className="text-xs text-slate-500 line-clamp-1">
-                        {article.meta_description}
+                        {article.excerpt ?? "DISCOVA Blog"}
                       </div>
                     </div>
                   </CommandItem>

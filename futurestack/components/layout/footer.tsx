@@ -15,6 +15,7 @@ const footerLinks = {
   ],
   community: [
     { name: "Community", href: "/community" },
+    { name: "Blog", href: "/blog" },
     { name: "Insights & News", href: "/news" },
     { name: "Submit a Tool", href: "/submit-tool" },
     { name: "Enterprise", href: "/enterprise" },

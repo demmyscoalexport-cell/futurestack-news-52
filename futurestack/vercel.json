@@ -4,6 +4,7 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "regions": ["iad1"],
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" = \"futurestack-news-52\" ]; then exit 1; fi; exit 0'",
   "headers": [
     {
       "source": "/(.*)",

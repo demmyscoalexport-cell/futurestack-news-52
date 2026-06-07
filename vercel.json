@@ -4,5 +4,6 @@
   "buildCommand": "npm --prefix futurestack run vercel:build",
   "devCommand": "npm --prefix futurestack run dev",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" != \"discova-ai-platform\" ]; then exit 1; fi; exit 0'"
 }
