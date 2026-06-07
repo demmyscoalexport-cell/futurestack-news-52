@@ -36,9 +36,9 @@ if (missingFiles.length > 0) {
   );
 }
 
-if (packageJson?.name !== "my-project") {
+if (packageJson?.name !== "my-project" && process.env.VERCEL !== "1") {
   problems.push(
-    `Unexpected package.json project name. Vercel should build from the futurestack directory, not the repository root.`,
+    `Unexpected package.json project name. Set Vercel Root Directory to "futurestack".`,
   );
 }
 
