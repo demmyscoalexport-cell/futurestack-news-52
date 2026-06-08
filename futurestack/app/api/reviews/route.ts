@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/lib/auth/require-user";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,14 +20,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getOptionalUser();
 
     const displayName =
       userName?.trim() ||
-      user?.user_metadata?.full_name ||
+      user?.fullName ||
       user?.email?.split("@")[0] ||
       "Anonymous";
 
@@ -37,7 +34,7 @@ export async function POST(req: NextRequest) {
        RETURNING id, tool_id, user_name, rating, content, location, upvotes, downvotes, created_at`,
       [
         toolId,
-        user?.id || null,
+        user?.profileId || null,
         displayName,
         rating,
         content.trim(),

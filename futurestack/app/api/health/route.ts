@@ -56,8 +56,20 @@ export async function GET() {
     ok = false;
   }
 
+  checks.clerk = {
+    configured: config.clerk.isConfigured,
+    webhook: Boolean(config.clerk.webhookSecret),
+  };
+
+  checks.supabase = {
+    configured: config.supabase.isConfigured,
+    serviceRole: Boolean(config.supabase.serviceRoleKey),
+  };
+
   checks.contentful = {
-    configured: Boolean(config.contentful.spaceId && config.contentful.deliveryToken),
+    configured: config.contentful.isConfigured,
+    webhook: Boolean(config.contentful.webhookSecret),
+    preview: config.contentful.usePreviewApi,
   };
 
   checks.gnews = {

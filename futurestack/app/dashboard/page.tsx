@@ -1,14 +1,11 @@
 export const dynamic = "force-dynamic";
-import { createClient } from "@/lib/supabase/server";
 import { getTools, getTrendingTools } from "@/lib/queries/tools";
 import type { Tool } from "@/lib/types";
+import { requireUserOrRedirect } from "@/lib/auth/require-user";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const user = await requireUserOrRedirect();
 
   const [allTools, trendingTools] = await Promise.all([
     getTools({ limit: 200 }),
@@ -16,9 +13,7 @@ export default async function DashboardPage() {
   ]);
 
   const userName =
-    session?.user?.user_metadata?.full_name ??
-    session?.user?.email?.split("@")[0] ??
-    "Builder";
+    user?.fullName ?? user?.email?.split("@")[0] ?? "Builder";
 
   return (
     <DashboardClient

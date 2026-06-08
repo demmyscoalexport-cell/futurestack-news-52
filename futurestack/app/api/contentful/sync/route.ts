@@ -2,14 +2,20 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { fetchContentfulEntryById } from "@/lib/contentful/client";
 import {
+  isBlogContentType,
   isNewsContentType,
   isToolContentType,
 } from "@/lib/contentful/content-types";
+import { config } from "@/lib/config";
 
 function isAuthorized(req: Request) {
-  const expected = process.env.CONTENTFUL_WEBHOOK_SECRET;
-  if (!expected) return true;
-  const provided = req.headers.get("x-discova-webhook-secret") ?? req.headers.get("x-futurestack-webhook-secret");
+  const expected = config.contentful.webhookSecret;
+  if (!expected) {
+    return config.app.isDev;
+  }
+  const provided =
+    req.headers.get("x-discova-webhook-secret") ??
+    req.headers.get("x-futurestack-webhook-secret");
   return provided === expected;
 }
 
@@ -274,7 +280,7 @@ async function archiveOrDeleteBySlug(
     return { table: "tools", slug, action: "archived" };
   }
 
-  if (isNewsContentType(contentType)) {
+  if (isNewsContentType(contentType) || isBlogContentType(contentType)) {
     if (isDelete) {
       await db.query(`DELETE FROM articles WHERE slug = $1`, [slug]);
       return { table: "articles", slug, action: "deleted" };
@@ -321,7 +327,7 @@ export async function POST(req: Request) {
     } else if (action === "publish") {
       if (isToolContentType(contentType)) {
         result = await upsertTool(fields ?? {}, true);
-      } else if (isNewsContentType(contentType)) {
+      } else if (isNewsContentType(contentType) || isBlogContentType(contentType)) {
         result = await upsertArticle(fields ?? {}, true);
       } else {
         result = {

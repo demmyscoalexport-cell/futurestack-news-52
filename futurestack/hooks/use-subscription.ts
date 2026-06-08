@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/auth-provider";
 
 export type Plan = "free" | "pro" | "team";
 
@@ -17,25 +18,33 @@ const FEATURE_GATES: Record<string, Plan[]> = {
 };
 
 export function useSubscription() {
+  const { user, isLoading: authLoading } = useAuth();
   const [plan, setPlan] = useState<Plan>("free");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("plan")
-        .eq("id", session.user.id)
-        .single();
-      if (profile?.plan) setPlan(profile.plan as Plan);
+    if (authLoading) return;
+
+    if (!user?.id || !isSupabaseConfigured()) {
+      setPlan("free");
       setLoading(false);
-    });
-  }, []);
+      return;
+    }
+
+    const supabase = createClient();
+    void (async () => {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profile?.plan) setPlan(profile.plan as Plan);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [authLoading, user?.id]);
 
   const isPro = plan === "pro" || plan === "team";
   const isTeam = plan === "team";
@@ -44,7 +53,7 @@ export function useSubscription() {
   const canUseFeature = useCallback(
     (featureName: string): boolean => {
       const allowedPlans = FEATURE_GATES[featureName];
-      if (!allowedPlans) return true; // Unknown feature = allow
+      if (!allowedPlans) return true;
       return allowedPlans.includes(plan);
     },
     [plan],

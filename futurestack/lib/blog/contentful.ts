@@ -10,19 +10,29 @@ import type {
   BlogSearchResult,
 } from "./types";
 import { estimateReadingTime, getCategoryName } from "./utils";
+import { config } from "@/lib/config";
 
-const CONTENTFUL_SPACE = process.env.CONTENTFUL_SPACE_ID ?? "";
-const CONTENTFUL_TOKEN = process.env.CONTENTFUL_DELIVERY_TOKEN ?? "";
-const CONTENTFUL_BASE = `https://cdn.contentful.com/spaces/${CONTENTFUL_SPACE}/environments/master`;
+function getContentfulBase(): string | null {
+  const { spaceId, environment, deliveryToken } = config.contentful;
+  if (!spaceId || !deliveryToken) return null;
+  const host = config.contentful.usePreviewApi
+    ? "preview.contentful.com"
+    : "cdn.contentful.com";
+  return `https://${host}/spaces/${spaceId}/environments/${environment}`;
+}
 
 function contentfulHeaders() {
-  return { Authorization: `Bearer ${CONTENTFUL_TOKEN}` };
+  const token = config.contentful.usePreviewApi
+    ? config.contentful.previewToken
+    : config.contentful.deliveryToken;
+  return { Authorization: `Bearer ${token}` };
 }
 
 async function contentfulFetch(path: string): Promise<unknown> {
-  if (!CONTENTFUL_SPACE || !CONTENTFUL_TOKEN) return null;
+  const base = getContentfulBase();
+  if (!base) return null;
   try {
-    const res = await fetch(`${CONTENTFUL_BASE}${path}`, {
+    const res = await fetch(`${base}${path}`, {
       headers: contentfulHeaders(),
       next: { revalidate: 300 },
     });

@@ -38,6 +38,10 @@ export const config = {
     url: optional("NEXT_PUBLIC_SUPABASE_URL"),
     anonKey: optional("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
     serviceRoleKey: optional("SUPABASE_SERVICE_ROLE_KEY"),
+    isConfigured: Boolean(
+      optional("NEXT_PUBLIC_SUPABASE_URL") &&
+        optional("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    ),
   },
 
   /** AI providers — optional; features degrade gracefully */
@@ -95,7 +99,12 @@ export const config = {
     deliveryToken: optional("CONTENTFUL_DELIVERY_TOKEN"),
     previewToken: optional("CONTENTFUL_PREVIEW_TOKEN"),
     managementToken: optional("CONTENTFUL_MANAGEMENT_TOKEN"),
+    webhookSecret: optional("CONTENTFUL_WEBHOOK_SECRET"),
+    defaultLocale: optional("CONTENTFUL_DEFAULT_LOCALE", "en-US"),
     usePreviewApi: optional("CONTENTFUL_USE_PREVIEW_API", "false") === "true",
+    isConfigured: Boolean(
+      optional("CONTENTFUL_SPACE_ID") && optional("CONTENTFUL_DELIVERY_TOKEN"),
+    ),
   },
 
   /** Application */

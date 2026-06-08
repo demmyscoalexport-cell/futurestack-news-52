@@ -10,11 +10,27 @@ import {
 import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
+export type AuthProviderName = "clerk" | "supabase";
+
+export interface UnifiedAuthUser {
+  id: string;
+  profileId: string | null;
+  email: string | null;
+  fullName: string | null;
+  provider: AuthProviderName;
+}
+
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
+}
+
+interface UnifiedAuthContextValue {
+  user: UnifiedAuthUser | null;
+  isLoading: boolean;
+  signOut: (() => Promise<void>) | null;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -24,7 +40,34 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => {},
 });
 
+const UnifiedAuthContext = createContext<UnifiedAuthContextValue>({
+  user: null,
+  isLoading: true,
+  signOut: null,
+});
+
+export function UnifiedAuthProvider({
+  children,
+  user,
+  isLoading,
+  signOut,
+}: {
+  children: React.ReactNode;
+  user: UnifiedAuthUser | null;
+  isLoading: boolean;
+  signOut?: () => Promise<void>;
+}) {
+  return (
+    <UnifiedAuthContext.Provider value={{ user, isLoading, signOut: signOut ?? null }}>
+      {children}
+    </UnifiedAuthContext.Provider>
+  );
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const unified = useContext(UnifiedAuthContext);
+  const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
   const [supabase] = useState<SupabaseClient | null>(() => {
     if (!isSupabaseConfigured()) return null;
     try {
@@ -35,37 +78,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!clerkConfigured);
 
   useEffect(() => {
+    if (clerkConfigured) {
+      setIsLoading(unified.isLoading);
+      return;
+    }
+
     if (!supabase) {
       setIsLoading(false);
       return;
     }
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+
+    supabase.auth.getSession().then(({ data: { session: nextSession } }) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
       setIsLoading(false);
     });
 
-    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clerkConfigured, supabase, unified.isLoading]);
 
   const signOut = useCallback(async () => {
+    if (clerkConfigured && unified.signOut) {
+      await unified.signOut();
+      return;
+    }
     if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";
-  }, [supabase]);
+  }, [clerkConfigured, supabase, unified.isLoading]);
 
   return (
     <AuthContext.Provider value={{ user, session, isLoading, signOut }}>
@@ -75,5 +126,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const supabaseAuth = useContext(AuthContext);
+  const unified = useContext(UnifiedAuthContext);
+  const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+
+  if (clerkConfigured && unified.user) {
+    return {
+      user: {
+        id: unified.user.profileId ?? unified.user.id,
+        email: unified.user.email ?? undefined,
+        user_metadata: { full_name: unified.user.fullName },
+      } as unknown as User,
+      session: null,
+      isLoading: unified.isLoading,
+      signOut: supabaseAuth.signOut,
+    };
+  }
+
+  return supabaseAuth;
 }

@@ -2,6 +2,7 @@ import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { syncClerkProfile } from "@/lib/clerk/sync-profile";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { config } from "@/lib/config";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -39,6 +40,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           { status: 500 },
         );
       }
+    }
+
+    if (evt.type === "user.deleted") {
+      const supabase = createAdminClient();
+      await supabase.from("profiles").delete().eq("clerk_user_id", evt.data.id);
     }
 
     return NextResponse.json({ success: true });

@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser, getOptionalUser } from "@/lib/auth/require-user";
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
+    const auth = await requireUser();
+    if ("error" in auth) return auth.error;
 
     const { toolId } = await req.json();
 
@@ -21,24 +15,23 @@ export async function POST(req: NextRequest) {
 
     const existing = await db.query(
       "SELECT id FROM saved_tools WHERE user_id=$1 AND tool_id=$2",
-      [user.id, toolId],
+      [auth.user.profileId, toolId],
     );
 
     if (existing.rows.length > 0) {
       await db.query(
         "DELETE FROM saved_tools WHERE user_id=$1 AND tool_id=$2",
-        [user.id, toolId],
+        [auth.user.profileId, toolId],
       );
       return NextResponse.json({ saved: false });
-    } else {
-      await db.query(
-        "INSERT INTO saved_tools (user_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-        [user.id, toolId],
-      );
-      return NextResponse.json({ saved: true });
     }
-  } catch (err) {
-    console.error("[POST /api/save-tool]", err);
+
+    await db.query(
+      "INSERT INTO saved_tools (user_id, tool_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [auth.user.profileId, toolId],
+    );
+    return NextResponse.json({ saved: true });
+  } catch {
     return NextResponse.json(
       { error: "Failed to update saved tools" },
       { status: 500 },
@@ -48,11 +41,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
+    const user = await getOptionalUser();
     if (!user) {
       return NextResponse.json({ saved: false });
     }
@@ -66,7 +55,7 @@ export async function GET(req: NextRequest) {
 
     const result = await db.query(
       "SELECT id FROM saved_tools WHERE user_id=$1 AND tool_id=$2",
-      [user.id, toolId],
+      [user.profileId, toolId],
     );
 
     return NextResponse.json({ saved: result.rows.length > 0 });

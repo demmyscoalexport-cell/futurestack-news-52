@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getOptionalUser } from "@/lib/auth/require-user";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 
@@ -26,14 +26,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan ID" }, { status: 400 });
     }
 
-    // Try to get logged-in user's email from Supabase session
     let userEmail = bodyEmail as string | undefined;
     let userId: string | undefined;
-    try {
-      const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) { userEmail = user.email; userId = user.id; }
-    } catch { /* unauthenticated — continue */ }
+    const appUser = await getOptionalUser();
+    if (appUser?.email) {
+      userEmail = appUser.email;
+      userId = appUser.profileId;
+    }
 
     if (!userEmail) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
