@@ -21,6 +21,7 @@ import {
 import { useTheme } from "next-themes";
 import { SearchBar } from "@/components/search/search-bar";
 import { AuthMenu } from "@/components/layout/auth-menu";
+import { useAuthRoutes } from "@/components/providers/auth-mode-provider";
 
 const navigation = [
   { name: "Discover", href: "/discover" },
@@ -63,8 +64,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
 
   const primaryNav = navigation;
-  const signInHref = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? "/sign-in" : "/login";
-  const signUpHref = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? "/sign-up" : "/signup";
+  const { signIn: signInHref, signUp: signUpHref } = useAuthRoutes();
 
   const submitSearch = (query: string) => {
     const trimmed = query.trim();

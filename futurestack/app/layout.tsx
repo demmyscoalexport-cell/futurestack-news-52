@@ -5,10 +5,12 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { AuthModeProvider } from "@/components/providers/auth-mode-provider";
 import { ClerkAuthBridge } from "@/components/providers/clerk-auth-bridge";
 import { ErrorBoundary } from "@/components/providers/error-boundary";
 import { Toaster } from "@/components/ui/sonner";
 import { MobileBottomNav } from "@/components/discovery/mobile-bottom-nav";
+import { getAuthMode } from "@/lib/auth/mode";
 import { config } from "@/lib/config";
 import "./globals.css";
 
@@ -100,19 +102,21 @@ export const viewport: Viewport = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const authTree = config.clerk.isConfigured ? (
-    <ClerkAuthBridge
-      publishableKey={config.clerk.publishableKey}
-      signInUrl={config.clerk.signInUrl}
-      signUpUrl={config.clerk.signUpUrl}
-      afterSignInUrl={config.clerk.afterSignInUrl}
-      afterSignUpUrl={config.clerk.afterSignUpUrl}
-    >
-      {children}
-    </ClerkAuthBridge>
-  ) : (
-    <AuthProvider>{children}</AuthProvider>
-  );
+  const authMode = getAuthMode();
+  const authTree =
+    authMode === "clerk" ? (
+      <ClerkAuthBridge
+        publishableKey={config.clerk.publishableKey}
+        signInUrl={config.clerk.signInUrl}
+        signUpUrl={config.clerk.signUpUrl}
+        afterSignInUrl={config.clerk.afterSignInUrl}
+        afterSignUpUrl={config.clerk.afterSignUpUrl}
+      >
+        {children}
+      </ClerkAuthBridge>
+    ) : (
+      <AuthProvider>{children}</AuthProvider>
+    );
 
   return (
     <html
@@ -140,7 +144,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ErrorBoundary>{authTree}</ErrorBoundary>
+          <ErrorBoundary>
+            <AuthModeProvider mode={authMode}>{authTree}</AuthModeProvider>
+          </ErrorBoundary>
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
         <MobileBottomNav />

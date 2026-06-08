@@ -21,7 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RoleSelector } from "@/components/ui/role-selector";
-import { createClient } from "@/lib/supabase/client";
+import { AuthUnavailable } from "@/components/auth/auth-unavailable";
+import { tryCreateClient } from "@/lib/supabase/safe-client";
 import { signUpSchema, type SignUpInput } from "@/lib/validations/auth";
 import type { UserRole } from "@/lib/types";
 
@@ -34,6 +35,7 @@ const PERKS = [
 
 export default function SignupPage() {
   const router = useRouter();
+  const supabaseClient = tryCreateClient();
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -56,8 +58,13 @@ export default function SignupPage() {
   } = form;
   const selectedRole = watch("role");
 
+  if (!supabaseClient) {
+    return <AuthUnavailable action="create an account" />;
+  }
+
+  const supabase = supabaseClient;
+
   async function onSubmit(data: SignUpInput) {
-    const supabase = createClient();
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
@@ -75,7 +82,6 @@ export default function SignupPage() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },

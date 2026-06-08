@@ -20,7 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { createClient } from "@/lib/supabase/client";
+import { AuthUnavailable } from "@/components/auth/auth-unavailable";
+import { tryCreateClient } from "@/lib/supabase/safe-client";
 import {
   magicLinkSchema,
   signInSchema,
@@ -40,6 +41,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
   const callbackError = searchParams.get("error");
+  const supabaseClient = tryCreateClient();
 
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -51,8 +53,13 @@ function LoginForm() {
     resolver: zodResolver(signInSchema),
   });
 
+  if (!supabaseClient) {
+    return <AuthUnavailable action="sign in" />;
+  }
+
+  const supabase = supabaseClient;
+
   async function onMagicLink(data: MagicLinkInput) {
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email: data.email,
       options: {
@@ -67,7 +74,6 @@ function LoginForm() {
   }
 
   async function onPassword(data: SignInInput) {
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
@@ -82,7 +88,6 @@ function LoginForm() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

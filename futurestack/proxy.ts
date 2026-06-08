@@ -1,5 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
-import { auth as clerkAuth } from "@clerk/nextjs/server";
+import {
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/lib/env";
 
@@ -7,7 +10,12 @@ const CLERK_CONFIGURED = Boolean(
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY,
 );
 
-const PROTECTED_ROUTES = ["/dashboard", "/admin", "/account", "/onboarding"];
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/admin(.*)",
+  "/account(.*)",
+  "/onboarding(.*)",
+]);
 
 function redirectApex(request: NextRequest): NextResponse | null {
   const host = request.headers.get("host") ?? "";
@@ -20,7 +28,10 @@ function redirectApex(request: NextRequest): NextResponse | null {
   return null;
 }
 
-async function handleClerkProxy(request: NextRequest): Promise<NextResponse> {
+const clerkProxy = clerkMiddleware(async (auth, request) => {
+  const apexRedirect = redirectApex(request);
+  if (apexRedirect) return apexRedirect;
+
   const { pathname } = request.nextUrl;
 
   if (pathname === "/login") {
@@ -30,29 +41,15 @@ async function handleClerkProxy(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(new URL("/sign-up", request.url));
   }
 
-  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
-  if (isProtected) {
-    const { userId } = await clerkAuth();
-    if (!userId) {
-      const signIn = request.nextUrl.clone();
-      signIn.pathname = "/sign-in";
-      signIn.searchParams.set("redirect_url", pathname);
-      return NextResponse.redirect(signIn);
-    }
+  if (isProtectedRoute(request)) {
+    await auth.protect();
   }
 
-  if (
-    pathname === "/sign-in" ||
-    pathname === "/sign-up"
-  ) {
-    const { userId } = await clerkAuth();
-    if (userId) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
+  const { userId } = await auth();
+  if (userId && (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up"))) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
-
-  return NextResponse.next({ request });
-}
+});
 
 async function handleSupabaseProxy(request: NextRequest): Promise<NextResponse> {
   const supabaseUrl = getEnv("NEXT_PUBLIC_SUPABASE_URL");
@@ -84,7 +81,9 @@ async function handleSupabaseProxy(request: NextRequest): Promise<NextResponse> 
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  const isProtected = ["/dashboard", "/admin", "/account", "/onboarding"].some(
+    (route) => pathname.startsWith(route),
+  );
 
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone();
@@ -102,19 +101,20 @@ async function handleSupabaseProxy(request: NextRequest): Promise<NextResponse> 
   return supabaseResponse;
 }
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+async function supabaseProxy(
+  request: NextRequest,
+  event: Parameters<typeof clerkProxy>[1],
+): Promise<NextResponse> {
   const apexRedirect = redirectApex(request);
   if (apexRedirect) return apexRedirect;
-
-  if (CLERK_CONFIGURED) {
-    return handleClerkProxy(request);
-  }
-
   return handleSupabaseProxy(request);
 }
+
+export default CLERK_CONFIGURED ? clerkProxy : supabaseProxy;
 
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|api/webhooks|api/contentful/sync|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/__clerk/(.*)",
   ],
 };

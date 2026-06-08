@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { BookmarkPlus, BookmarkCheck, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuthRoutes } from "@/components/providers/auth-mode-provider";
 
 interface SaveToolButtonProps {
   toolId: string;
@@ -16,6 +17,7 @@ export function SaveToolButton({
   className,
 }: SaveToolButtonProps) {
   const router = useRouter();
+  const { signIn } = useAuthRoutes();
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -44,7 +46,7 @@ export function SaveToolButton({
       });
 
       if (res.status === 401) {
-        router.push(`/login?redirect=/tools/${toolSlug}`);
+        router.push(`${signIn}?redirectTo=/tools/${toolSlug}`);
         return;
       }
 

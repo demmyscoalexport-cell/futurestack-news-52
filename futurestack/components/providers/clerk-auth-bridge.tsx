@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { ClerkProvider, useAuth as useClerkAuth, useClerk, useUser } from "@clerk/nextjs";
 import {
-  AuthProvider,
   UnifiedAuthProvider,
   type UnifiedAuthUser,
 } from "@/components/providers/auth-provider";
@@ -79,9 +78,7 @@ export function ClerkAuthBridge({
       afterSignInUrl={afterSignInUrl}
       afterSignUpUrl={afterSignUpUrl}
     >
-      <ClerkSessionBridge>
-        <AuthProvider>{children}</AuthProvider>
-      </ClerkSessionBridge>
+      <ClerkSessionBridge>{children}</ClerkSessionBridge>
     </ClerkProvider>
   );
 }

@@ -14,11 +14,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookmarkCheck, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
-
-const CLERK_ENABLED = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+import { useAuthMode, useAuthRoutes } from "@/components/providers/auth-mode-provider";
 
 function SupabaseAuthMenu() {
   const { user, isLoading, signOut } = useAuth();
+  const { signIn, signUp } = useAuthRoutes();
 
   if (isLoading) return null;
 
@@ -69,10 +69,10 @@ function SupabaseAuthMenu() {
   return (
     <div className="hidden sm:flex items-center gap-1.5">
       <Button variant="outline" size="sm" className="h-8 text-xs border-border/60" asChild>
-        <Link href="/login">Sign In</Link>
+        <Link href={signIn}>Sign In</Link>
       </Button>
       <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" asChild>
-        <Link href="/signup">Join Free</Link>
+        <Link href={signUp}>Join Free</Link>
       </Button>
     </div>
   );
@@ -80,6 +80,7 @@ function SupabaseAuthMenu() {
 
 function ClerkAuthMenu() {
   const { isLoaded, isSignedIn } = useUser();
+  const { signIn, signUp } = useAuthRoutes();
 
   if (!isLoaded) return null;
 
@@ -101,15 +102,16 @@ function ClerkAuthMenu() {
   return (
     <div className="hidden sm:flex items-center gap-1.5">
       <Button variant="outline" size="sm" className="h-8 text-xs border-border/60" asChild>
-        <Link href="/sign-in">Sign In</Link>
+        <Link href={signIn}>Sign In</Link>
       </Button>
       <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" asChild>
-        <Link href="/sign-up">Join Free</Link>
+        <Link href={signUp}>Join Free</Link>
       </Button>
     </div>
   );
 }
 
 export function AuthMenu() {
-  return CLERK_ENABLED ? <ClerkAuthMenu /> : <SupabaseAuthMenu />;
+  const authMode = useAuthMode();
+  return authMode === "clerk" ? <ClerkAuthMenu /> : <SupabaseAuthMenu />;
 }

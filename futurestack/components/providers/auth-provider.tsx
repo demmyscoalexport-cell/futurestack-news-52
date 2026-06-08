@@ -9,6 +9,7 @@ import {
 } from "react";
 import type { User, Session, SupabaseClient } from "@supabase/supabase-js";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { useAuthMode } from "@/components/providers/auth-mode-provider";
 
 export type AuthProviderName = "clerk" | "supabase";
 
@@ -65,8 +66,8 @@ export function UnifiedAuthProvider({
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const authMode = useAuthMode();
   const unified = useContext(UnifiedAuthContext);
-  const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   const [supabase] = useState<SupabaseClient | null>(() => {
     if (!isSupabaseConfigured()) return null;
@@ -78,10 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(!clerkConfigured);
+  const [isLoading, setIsLoading] = useState(authMode !== "clerk");
 
   useEffect(() => {
-    if (clerkConfigured) {
+    if (authMode === "clerk") {
       setIsLoading(unified.isLoading);
       return;
     }
@@ -106,17 +107,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [clerkConfigured, supabase, unified.isLoading]);
+  }, [authMode, supabase, unified.isLoading]);
 
   const signOut = useCallback(async () => {
-    if (clerkConfigured && unified.signOut) {
+    if (authMode === "clerk" && unified.signOut) {
       await unified.signOut();
       return;
     }
     if (!supabase) return;
     await supabase.auth.signOut();
     window.location.href = "/";
-  }, [clerkConfigured, supabase, unified.isLoading]);
+  }, [authMode, supabase, unified.signOut]);
 
   return (
     <AuthContext.Provider value={{ user, session, isLoading, signOut }}>
@@ -128,18 +129,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const supabaseAuth = useContext(AuthContext);
   const unified = useContext(UnifiedAuthContext);
-  const clerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const authMode = useAuthMode();
 
-  if (clerkConfigured && unified.user) {
+  if (authMode === "clerk") {
+    const signOut = async () => {
+      if (unified.signOut) await unified.signOut();
+    };
+
+    if (unified.user) {
+      return {
+        user: {
+          id: unified.user.profileId ?? unified.user.id,
+          email: unified.user.email ?? undefined,
+          user_metadata: { full_name: unified.user.fullName },
+        } as unknown as User,
+        session: null,
+        isLoading: unified.isLoading,
+        signOut,
+      };
+    }
+
     return {
-      user: {
-        id: unified.user.profileId ?? unified.user.id,
-        email: unified.user.email ?? undefined,
-        user_metadata: { full_name: unified.user.fullName },
-      } as unknown as User,
+      user: null,
       session: null,
       isLoading: unified.isLoading,
-      signOut: supabaseAuth.signOut,
+      signOut,
     };
   }
 
