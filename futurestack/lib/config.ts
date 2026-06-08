@@ -18,6 +18,21 @@ function required(key: string): string {
 const optional = (key: string, fallback = "") => cleanEnv(process.env[key]) ?? fallback;
 
 export const config = {
+  /** Clerk — optional; falls back to Supabase auth when unset */
+  clerk: {
+    publishableKey: optional("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"),
+    secretKey: optional("CLERK_SECRET_KEY"),
+    webhookSecret: optional("CLERK_WEBHOOK_SECRET"),
+    signInUrl: optional("NEXT_PUBLIC_CLERK_SIGN_IN_URL", "/sign-in"),
+    signUpUrl: optional("NEXT_PUBLIC_CLERK_SIGN_UP_URL", "/sign-up"),
+    afterSignInUrl: optional("NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL", "/dashboard"),
+    afterSignUpUrl: optional("NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL", "/onboarding"),
+    isConfigured: Boolean(
+      optional("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY") &&
+        optional("CLERK_SECRET_KEY"),
+    ),
+  },
+
   /** Supabase — optional; auth routes degrade gracefully without it */
   supabase: {
     url: optional("NEXT_PUBLIC_SUPABASE_URL"),
