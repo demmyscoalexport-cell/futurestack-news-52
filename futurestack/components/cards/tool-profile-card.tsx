@@ -4,28 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
-  BadgeCheck,
   Check,
-  Copy,
   ExternalLink,
   Flame,
+  GitCompare,
   Layers3,
   PlayCircle,
-  Share2,
   Sparkles,
   X,
 } from "lucide-react";
-import { VerifiedBadge } from "@/components/discovery/verified-badge";
 import { BookmarkButton } from "@/components/discovery/bookmark-button";
+import { HeroVisualCarousel } from "@/components/tool/hero-visual-carousel";
+import { ToolMetadataRow } from "@/components/tool/tool-metadata-row";
+import { ToolShareButton } from "@/components/tool/tool-share-button";
 import { cn } from "@/lib/utils";
 import {
   getAiSummaries,
   getCategoryLabel,
   getCons,
-  getFeatures,
-  getGallery,
-  getHeroVisual,
-  getInsightChips,
+  getGalleryItems,
+  getIsVerified,
   getPros,
   getSubcategoryLabel,
   getToolDescription,
@@ -82,63 +80,6 @@ function ProfileLogo({ tool, compact = false }: { tool: ToolRecord; compact?: bo
   );
 }
 
-function ProductVisual({ tool, large = false }: { tool: ToolRecord; large?: boolean }) {
-  const [errored, setErrored] = useState(false);
-  const visual = getHeroVisual(tool);
-  const name = getToolName(tool);
-  const features = getFeatures(tool).slice(0, 3);
-
-  if (visual && !errored) {
-    return (
-      <div className={cn("relative overflow-hidden bg-neutral-deep", large ? "h-72" : "h-56")}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={visual}
-          alt={`${name} product preview`}
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-          onError={() => setErrored(true)}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-deep/80 via-transparent to-transparent" />
-        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-          <PlayCircle className="h-5 w-5 text-neutral-white" />
-          <span className="text-xs font-semibold text-neutral-white">Product preview</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={cn("relative overflow-hidden bg-neutral-deep p-5", large ? "h-72" : "h-56")}>
-      <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand-primary/30 blur-3xl" />
-      <div className="absolute -bottom-16 left-10 h-44 w-44 rounded-full bg-brand-lilac/20 blur-3xl" />
-      <div className="relative h-full rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-2xl">
-        <div className="mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          <span className="ml-auto text-[10px] uppercase tracking-[0.2em] text-white/40">Discova preview</span>
-        </div>
-        <div className="flex items-start gap-3">
-          <ProfileLogo tool={tool} compact />
-          <div className="min-w-0">
-            <p className="text-lg font-bold text-neutral-white">{name}</p>
-            <p className="text-xs capitalize text-white/55">{getCategoryLabel(tool)}</p>
-          </div>
-        </div>
-        <div className="mt-5 grid gap-2">
-          {features.map((feature) => (
-            <div key={feature.title} className="flex items-center gap-2 rounded-xl bg-white/[0.06] px-3 py-2">
-              <Check className="h-3.5 w-3.5 text-brand-lilac" />
-              <span className="truncate text-xs text-white/75">{feature.title}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function QuickViewDrawer({
   tool,
   open,
@@ -155,7 +96,7 @@ function QuickViewDrawer({
   const video = getVideos(tool)[0];
   const pros = getPros(tool).slice(0, 4);
   const cons = getCons(tool).slice(0, 4);
-  const gallery = getGallery(tool).slice(0, 3);
+  const gallery = getGalleryItems(tool).slice(0, 3);
   const summary = getAiSummaries(tool);
 
   return (
@@ -176,7 +117,7 @@ function QuickViewDrawer({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <ProductVisual tool={tool} large />
+        <HeroVisualCarousel tool={tool} large />
         <div className="space-y-6 p-5">
           <section>
             <h3 className="mb-2 text-sm font-semibold text-foreground">Overview</h3>
@@ -248,41 +189,23 @@ function SignalList({ title, items, tone }: { title: string; items: string[]; to
 
 export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const name = getToolName(tool);
   const slug = getToolSlug(tool);
-  const chips = getInsightChips(tool);
   const summary = getToolSummary(tool);
   const isFeatured = Boolean(tool.is_featured ?? tool.featured);
   const isNew = Boolean(tool.is_new);
   const videos = getVideos(tool);
 
-  const shareTool = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const url = `${window.location.origin}/tools/${slug}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: name, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  };
-
   return (
     <>
       <article
         className={cn(
-          "group flex min-h-[460px] flex-col overflow-hidden rounded-[28px] border border-neutral-stroke/70 bg-neutral-surface/80 shadow-2xl shadow-black/10 card-lift",
-          "hover:border-brand-primary/50 hover:shadow-[0_24px_80px_rgba(124,102,255,0.20)]",
+          "group flex min-h-[520px] flex-col overflow-hidden rounded-[20px] border border-neutral-stroke/80 bg-neutral-surface shadow-xl card-lift",
+          "hover:border-brand-primary/40 hover:shadow-[0_20px_60px_rgba(124,58,237,0.12)]",
           className,
         )}
       >
-        <ProductVisual tool={tool} />
+        <HeroVisualCarousel tool={tool} />
         <div className="flex flex-1 flex-col gap-5 p-5">
           <div className="flex items-start gap-4">
             <ProfileLogo tool={tool} />
@@ -300,6 +223,11 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
                     Trending
                   </span>
                 )}
+                {getIsVerified(tool) && (
+                  <span className="rounded-pill border border-brand-primary/30 bg-brand-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-lilac">
+                    Verified
+                  </span>
+                )}
               </div>
               <Link href={`/tools/${slug}`} className="line-clamp-1 text-xl font-bold text-foreground transition-colors hover:text-brand-lilac">
                 {name}
@@ -308,38 +236,27 @@ export function ToolProfileCard({ tool, className }: ToolProfileCardProps) {
                 <span>{getCategoryLabel(tool)}</span>
                 <span className="h-1 w-1 rounded-full bg-muted-foreground/50" />
                 <span>{getSubcategoryLabel(tool)}</span>
-                <VerifiedBadge size="sm" />
               </div>
             </div>
             <BookmarkButton toolSlug={slug} size="md" />
           </div>
           <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{summary}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {chips.map((chip) => (
-              <span key={chip} className="inline-flex items-center gap-1 rounded-pill border border-neutral-stroke bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                <BadgeCheck className="h-3 w-3 text-brand-lilac" />
-                {chip}
-              </span>
-            ))}
-          </div>
+          <ToolMetadataRow tool={tool} compact />
           <div className="mt-auto grid grid-cols-2 gap-2">
-            <a href={`/api/affiliate/${slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-input bg-brand-primary px-3 py-2.5 text-sm font-semibold text-neutral-white transition-colors hover:bg-brand-primary/90">
+            <a href={`/api/affiliate/${slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-input bg-brand-primary px-3 py-2.5 text-sm font-semibold text-neutral-white transition-colors duration-micro hover:bg-brand-primary/90 btn-press">
               Visit Tool <ExternalLink className="h-4 w-4" />
             </a>
-            <button type="button" onClick={() => setQuickViewOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-input border border-neutral-stroke px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-primary/40">
+            <button type="button" onClick={() => setQuickViewOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-input border border-neutral-stroke bg-neutral-elevated/50 px-3 py-2.5 text-sm font-semibold text-foreground transition-colors duration-micro hover:border-brand-primary/40 btn-press">
               Quick View <Layers3 className="h-4 w-4" />
             </button>
             <Link href={videos.length > 0 ? `/tools/${slug}#videos` : `/tools/${slug}`} className="inline-flex items-center justify-center gap-2 rounded-input border border-neutral-stroke px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
               Watch Tutorial <PlayCircle className="h-3.5 w-3.5" />
             </Link>
-            <div className="grid grid-cols-3 gap-2">
-              <BookmarkButton toolSlug={slug} className="h-8 w-full" />
-              <Link href={`/compare?tools=${slug}`} aria-label={`Compare ${name}`} className="inline-flex items-center justify-center rounded-input border border-neutral-stroke text-muted-foreground hover:text-foreground">
-                <Copy className="h-3.5 w-3.5" />
+            <div className="grid grid-cols-2 gap-2">
+              <Link href={`/compare?tools=${slug}`} aria-label={`Compare ${name}`} className="inline-flex items-center justify-center gap-2 rounded-input border border-neutral-stroke px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+                Compare <GitCompare className="h-3.5 w-3.5" />
               </Link>
-              <button type="button" onClick={shareTool} aria-label={`Share ${name}`} className="inline-flex items-center justify-center rounded-input border border-neutral-stroke text-muted-foreground hover:text-foreground">
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
-              </button>
+              <ToolShareButton toolName={name} slug={slug} variant="icon" className="h-full w-full px-3 py-2" />
             </div>
           </div>
         </div>

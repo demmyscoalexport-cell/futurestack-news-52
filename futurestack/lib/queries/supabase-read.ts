@@ -99,6 +99,83 @@ export async function supabaseGetToolBySlug(slug: string): Promise<Row | null> {
   return data ? mapToolRow(data) : null;
 }
 
+export async function supabaseGetToolDetailBySlug(slug: string): Promise<Row | null> {
+  const tool = await supabaseGetToolBySlug(slug);
+  if (!tool?.id) return tool;
+
+  const supa = getSupabaseAdmin();
+  const toolId = String(tool.id);
+
+  const [
+    pricingRes,
+    altLinksRes,
+    reviewsRes,
+    featuresRes,
+    videosRes,
+    faqsRes,
+    galleryRes,
+    useCasesRes,
+    changelogsRes,
+  ] = await Promise.all([
+    supa.from("tool_pricing").select("*").eq("tool_id", toolId).order("price_monthly", { ascending: true, nullsFirst: true }),
+    supa.from("tool_alternatives").select("alternative_id, similarity_score").eq("tool_id", toolId).order("similarity_score", { ascending: false }).limit(6),
+    supa.from("reviews").select("*").eq("tool_id", toolId).order("created_at", { ascending: false }).limit(10),
+    supa.from("tool_features").select("title, description, icon, priority").eq("tool_id", toolId).order("priority", { ascending: true }),
+    supa.from("tool_videos").select("title, youtube_url, embed_url, thumbnail, duration, creator, featured, position").eq("tool_id", toolId).order("featured", { ascending: false }).order("position", { ascending: true }),
+    supa.from("tool_faqs").select("question, answer, display_order").eq("tool_id", toolId).order("display_order", { ascending: true }),
+    supa.from("tool_gallery").select("image_url, position").eq("tool_id", toolId).order("position", { ascending: true }),
+    supa.from("tool_use_cases").select("title, priority").eq("tool_id", toolId).order("priority", { ascending: true }),
+    supa.from("tool_changelogs").select("*").eq("tool_id", toolId).order("published_at", { ascending: false }).limit(5),
+  ]);
+
+  const altIds = (altLinksRes.data ?? []).map((row) => row.alternative_id).filter(Boolean);
+  let alternatives: Row[] = [];
+  if (altIds.length > 0) {
+    const { data: altTools } = await supa
+      .from("tools")
+      .select("id, name, slug, logo, tagline, website_url, pricing_model, has_free")
+      .in("id", altIds);
+    alternatives = altTools ?? [];
+  }
+
+  const gallery = (galleryRes.data ?? [])
+    .map((item) => item.image_url)
+    .filter((url): url is string => Boolean(url));
+
+  const useCases = (useCasesRes.data ?? [])
+    .map((item) => item.title)
+    .filter((title): title is string => Boolean(title));
+
+  const videos = (videosRes.data ?? []).map((row) => ({
+    title: row.title,
+    youtube_url: row.youtube_url ?? row.embed_url,
+    thumbnail: row.thumbnail,
+    duration: row.duration,
+    creator: row.creator,
+    featured: row.featured,
+    position: row.position,
+  }));
+
+  const faqs = (faqsRes.data ?? []).map((row, index) => ({
+    question: row.question,
+    answer: row.answer,
+    order: typeof row.display_order === "number" ? row.display_order : index,
+  }));
+
+  return {
+    ...tool,
+    gallery,
+    useCases,
+    tool_pricing: pricingRes.data ?? [],
+    alternatives,
+    reviews: reviewsRes.data ?? [],
+    features: featuresRes.data ?? [],
+    videos,
+    faqs,
+    tool_changelogs: changelogsRes.data ?? [],
+  };
+}
+
 export async function supabaseGetToolCategories(): Promise<Row[]> {
   const supa = getSupabaseAdmin();
   const { data, error } = await supa

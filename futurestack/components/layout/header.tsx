@@ -10,35 +10,35 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
 import {
-  Search, Menu, X, Compass, Moon, Sun, LogOut, Settings,
-  BookmarkCheck, ChevronDown, Zap, Globe, Layers, Rocket,
+  Search, Menu, X, Compass, Moon, Sun,
+  ChevronDown, Zap, Globe, Layers, Rocket,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useAuth } from "@/components/providers/auth-provider";
 import { SearchBar } from "@/components/search/search-bar";
+import { AuthMenu } from "@/components/layout/auth-menu";
 
 const navigation = [
   { name: "Discover", href: "/discover" },
-  { name: "Categories", href: "/tools" },
-  { name: "Stacks", href: "/stacks" },
-  { name: "Workflows", href: "/workflows" },
+  { name: "Tools", href: "/tools" },
   { name: "Compare", href: "/compare" },
-  { name: "Deals", href: "/deals" },
+  { name: "Stacks", href: "/stacks" },
   { name: "Blog", href: "/blog" },
   { name: "News", href: "/news" },
   { name: "Learn", href: "/learn" },
+];
+
+const moreNav = [
+  { name: "Workflows", href: "/workflows" },
+  { name: "Deals", href: "/deals" },
   { name: "Community", href: "/community" },
-  { name: "Opportunities", href: "/opportunities" },
   { name: "Africa", href: "/africa" },
   { name: "Enterprise", href: "/enterprise" },
+  { name: "Opportunities", href: "/opportunities" },
 ];
 
 const mobileNav = [
@@ -61,14 +61,10 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
-  const { user, isLoading, signOut } = useAuth();
 
-  const userInitials = user?.user_metadata?.full_name
-    ? user.user_metadata.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
-    : (user?.email?.slice(0, 2).toUpperCase() ?? "?");
-
-  const primaryNav = navigation.slice(0, 7);
-  const moreNav = navigation.slice(7);
+  const primaryNav = navigation;
+  const signInHref = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? "/sign-in" : "/login";
+  const signUpHref = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ? "/sign-up" : "/signup";
 
   const submitSearch = (query: string) => {
     const trimmed = query.trim();
@@ -78,40 +74,30 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-neutral-stroke/40 bg-neutral-deep/80 backdrop-blur-xl">
-      <div className="container mx-auto flex h-14 items-center justify-between px-4 lg:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-neutral-stroke/50 bg-neutral-deep/90 backdrop-blur-xl">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4 lg:px-8">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="h-9 w-9 rounded-xl bg-[#080f1c] ring-2 ring-amber-400/70 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.35)]">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 4h7c4.418 0 8 3.582 8 8s-3.582 8-8 8H5V4z" fill="#F59E0B" />
-              <path d="M5 4h7c4.418 0 8 3.582 8 8s-3.582 8-8 8H5V4z" fill="url(#dgrad)" />
-              <path d="M8.5 7.5h3.2c2.485 0 4.5 2.015 4.5 4.5s-2.015 4.5-4.5 4.5H8.5V7.5z" fill="#0a1628" />
-              <defs>
-                <linearGradient id="dgrad" x1="5" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#FCD34D" />
-                  <stop offset="1" stopColor="#F59E0B" />
-                </linearGradient>
-              </defs>
-            </svg>
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-elevated ring-1 ring-white/10">
+            <span className="text-sm font-bold gradient-text">D</span>
           </div>
-          <span className="font-black tracking-tight text-[17px] leading-none">
-            <span className="text-white">DIS</span><span style={{background:"linear-gradient(90deg,#a78bfa,#c084fc,#e879f9)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>COVA</span>
+          <span className="font-heading text-[17px] font-semibold tracking-tight text-foreground">
+            DISCOVA
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-0.5 xl:flex">
+        <nav className="hidden items-center gap-1 xl:flex">
           {primaryNav.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "px-2.5 py-2 text-xs font-medium transition-colors rounded-md hover:text-foreground whitespace-nowrap",
+                "rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-micro whitespace-nowrap",
                 pathname === item.href || pathname.startsWith(item.href + "/")
-                  ? "text-foreground bg-white/5"
-                  : "text-muted-foreground hover:bg-white/5",
+                  ? "bg-white/[0.06] text-foreground"
+                  : "text-neutral-muted hover:bg-white/[0.04] hover:text-foreground",
               )}
             >
               {item.name}
@@ -159,46 +145,7 @@ export function Header() {
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </Button>
 
-          {!isLoading && (
-            user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hidden sm:flex rounded-full">
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="text-xs bg-primary text-white">{userInitials}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuLabel className="font-normal">
-                    <p className="font-medium text-sm truncate">{user.user_metadata?.full_name || "My Account"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/account"><Settings className="mr-2 h-4 w-4" />Account</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/collections"><BookmarkCheck className="mr-2 h-4 w-4" />Saved Tools</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="hidden sm:flex items-center gap-1.5">
-                <Button variant="outline" size="sm" className="h-8 text-xs border-border/60" asChild>
-                  <Link href="/login">Sign In</Link>
-                </Button>
-                <Button size="sm" className="h-8 text-xs bg-primary hover:bg-primary/90" asChild>
-                  <Link href="/signup">Join Free</Link>
-                </Button>
-              </div>
-            )
-          )}
+          <AuthMenu />
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -273,10 +220,10 @@ export function Header() {
 
                 <div className="border-t border-border/40 p-4 space-y-2">
                   <Button variant="outline" className="w-full h-9 text-sm" asChild>
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
+                    <Link href={signInHref} onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
                   </Button>
-                  <Button className="w-full h-9 text-sm bg-primary" asChild>
-                    <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Join Free</Link>
+                  <Button className="w-full h-9 text-sm bg-primary btn-press" asChild>
+                    <Link href={signUpHref} onClick={() => setIsMobileMenuOpen(false)}>Join Free</Link>
                   </Button>
                 </div>
               </div>

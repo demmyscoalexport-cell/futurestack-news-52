@@ -7,6 +7,7 @@ import {
   supabaseGetFeaturedTools,
   supabaseGetRecentTools,
   supabaseGetToolBySlug,
+  supabaseGetToolDetailBySlug,
   supabaseGetToolCategories,
   supabaseGetTools,
   supabaseGetTrendingTools,
@@ -183,15 +184,9 @@ export async function getCategoriesWithSubcategories(): Promise<
 export async function getToolBySlug(slug: string) {
   if (shouldUseSupabaseRest()) {
     return safe(async () => {
-      const tool = await supabaseGetToolBySlug(slug);
+      const tool = await supabaseGetToolDetailBySlug(slug);
       if (!tool) return null;
-      return {
-        ...withLogo(tool),
-        tool_pricing: [],
-        alternatives: [],
-        tool_changelogs: [],
-        reviews: [],
-      };
+      return withLogo(tool);
     }, null);
   }
   return safe(async () => {

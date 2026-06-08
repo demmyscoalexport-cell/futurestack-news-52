@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "installCommand": "HUSKY=0 npm --prefix futurestack ci --engine-strict=false",
-  "buildCommand": "npm --prefix futurestack run vercel:build",
+  "framework": "nextjs",
+  "installCommand": "HUSKY=0 npm ci --engine-strict=false",
+  "buildCommand": "npm run vercel-build",
   "devCommand": "npm --prefix futurestack run dev",
   "regions": ["iad1"],
   "ignoreCommand": "bash -c 'if [ \"$VERCEL_PROJECT_NAME\" = \"discova-ai-platform\" ]; then exit 0; fi; exit 1'"

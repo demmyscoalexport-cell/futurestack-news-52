@@ -1,17 +1,53 @@
+/* DISCOVA Vision 3.0 — OpusClip-inspired design tokens */
 :root {
-  --color-brand-primary-iris: #7c66ff;
-  --color-brand-soft-lilac: #c0b3ff;
-  --color-brand-gold-accent: #f3c344;
+  /* Brand */
+  --color-brand-primary-iris: #7c3aed;
+  --color-brand-soft-lilac: #8b5cf6;
+  --color-brand-cyan-accent: #06b6d4;
+  --color-brand-gold-accent: #06b6d4;
 
-  --color-neutral-deep-space: #06030e;
-  --color-neutral-glass-dark: #12111a;
-  --color-neutral-stroke-gray: #23212d;
+  /* Neutrals */
+  --color-neutral-deep-space: #0a0a0b;
+  --color-neutral-secondary-bg: #111214;
+  --color-neutral-glass-dark: #181a1f;
+  --color-neutral-elevated: #1e2128;
+  --color-neutral-stroke-gray: #2a2d35;
   --color-neutral-white: #ffffff;
-  --color-neutral-dim-gray: #8b8a91;
+  --color-neutral-text-secondary: #b8bcc8;
+  --color-neutral-dim-gray: #8a91a5;
+  --color-neutral-disabled: #5d6475;
 
+  /* Semantic */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Glass */
+  --color-glass-surface: rgba(255, 255, 255, 0.04);
+
+  /* Radius */
   --radius-lg: 16px;
   --radius-input: 12px;
   --radius-pill: 999px;
 
-  --font-heading: "Plus Jakarta Sans", Inter, sans-serif;
+  /* Typography */
+  --font-heading: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Spacing scale (8px grid) */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 80px;
+  --space-8: 96px;
+  --space-9: 128px;
+
+  /* Motion */
+  --motion-micro: 200ms;
+  --motion-page: 300ms;
 }

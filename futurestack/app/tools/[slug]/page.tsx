@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
-  BadgeCheck,
   ChevronRight,
   Check,
   ExternalLink,
@@ -14,8 +13,16 @@ import {
   Users,
 } from "lucide-react";
 import { AskAIWidget } from "@/components/tool/ask-ai-widget";
+import { HeroVisualCarousel } from "@/components/tool/hero-visual-carousel";
 import { ReviewsSection } from "@/components/tool/reviews-section";
 import { SaveToolButton } from "@/components/tool/save-tool-button";
+import { ScreenshotGallery } from "@/components/tool/screenshot-gallery";
+import { ToolAlternativeCard } from "@/components/tool/tool-alternative-card";
+import { ToolFaqAccordion } from "@/components/tool/tool-faq-accordion";
+import { ToolMetadataRow } from "@/components/tool/tool-metadata-row";
+import { ToolShareButton } from "@/components/tool/tool-share-button";
+import { VerificationPanel } from "@/components/tool/verification-panel";
+import { YoutubeLearningCenter } from "@/components/tool/youtube-learning-center";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { VerifiedBadge, AfricaVerifiedBadge } from "@/components/discovery/verified-badge";
@@ -23,18 +30,20 @@ import { ToolProfileCard } from "@/components/cards/tool-profile-card";
 import { getToolBySlugCached, getTools } from "@/lib/queries/tools";
 import { tools as fallbackTools } from "@/lib/data";
 import { resolveToolLogo } from "@/lib/logo-resolver";
+import { buildToolMetadata } from "@/lib/tool/seo";
+import { buildToolPageSchemas } from "@/lib/tool/structured-data";
 import {
   fieldBool,
   fieldString,
   getAiSummaries,
+  getAlternatives,
   getAudience,
   getCategoryLabel,
   getCons,
   getFaqs,
   getFeatures,
-  getGallery,
-  getHeroVisual,
-  getInsightChips,
+  getGalleryItems,
+  getIsVerified,
   getLongDescriptionSections,
   getPricingLabel,
   getPros,
@@ -46,7 +55,6 @@ import {
   getUseCases,
   getVideos,
   type ToolRecord,
-  youtubeEmbedUrl,
 } from "@/lib/tool-intelligence";
 
 export const dynamic = "force-dynamic";
@@ -62,34 +70,7 @@ export async function generateMetadata(
   const tool = await loadTool(slug);
 
   if (!tool) return { title: "Tool Not Found" };
-
-  const name = getToolName(tool);
-  const description = getToolSummary(tool);
-  return {
-    title: `${name}: Reviews, Pricing, Tutorials & Alternatives | DISCOVA`,
-    description,
-    alternates: {
-      canonical: `/tools/${getToolSlug(tool)}`,
-    },
-    openGraph: {
-      title: `${name} software intelligence page`,
-      description,
-      images: [
-        {
-          url: `/api/og/tool?slug=${slug}`,
-          width: 1200,
-          height: 630,
-          alt: `${name} UI Preview`,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${name} on DISCOVA`,
-      description,
-      images: [`/api/og/tool?slug=${slug}`],
-    },
-  };
+  return buildToolMetadata(tool);
 }
 
 async function loadTool(slug: string): Promise<ToolRecord | null> {
@@ -186,42 +167,6 @@ function PricingPanel({ tool }: { tool: ToolRecord }) {
   );
 }
 
-function HeroVisual({ tool }: { tool: ToolRecord }) {
-  const image = getHeroVisual(tool);
-  const name = getToolName(tool);
-  if (image) {
-    return (
-      <div className="relative overflow-hidden rounded-[32px] border border-neutral-stroke bg-neutral-deep shadow-2xl">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={`${name} product screenshot`} className="h-[360px] w-full object-cover lg:h-[520px]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-deep/70 via-transparent to-transparent" />
-      </div>
-    );
-  }
-  return (
-    <div className="relative overflow-hidden rounded-[32px] border border-neutral-stroke bg-neutral-deep p-6 shadow-2xl lg:p-10">
-      <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand-primary/30 blur-3xl" />
-      <div className="absolute -bottom-24 left-12 h-72 w-72 rounded-full bg-brand-lilac/20 blur-3xl" />
-      <div className="relative h-[360px] rounded-[28px] border border-white/10 bg-white/[0.06] p-6 lg:h-[520px]">
-        <div className="mb-8 flex items-center gap-2 border-b border-white/10 pb-4">
-          <span className="h-3 w-3 rounded-full bg-red-400" />
-          <span className="h-3 w-3 rounded-full bg-amber-400" />
-          <span className="h-3 w-3 rounded-full bg-emerald-400" />
-          <span className="ml-auto text-xs uppercase tracking-[0.24em] text-white/40">software intelligence</span>
-        </div>
-        <div className="grid gap-4">
-          {getFeatures(tool).slice(0, 4).map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
-              <p className="font-semibold text-neutral-white">{feature.title}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-white/55">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ToolLogo({ tool }: { tool: ToolRecord }) {
   const name = getToolName(tool);
   const logo = typeof tool.logo === "string" ? tool.logo : "";
@@ -270,55 +215,20 @@ export default async function ToolDetailPage({ params }: PageProps) {
   const name = getToolName(tool);
   const toolSlug = getToolSlug(tool);
   const videos = getVideos(tool);
-  const gallery = getGallery(tool);
+  const gallery = getGalleryItems(tool);
   const faqs = getFaqs(tool);
   const reviews = normalizeReviews(tool.reviews);
+  const alternatives = getAlternatives(tool);
   const category = fieldString(tool, ["category"], "");
-  const related = (await getTools({ category, limit: 7 })).filter((item) => item.slug !== toolSlug).slice(0, 3) as ToolRecord[];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://getdiscova.com";
-  const pageUrl = `${siteUrl}/tools/${toolSlug}`;
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name,
-      description: getToolSummary(tool),
-      applicationCategory: getCategoryLabel(tool),
-      operatingSystem: "Web, iOS, Android",
-      url: pageUrl,
-      image: getHeroVisual(tool) || tool.logo,
-      offers: {
-        "@type": "Offer",
-        price: fieldBool(tool, ["has_free", "freeTier"]) ? "0" : "Contact vendor",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Tools", item: `${siteUrl}/tools` },
-        { "@type": "ListItem", position: 2, name, item: pageUrl },
-      ],
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: { "@type": "Answer", text: faq.answer },
-      })),
-    },
-    ...videos.map((video) => ({
-      "@context": "https://schema.org",
-      "@type": "VideoObject",
-      name: video.title,
-      description: `${name} tutorial and product walkthrough on DISCOVA.`,
-      thumbnailUrl: video.thumbnail ? [video.thumbnail] : undefined,
-      embedUrl: youtubeEmbedUrl(video.youtubeUrl),
-    })),
-  ];
+  const altSlugs = new Set(alternatives.map((item) => item.slug));
+  const relatedTools = await getTools({ category, limit: 10 });
+  const related = relatedTools
+    .filter((item) => {
+      const slug = typeof item.slug === "string" ? item.slug : "";
+      return slug && slug !== toolSlug && !altSlugs.has(slug);
+    })
+    .slice(0, 3) as ToolRecord[];
+  const jsonLd = buildToolPageSchemas(tool);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -334,7 +244,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
                   <ToolLogo tool={tool} />
                   <div>
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <VerifiedBadge size="md" />
+                      {getIsVerified(tool) && <VerifiedBadge size="md" />}
                       {fieldBool(tool, ["africa_friendly"]) && <AfricaVerifiedBadge />}
                     </div>
                     <p className="text-sm capitalize text-muted-foreground">{getCategoryLabel(tool)} / {fieldString(tool, ["subcategory"], "Software")}</p>
@@ -342,13 +252,8 @@ export default async function ToolDetailPage({ params }: PageProps) {
                 </div>
                 <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-6xl">{name}</h1>
                 <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">{getToolSummary(tool)}</p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {getInsightChips(tool).map((chip) => (
-                    <span key={chip} className="inline-flex items-center gap-1.5 rounded-pill border border-neutral-stroke bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                      <BadgeCheck className="h-3.5 w-3.5 text-brand-lilac" />
-                      {chip}
-                    </span>
-                  ))}
+                <div className="mt-6">
+                  <ToolMetadataRow tool={tool} />
                 </div>
                 <div className="mt-8 flex flex-wrap gap-3">
                   <a href={`/api/affiliate/${toolSlug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-input bg-brand-primary px-5 py-3 text-sm font-semibold text-neutral-white hover:bg-brand-primary/90">
@@ -361,9 +266,12 @@ export default async function ToolDetailPage({ params }: PageProps) {
                   <Link href={`/compare?tools=${toolSlug}`} className="inline-flex items-center gap-2 rounded-input border border-neutral-stroke px-5 py-3 text-sm font-semibold text-foreground hover:border-brand-primary/40">
                     Compare <Layers3 className="h-4 w-4" />
                   </Link>
+                  <ToolShareButton toolName={name} slug={toolSlug} />
                 </div>
               </div>
-              <HeroVisual tool={tool} />
+              <div className="overflow-hidden rounded-[32px] border border-neutral-stroke shadow-2xl">
+                <HeroVisualCarousel tool={tool} large />
+              </div>
             </div>
           </div>
         </section>
@@ -425,11 +333,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
 
             <SectionShell id="videos" title="Video learning center" subtitle="Tutorials and walkthroughs embedded directly in DISCOVA.">
               {videos.length > 0 ? (
-                <div className="grid gap-5">
-                  {videos.map((video) => (
-                    <iframe key={video.youtubeUrl} src={youtubeEmbedUrl(video.youtubeUrl)} title={video.title} className="aspect-video w-full rounded-[28px] border border-neutral-stroke" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                  ))}
-                </div>
+                <YoutubeLearningCenter videos={videos} toolName={name} />
               ) : (
                 <div className="rounded-[28px] border border-dashed border-neutral-stroke p-8 text-sm text-muted-foreground">DISCOVA is ready to display embedded tutorials as soon as ToolVideo entries are connected in Contentful.</div>
               )}
@@ -437,12 +341,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
 
             <SectionShell title="Screenshot gallery">
               {gallery.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {gallery.map((image) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img key={image} src={image} alt={`${name} screenshot`} className="h-72 w-full rounded-[24px] border border-neutral-stroke object-cover" />
-                  ))}
-                </div>
+                <ScreenshotGallery images={gallery} toolName={name} />
               ) : (
                 <div className="rounded-[28px] border border-neutral-stroke bg-neutral-surface/60 p-8">
                   <GalleryVerticalEnd className="h-8 w-8 text-brand-lilac" />
@@ -459,21 +358,28 @@ export default async function ToolDetailPage({ params }: PageProps) {
               </div>
             </SectionShell>
 
-            <SectionShell title="Alternatives and related tools" subtitle="Recommendations are seeded by category and current tool relationships.">
-              <div className="grid gap-6 xl:grid-cols-2">
-                {related.map((item) => <ToolProfileCard key={fieldString(item, ["id"], getToolSlug(item))} tool={item} />)}
-              </div>
-            </SectionShell>
+            {alternatives.length > 0 && (
+              <SectionShell title={`${name} alternatives`} subtitle="Direct competitors and substitute products tracked by DISCOVA.">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {alternatives.map((item) => (
+                    <ToolAlternativeCard key={item.slug} tool={item} />
+                  ))}
+                </div>
+              </SectionShell>
+            )}
+
+            {related.length > 0 && (
+              <SectionShell title="Related tools" subtitle="More tools in the same category worth evaluating next.">
+                <div className="grid gap-6 xl:grid-cols-2">
+                  {related.map((item) => (
+                    <ToolProfileCard key={fieldString(item, ["id"], getToolSlug(item))} tool={item} />
+                  ))}
+                </div>
+              </SectionShell>
+            )}
 
             <SectionShell title="FAQ">
-              <div className="divide-y divide-neutral-stroke rounded-[24px] border border-neutral-stroke bg-neutral-surface/60">
-                {faqs.map((faq) => (
-                  <div key={faq.question} className="p-5">
-                    <h3 className="font-bold text-foreground">{faq.question}</h3>
-                    <p className="mt-2 text-sm leading-7 text-muted-foreground">{faq.answer}</p>
-                  </div>
-                ))}
-              </div>
+              <ToolFaqAccordion faqs={faqs} />
             </SectionShell>
 
             <ReviewsSection toolId={fieldString(tool, ["id"], toolSlug)} toolName={name} initialReviews={reviews} />
@@ -481,17 +387,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
 
           <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
             <PricingPanel tool={tool} />
-            <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/70 p-5">
-              <h2 className="text-lg font-bold text-foreground">Verification</h2>
-              <div className="mt-4 space-y-3">
-                {["Official website verified", "Working product reviewed", "No malware or spam indicators", "Recently updated source tracked"].map((item) => (
-                  <p key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-lilac" />
-                    {item}
-                  </p>
-                ))}
-              </div>
-            </section>
+            <VerificationPanel tool={tool} />
             <section className="rounded-[24px] border border-neutral-stroke bg-neutral-surface/70 p-5">
               <h2 className="text-lg font-bold text-foreground">Featured collections</h2>
               <div className="mt-4 space-y-3">

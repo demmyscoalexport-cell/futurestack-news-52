@@ -1,27 +1,54 @@
 import { ImageResponse } from "next/og";
+import { getToolBySlugCached } from "@/lib/queries/tools";
+import { tools as fallbackTools } from "@/lib/data";
+import {
+  fieldBool,
+  getPricingLabel,
+  getRating,
+  getReviewCount,
+  getToolName,
+  getToolSummary,
+  type ToolRecord,
+} from "@/lib/tool-intelligence";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
+
+async function loadToolForOg(slug: string): Promise<ToolRecord | null> {
+  try {
+    const tool = await getToolBySlugCached(slug);
+    if (tool) return tool as ToolRecord;
+  } catch {
+    // Fall through to static data for preview builds.
+  }
+  const mock = fallbackTools.find((item) => item.slug === slug);
+  if (!mock) return null;
+  return {
+    ...mock,
+    short_description: mock.shortDescription,
+    has_free: mock.pricing.hasFree,
+    pricing_model: mock.pricing.hasFree ? "freemium" : "paid",
+    website_url: mock.website,
+  };
+}
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const slug = searchParams.get("slug");
+    const slug = searchParams.get("slug") ?? "";
+    const loaded = slug ? await loadToolForOg(slug) : null;
 
-    // Simulate caching getToolBySlugCached since actual query is abstracted
-    const tool = {
-      name:
-        slug
-          ?.split("-")
-          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(" ") || "DISCOVA Tool",
-      tagline: "The ultimate AI discovery platform",
-      logo_url:
-        "https://images.unsplash.com/photo-1673852528751-2ea89104fcce?q=80&w=200&auto=format&fit=crop",
-      futurestack_score: 9.2,
-      avg_rating: 4.8,
-      review_count: 124,
-      pricing_type: "Freemium",
-    };
+    const name = loaded ? getToolName(loaded) : "DISCOVA Tool";
+    const tagline = loaded ? getToolSummary(loaded) : "The ultimate AI discovery platform";
+    const logoUrl =
+      (loaded && typeof loaded.logo === "string" && loaded.logo) ||
+      "https://images.unsplash.com/photo-1673852528751-2ea89104fcce?q=80&w=200&auto=format&fit=crop";
+    const futurestackScore =
+      typeof (loaded as Record<string, unknown> | null)?.futurestack_score === "number"
+        ? ((loaded as Record<string, unknown>).futurestack_score as number)
+        : 8.5;
+    const avgRating = loaded ? getRating(loaded) || 4.5 : 4.5;
+    const reviewCount = loaded ? getReviewCount(loaded) || 0 : 0;
+    const pricingType = loaded ? getPricingLabel(loaded) : "Freemium";
 
     return new ImageResponse(
       <div
@@ -43,7 +70,6 @@ export async function GET(request: Request) {
             height: "100%",
           }}
         >
-          {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{ background: "white", borderRadius: "10px", padding: "6px 14px", display: "flex", alignItems: "center" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -57,15 +83,8 @@ export async function GET(request: Request) {
             </div>
           </div>
 
-          {/* Tool info */}
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
-            <img
-              src={tool.logo_url}
-              width={120}
-              height={120}
-              style={{ borderRadius: "24px" }}
-              alt=""
-            />
+            <img src={logoUrl} width={120} height={120} style={{ borderRadius: "24px" }} alt="" />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div
                 style={{
@@ -76,21 +95,14 @@ export async function GET(request: Request) {
                   lineHeight: 1.1,
                 }}
               >
-                {tool.name}
+                {name}
               </div>
-              <div
-                style={{
-                  fontSize: "32px",
-                  color: "#94a3b8",
-                  marginTop: "12px",
-                }}
-              >
-                {tool.tagline}
+              <div style={{ fontSize: "32px", color: "#94a3b8", marginTop: "12px" }}>
+                {tagline}
               </div>
             </div>
           </div>
 
-          {/* Score + category */}
           <div style={{ display: "flex", gap: "24px" }}>
             <div
               style={{
@@ -101,15 +113,11 @@ export async function GET(request: Request) {
                 flexDirection: "column",
               }}
             >
-              <div
-                style={{ fontSize: "48px", fontWeight: 900, color: "#white" }}
-              >
-                {tool.futurestack_score}
+              <div style={{ fontSize: "48px", fontWeight: 900, color: "#ffffff" }}>
+                {futurestackScore}
               </div>
-              <div
-                style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}
-              >
-                DISCOVA Score™
+              <div style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}>
+                DISCOVA Score
               </div>
             </div>
 
@@ -122,15 +130,11 @@ export async function GET(request: Request) {
                 flexDirection: "column",
               }}
             >
-              <div
-                style={{ fontSize: "48px", fontWeight: 700, color: "#fbbf24" }}
-              >
-                {tool.avg_rating} ★
+              <div style={{ fontSize: "48px", fontWeight: 700, color: "#fbbf24" }}>
+                {avgRating.toFixed(1)} ★
               </div>
-              <div
-                style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}
-              >
-                {tool.review_count} reviews
+              <div style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}>
+                {reviewCount > 0 ? `${reviewCount} reviews` : "Community rated"}
               </div>
             </div>
 
@@ -143,15 +147,11 @@ export async function GET(request: Request) {
                 flexDirection: "column",
               }}
             >
-              <div
-                style={{ fontSize: "48px", fontWeight: 700, color: "#white" }}
-              >
-                {tool.pricing_type}
+              <div style={{ fontSize: "48px", fontWeight: 700, color: "#ffffff" }}>
+                {pricingType}
               </div>
-              <div
-                style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}
-              >
-                Pricing model
+              <div style={{ fontSize: "18px", color: "#64748b", marginTop: "4px" }}>
+                {fieldBool(loaded ?? {}, ["has_free", "freeTier"]) ? "Free tier available" : "Pricing model"}
               </div>
             </div>
           </div>
@@ -159,9 +159,8 @@ export async function GET(request: Request) {
       </div>,
       { width: 1200, height: 630 },
     );
-  } catch (e: any) {
-    return new Response(`Failed to generate image: ${e.message}`, {
-      status: 500,
-    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new Response(`Failed to generate image: ${message}`, { status: 500 });
   }
 }

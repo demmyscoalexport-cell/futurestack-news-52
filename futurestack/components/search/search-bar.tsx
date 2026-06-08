@@ -91,24 +91,24 @@ export function SearchBar() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="hidden md:flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors w-64"
+        className="hidden md:flex items-center gap-2 px-4 py-2 text-sm text-neutral-muted bg-neutral-elevated/80 hover:bg-neutral-elevated border border-neutral-stroke/60 rounded-input transition-colors duration-micro w-72"
       >
-        <span className="flex-1 text-left">Search DISCOVA...</span>
-        <kbd className="hidden sm:flex px-1.5 py-0.5 text-[10px] font-medium bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-500 dark:text-slate-400">
+        <span className="flex-1 text-left">Search software intelligence...</span>
+        <kbd className="hidden sm:flex px-1.5 py-0.5 text-[10px] font-medium bg-neutral-deep border border-neutral-stroke rounded text-neutral-dim">
           <span className="text-xs mr-0.5">⌘</span>K
         </kbd>
       </button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
-          placeholder="Search tools, blog posts, categories..."
+          placeholder="Search tools, categories, articles..."
           value={query}
           onValueChange={setQuery}
         />
         <CommandList>
           {loading && (
-            <div className="p-4 text-center text-sm text-slate-500">
-              Searching the intelligence engine...
+            <div className="p-6 text-center text-sm text-neutral-dim shimmer rounded-lg mx-2">
+              Searching...
             </div>
           )}
 
@@ -127,29 +127,30 @@ export function SearchBar() {
                     setOpen(false);
                     router.push(`/tools/${tool.slug}`);
                   }}
-                  className="flex items-center gap-3 py-3 cursor-pointer"
+                  className="flex items-center gap-4 py-4 px-3 cursor-pointer rounded-xl aria-selected:bg-neutral-elevated"
                 >
-                  <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                  <div className="w-14 h-10 rounded-lg bg-neutral-elevated border border-neutral-stroke flex items-center justify-center shrink-0 overflow-hidden">
                     {tool.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={tool.logo}
                         alt=""
-                        className="w-5 h-5 object-contain"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="text-xs font-bold">
+                      <div className="text-sm font-bold text-brand-lilac">
                         {tool.name.slice(0, 1)}
                       </div>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold">{tool.name}</div>
-                    <div className="text-xs text-slate-500 line-clamp-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground">{tool.name}</div>
+                    <div className="text-xs text-neutral-dim line-clamp-2 mt-0.5">
                       {tool.tagline}
                     </div>
                   </div>
                   {score != null && (
-                    <div className="shrink-0 text-xs font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded">
+                    <div className="shrink-0 text-xs font-semibold text-brand-cyan bg-brand-cyan/10 px-2.5 py-1 rounded-pill">
                       {score.toFixed(1)}
                     </div>
                   )}

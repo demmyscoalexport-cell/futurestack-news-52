@@ -1,29 +1,58 @@
 import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
+import { auth as clerkAuth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { config } from "@/lib/config";
 
-/**
- * For API route handlers — returns { ok: true } on success or
- * { error: NextResponse } with a 401/403 JSON payload on failure.
- *
- * Usage:
- *   const auth = await requireAdmin();
- *   if ("error" in auth) return auth.error;
- */
-export async function requireAdmin(): Promise<{ error: NextResponse } | { ok: true }> {
+async function getAdminProfile(
+  lookup: { clerkUserId: string } | { supabaseUserId: string },
+): Promise<{ role: string | null } | null> {
+  const supabase = createAdminClient();
+
+  if ("clerkUserId" in lookup) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("clerk_user_id", lookup.clerkUserId)
+      .maybeSingle();
+    return data;
+  }
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", lookup.supabaseUserId)
+    .maybeSingle();
+  return data;
+}
+
+export async function requireAdmin(): Promise<
+  { error: NextResponse } | { ok: true }
+> {
+  if (config.clerk.isConfigured) {
+    const { userId } = await clerkAuth();
+    if (!userId) {
+      return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+    }
+
+    const profile = await getAdminProfile({ clerkUserId: userId });
+    if (profile?.role !== "admin") {
+      return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+    }
+    return { ok: true };
+  }
+
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) {
     return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .single();
-
+  const profile = await getAdminProfile({ supabaseUserId: session.user.id });
   if (profile?.role !== "admin") {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
   }
@@ -31,24 +60,23 @@ export async function requireAdmin(): Promise<{ error: NextResponse } | { ok: tr
   return { ok: true };
 }
 
-/**
- * For Server Components — calls Next.js redirect() if the user is not
- * an authenticated admin. Safe to call at the top of any async page component.
- *
- * Usage:
- *   await checkAdminOrRedirect();
- */
 export async function checkAdminOrRedirect(): Promise<void> {
+  if (config.clerk.isConfigured) {
+    const { userId } = await clerkAuth();
+    if (!userId) redirect(config.clerk.signInUrl);
+
+    const profile = await getAdminProfile({ clerkUserId: userId });
+    if (profile?.role !== "admin") redirect("/");
+    return;
+  }
+
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (!session) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .single();
-
+  const profile = await getAdminProfile({ supabaseUserId: session.user.id });
   if (profile?.role !== "admin") redirect("/");
 }

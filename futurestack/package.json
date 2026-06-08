@@ -42,6 +42,7 @@
     "@ai-sdk/anthropic": "^3.0.69",
     "@ai-sdk/react": "^3.0.160",
     "@anthropic-ai/sdk": "^0.82.0",
+    "@clerk/nextjs": "^6.39.5",
     "@fal-ai/serverless-client": "^0.15.0",
     "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",

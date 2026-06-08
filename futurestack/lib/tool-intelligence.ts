@@ -133,13 +133,24 @@ export function getSubcategoryLabel(tool: ToolRecord): string {
 }
 
 export function getGallery(tool: ToolRecord): string[] {
-  return fieldList(tool, [
+  const fromList = fieldList(tool, [
     "screenshots",
     "gallery",
     "galleryImages",
     "screenshotGallery",
     "cloudinaryScreenshots",
   ]);
+  if (fromList.length > 0) return fromList;
+  const record = tool as Record<string, unknown>;
+  const raw = record.tool_gallery ?? record.galleryItems;
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (typeof item === "string") return [item];
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const url = fieldString(row, ["image_url", "imageUrl", "url"]);
+    return url ? [url] : [];
+  });
 }
 
 export function getHeroVisual(tool: ToolRecord): string {
@@ -254,14 +265,142 @@ export function getFaqs(tool: ToolRecord): ToolFaq[] {
   ];
 }
 
+export function getIsVerified(tool: ToolRecord): boolean {
+  return fieldBool(tool, ["is_verified", "verified", "isVerified"]);
+}
+
+export function getLastUpdated(tool: ToolRecord): string {
+  return fieldString(tool, ["last_updated", "lastUpdated", "updated_at", "updatedAt"]);
+}
+
+export function formatLastUpdated(tool: ToolRecord): string {
+  const raw = getLastUpdated(tool);
+  if (!raw) return "Recently tracked";
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return "Recently tracked";
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+export function getPlatforms(tool: ToolRecord): string[] {
+  const platforms = fieldList(tool, ["platforms", "supportedPlatforms"]);
+  if (platforms.length > 0) return platforms;
+  return ["Web"];
+}
+
+export function getPlatformsLabel(tool: ToolRecord): string {
+  return getPlatforms(tool).slice(0, 3).join(" · ");
+}
+
+export function getRating(tool: ToolRecord): number {
+  const record = tool as Record<string, unknown>;
+  const rating = record.rating ?? record.avg_rating;
+  return typeof rating === "number" ? rating : 0;
+}
+
+export function getReviewCount(tool: ToolRecord): number {
+  const record = tool as Record<string, unknown>;
+  const count = record.review_count ?? record.reviewCount;
+  return typeof count === "number" ? count : 0;
+}
+
+export function getAlternatives(tool: ToolRecord): ToolComparisonSeed[] {
+  const record = tool as Record<string, unknown>;
+  const raw = record.alternatives;
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const row = item as Record<string, unknown>;
+    const slug = fieldString(row, ["slug"]);
+    if (!slug) return [];
+    return [{
+      name: fieldString(row, ["name"], "Alternative"),
+      slug,
+      tagline: fieldString(row, ["tagline"]),
+      logo: fieldString(row, ["logo"]) || null,
+      pricing_model: fieldString(row, ["pricing_model"]),
+      has_free: fieldBool(row, ["has_free"]),
+    }];
+  });
+}
+
+export function getGalleryItems(tool: ToolRecord): string[] {
+  return getGallery(tool);
+}
+
+export function getHeroCarouselImages(tool: ToolRecord): string[] {
+  const hero = getHeroVisual(tool);
+  const gallery = getGalleryItems(tool);
+  const images = [hero, ...gallery].filter((url, index, arr) => Boolean(url) && arr.indexOf(url) === index);
+  return images.slice(0, 6);
+}
+
+export function getLongDescription(tool: ToolRecord): string {
+  const long = fieldString(tool, ["long_description", "longDescription"]);
+  if (long) return long;
+  return getToolDescription(tool);
+}
+
+export interface VerificationCheck {
+  id: string;
+  label: string;
+  passed: boolean;
+  detail?: string;
+}
+
+export function getVerificationChecks(tool: ToolRecord): VerificationCheck[] {
+  const name = getToolName(tool);
+  const website = getToolWebsite(tool);
+  const lastUpdated = getLastUpdated(tool);
+  const updatedAt = lastUpdated ? new Date(lastUpdated).getTime() : 0;
+  const hasRecentUpdate =
+    updatedAt > 0 && Date.now() - updatedAt < 365 * 24 * 60 * 60 * 1000;
+
+  return [
+    {
+      id: "website",
+      label: "Official website on file",
+      passed: Boolean(website),
+      detail: website ? "Tracked affiliate link available" : "No website URL recorded",
+    },
+    {
+      id: "verified",
+      label: "DISCOVA verified listing",
+      passed: getIsVerified(tool),
+      detail: getIsVerified(tool) ? `${name} passed editorial review` : "Pending verification",
+    },
+    {
+      id: "active",
+      label: "Active product status",
+      passed: fieldString(tool, ["status"], "active") === "active",
+      detail: "Listed as an active product",
+    },
+    {
+      id: "updated",
+      label: "Recently updated profile",
+      passed: hasRecentUpdate || Boolean(lastUpdated),
+      detail: `Last tracked ${formatLastUpdated(tool)}`,
+    },
+    {
+      id: "africa",
+      label: "Africa accessibility reviewed",
+      passed: fieldBool(tool, ["africa_friendly", "africaFriendly"]),
+      detail: fieldBool(tool, ["africa_friendly", "africaFriendly"])
+        ? "Marked Africa-friendly on DISCOVA"
+        : "Global availability profile",
+    },
+  ];
+}
+
 export function getInsightChips(tool: ToolRecord): string[] {
-  const chips = ["Verified"];
+  const chips: string[] = [];
+  if (getIsVerified(tool)) chips.push("Verified");
   chips.push(getPricingLabel(tool));
-  chips.push(fieldList(tool, ["platforms"]).length > 0 ? fieldList(tool, ["platforms"]).join(" + ") : "Web + Mobile");
+  chips.push(getPlatformsLabel(tool));
   if (fieldBool(tool, ["is_featured", "featured"])) chips.push("Featured");
   if (fieldBool(tool, ["is_new"])) chips.push("Trending");
-  chips.push("AI Summary Available");
-  return chips.slice(0, 6);
+  const rating = getRating(tool);
+  if (rating > 0) chips.push(`${rating.toFixed(1)} ★`);
+  return chips.slice(0, 5);
 }
 
 export function getAiSummaries(tool: ToolRecord): { short: string; medium: string; deep: string } {
@@ -277,6 +416,17 @@ export function getAiSummaries(tool: ToolRecord): { short: string; medium: strin
 
 export function getLongDescriptionSections(tool: ToolRecord): Array<{ title: string; body: string }> {
   const name = getToolName(tool);
+  const long = fieldString(tool, ["long_description", "longDescription"]);
+  if (long.length > 200) {
+    const paragraphs = long.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    if (paragraphs.length >= 2) {
+      return paragraphs.slice(0, 4).map((body, index) => ({
+        title: index === 0 ? `About ${name}` : `${name} in depth`,
+        body,
+      }));
+    }
+    return [{ title: `About ${name}`, body: long }];
+  }
   const description = getToolDescription(tool);
   return [
     { title: `What ${name} does`, body: description },

@@ -12,9 +12,11 @@ import {
   TrendingUp, Wifi, Smartphone, DollarSign,
   Star, ArrowRight, Zap, Globe, Users, Sparkles,
 } from "lucide-react";
+import { ToolProfileCard } from "@/components/cards/tool-profile-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Tool } from "@/lib/types";
+import type { ToolRecord } from "@/lib/tool-intelligence";
 import { buildToolsSearchUrl, parseSmartSearch } from "@/lib/smart-search";
 
 interface DiscoverClientProps {
@@ -131,41 +133,6 @@ function getToolsForSection(tools: Tool[], section: string, search: string): Too
   }
 }
 
-function ToolCard({ tool }: { tool: Tool }) {
-  return (
-    <Link
-      href={`/tools/${tool.slug}`}
-      className="group flex gap-3 rounded-discova-lg border border-neutral-stroke/60 bg-neutral-surface/80 p-3.5 hover:border-brand-primary/40 hover:shadow-[0_8px_32px_rgba(124,102,255,0.12)] card-lift transition-all"
-    >
-      <div className="shrink-0">
-        {tool.logo ? (
-          <img src={tool.logo} alt={tool.name} className="h-10 w-10 rounded-xl object-contain bg-secondary/60 p-1" />
-        ) : (
-          <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">{tool.name[0]}</span>
-          </div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors truncate">{tool.name}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{tool.tagline || tool.shortDescription || "AI-powered tool"}</p>
-        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] bg-secondary/60 text-muted-foreground px-1.5 py-0.5 rounded">
-            {tool.pricing_model === "free" ? "Free" : tool.pricing_model === "freemium" ? "Freemium" : tool.has_free ? "Free plan" : "Paid"}
-          </span>
-          <div className="flex items-center gap-0.5">
-            <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
-            <span className="text-[10px] text-muted-foreground">{tool.rating ? Number(tool.rating).toFixed(1) : "4.5"}</span>
-          </div>
-          {(tool.africa_friendly || tool.africaFriendly) && (
-            <span className="text-[10px] bg-emerald-500/15 text-emerald-400 px-1.5 py-0.5 rounded">🌍 Africa Ready</span>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 const VALID_SECTIONS = new Set(DISCOVERY_SECTIONS.map((s) => s.id));
 
 export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
@@ -252,9 +219,9 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
               />
 
               {sectionTools.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                <div className="grid grid-cols-1 gap-6 mb-8 xl:grid-cols-2">
                   {sectionTools.map((tool) => (
-                    <ToolCard key={tool.id} tool={tool} />
+                    <ToolProfileCard key={tool.id} tool={tool as ToolRecord} />
                   ))}
                 </div>
               ) : (
@@ -293,7 +260,7 @@ export function DiscoverClient({ tools, initialSection }: DiscoverClientProps) {
                       </div>
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {previewTools.map((tool) => (
-                          <ToolCard key={tool.id + section.id} tool={tool} />
+                          <ToolProfileCard key={tool.id + section.id} tool={tool as ToolRecord} />
                         ))}
                       </div>
                     </div>

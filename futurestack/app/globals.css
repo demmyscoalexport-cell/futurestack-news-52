@@ -49,19 +49,19 @@
   --foreground: var(--color-neutral-white);
   --card: var(--color-neutral-glass-dark);
   --card-foreground: var(--color-neutral-white);
-  --popover: var(--color-neutral-glass-dark);
+  --popover: var(--color-neutral-elevated);
   --popover-foreground: var(--color-neutral-white);
   --primary: var(--color-brand-primary-iris);
   --primary-foreground: var(--color-neutral-white);
-  --secondary: #1a1824;
+  --secondary: var(--color-neutral-secondary-bg);
   --secondary-foreground: var(--color-neutral-white);
-  --muted: #1a1824;
+  --muted: var(--color-neutral-elevated);
   --muted-foreground: var(--color-neutral-dim-gray);
-  --accent: var(--color-brand-gold-accent);
+  --accent: var(--color-brand-cyan-accent);
   --accent-foreground: var(--color-neutral-deep-space);
-  --success: oklch(0.70 0.2 145);
+  --success: var(--color-success);
   --success-foreground: var(--color-neutral-white);
-  --destructive: oklch(0.55 0.22 25);
+  --destructive: var(--color-error);
   --destructive-foreground: var(--color-neutral-white);
   --border: var(--color-neutral-stroke-gray);
   --input: var(--color-neutral-stroke-gray);
@@ -82,17 +82,21 @@
 }
 
 @theme inline {
-  --font-sans: "Inter", "Geist", "Geist Fallback", system-ui, sans-serif;
-  --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
-  --font-heading: var(--font-plus-jakarta), "Plus Jakarta Sans", Inter, sans-serif;
+  --font-sans: var(--font-body);
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-heading: var(--font-heading);
   --color-brand-primary: var(--color-brand-primary-iris);
   --color-brand-lilac: var(--color-brand-soft-lilac);
-  --color-brand-gold: var(--color-brand-gold-accent);
+  --color-brand-cyan: var(--color-brand-cyan-accent);
+  --color-brand-gold: var(--color-brand-cyan-accent);
   --color-neutral-deep: var(--color-neutral-deep-space);
+  --color-neutral-secondary: var(--color-neutral-secondary-bg);
   --color-neutral-surface: var(--color-neutral-glass-dark);
+  --color-neutral-elevated: var(--color-neutral-elevated);
   --color-neutral-stroke: var(--color-neutral-stroke-gray);
   --color-neutral-white: var(--color-neutral-white);
   --color-neutral-dim: var(--color-neutral-dim-gray);
+  --color-neutral-muted: var(--color-neutral-text-secondary);
   --radius-discova-lg: 16px;
   --radius-input: 12px;
   --radius-pill: 999px;
@@ -148,12 +152,13 @@
   }
 }
 
-/* Night Orchid gradient text (hero-title token) */
+/* Vision 3.0 gradient text */
 .gradient-text {
   background: linear-gradient(
     135deg,
     var(--color-brand-primary-iris) 0%,
-    var(--color-brand-soft-lilac) 100%
+    var(--color-brand-soft-lilac) 50%,
+    var(--color-brand-cyan-accent) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -163,37 +168,46 @@
 .dark .gradient-text {
   background: linear-gradient(
     135deg,
-    var(--color-neutral-white) 0%,
-    var(--color-brand-soft-lilac) 100%
+    #ffffff 0%,
+    var(--color-brand-soft-lilac) 45%,
+    var(--color-brand-cyan-accent) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Subtle radial glow for hero */
+/* Subtle radial glow — mature, not neon */
 .hero-glow {
   background: radial-gradient(
-    ellipse 80% 50% at 50% -20%,
-    color-mix(in srgb, var(--color-brand-primary-iris) 18%, transparent),
-    transparent
+    ellipse 70% 45% at 50% -15%,
+    color-mix(in srgb, var(--color-brand-primary-iris) 12%, transparent),
+    transparent 70%
   );
 }
 
-/* Night Orchid — glass & motion utilities */
+/* Vision 3.0 glass surface */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--color-glass-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--color-neutral-white) 6%, transparent);
 }
 
 .card-lift {
   transform: translateY(0);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition:
+    transform var(--motion-micro) ease,
+    box-shadow var(--motion-micro) ease,
+    border-color var(--motion-micro) ease;
 }
 
 .card-lift:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+}
+
+.btn-press:active {
+  transform: scale(0.98);
 }
 
 .scrollbar-hide {
