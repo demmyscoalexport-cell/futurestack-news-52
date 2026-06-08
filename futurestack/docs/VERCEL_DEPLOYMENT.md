@@ -97,7 +97,33 @@ Fix in Vercel:
 
 If GitHub Actions Vercel secrets are configured, the deploy workflow also attempts to attach these domains automatically after each production deploy.
 
-## 6. GitHub Actions deployment secrets
+## 6. Copy env from discova-ai-platform → futurestack-news-52
+
+Production secrets currently live on **`discova-ai-platform`**. Copy them to the canonical **`futurestack-news-52`** project before switching domains or disabling the duplicate project.
+
+**Option A — local (fastest if you have a Vercel token):**
+
+```bash
+cd futurestack
+export VERCEL_TOKEN=your_token_from_vercel_account_tokens
+npm run vercel:copy-env
+```
+
+Dry run (list only):
+
+```bash
+npm run vercel:copy-env -- --dry-run
+```
+
+**Option B — GitHub Actions:**
+
+1. Ensure repository secret `VERCEL_TOKEN` is set (same token used for deploy).
+2. Actions → **Copy Vercel env (discova → futurestack)** → **Run workflow**.
+3. Use dry run first if you want to preview keys without writing.
+
+The script copies all non-system variables (production, preview, development, and branch-scoped preview vars) with `upsert=true`, so re-running is safe.
+
+## 7. GitHub Actions deployment secrets
 
 The workflow always runs lint, typecheck, and build on `main`. Optional Vercel CLI deploy steps run only when these repository secrets exist:
 
@@ -116,7 +142,7 @@ NEXT_PUBLIC_SITE_URL=
 
 `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` allow `vercel pull`, `vercel build`, and `vercel deploy` to run non-interactively in CI.
 
-## 7. Why deployments were failing
+## 8. Why deployments were failing
 
 The likely deployment blockers were:
 
@@ -129,7 +155,7 @@ The likely deployment blockers were:
 7. The deploy workflow used `secrets.*` inside step `if` conditions, which GitHub Actions rejects at parse time. Use repository variables such as `ENABLE_DEPLOY_NOTIFICATIONS=true` for optional notification steps instead.
 8. `getdiscova.com` can return Vercel `NOT_FOUND` when DNS still points to Vercel but the domain is not attached to the active project. The deploy workflow now attempts to attach `getdiscova.com` and `www.getdiscova.com` after each production deploy.
 
-## 8. What now protects deployments
+## 9. What now protects deployments
 
 - `npm ci` is used for deterministic installs.
 - `npm run vercel:build` runs `scripts/vercel-preflight.mjs` before `next build`.
@@ -143,7 +169,7 @@ The likely deployment blockers were:
 - Production deploy runs only after checks pass.
 - GitHub Actions deploy job passes `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` to the Vercel CLI.
 
-## 9. Local verification command
+## 10. Local verification command
 
 From `futurestack`:
 
@@ -157,7 +183,7 @@ npm run vercel:build
 
 For a real production confidence check, replace dummy values with real Vercel/Supabase values.
 
-## 10. After deploy
+## 11. After deploy
 
 Open:
 
