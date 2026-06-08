@@ -150,7 +150,7 @@ export function SearchBar() {
                     </div>
                   </div>
                   {score != null && (
-                    <div className="shrink-0 text-xs font-semibold text-brand-cyan bg-brand-cyan/10 px-2.5 py-1 rounded-pill">
+                    <div className="shrink-0 text-xs font-semibold text-brand-gold bg-brand-gold/10 px-2.5 py-1 rounded-pill">
                       {score.toFixed(1)}
                     </div>
                   )}

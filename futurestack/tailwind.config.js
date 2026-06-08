@@ -2,18 +2,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'brand-primary': '#7c3aed',
-        'brand-lilac': '#8b5cf6',
-        'brand-cyan': '#06b6d4',
-        'brand-gold': '#06b6d4',
-        'neutral-deep': '#0a0a0b',
-        'neutral-secondary': '#111214',
-        'neutral-surface': '#181a1f',
-        'neutral-elevated': '#1e2128',
-        'neutral-stroke': '#2a2d35',
+        'brand-primary': '#7c66ff',
+        'brand-lilac': '#c0b3ff',
+        'brand-gold': '#f3c344',
+        'neutral-deep': '#06030e',
+        'neutral-secondary': '#1a1824',
+        'neutral-surface': '#12111a',
+        'neutral-elevated': '#1a1824',
+        'neutral-stroke': '#23212d',
         'neutral-white': '#ffffff',
-        'neutral-dim': '#8a91a5',
-        'neutral-muted': '#b8bcc8',
+        'neutral-dim': '#8b8a91',
+        'neutral-muted': '#8b8a91',
       },
       borderRadius: {
         'discova-lg': '16px',
@@ -21,9 +20,9 @@ module.exports = {
         pill: '999px',
       },
       fontFamily: {
-        heading: ['Satoshi', 'Inter', 'sans-serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        heading: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'Geist', 'system-ui', 'sans-serif'],
+        mono: ['Geist Mono', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         'display-xl': ['4rem', { lineHeight: '1.05', letterSpacing: '-0.03em' }],
